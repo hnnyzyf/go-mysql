@@ -1,0 +1,5189 @@
+
+state 0
+	$accept: .Start $end 
+
+	SELECT  shift 8
+	'('  shift 7
+	.  error
+
+	SelectStmt  goto 2
+	select_no_parens  goto 3
+	select_with_parens  goto 4
+	simple_select  goto 5
+	select_clause  goto 6
+	Start  goto 1
+
+state 1
+	$accept:  Start.$end 
+
+	$end  accept
+	.  error
+
+
+state 2
+	Start:  SelectStmt.    (1)
+
+	.  reduce 1 (src line 105)
+
+
+state 3
+	SelectStmt:  select_no_parens.    (2)
+
+	.  reduce 2 (src line 112)
+
+
+state 4
+	SelectStmt:  select_with_parens.    (3)
+	select_clause:  select_with_parens.    (11)
+
+	$end  reduce 3 (src line 114)
+	.  reduce 11 (src line 137)
+
+
+state 5
+	select_no_parens:  simple_select.    (6)
+	select_clause:  simple_select.    (10)
+
+	$end  reduce 6 (src line 123)
+	')'  reduce 6 (src line 123)
+	.  reduce 10 (src line 135)
+
+
+state 6
+	select_no_parens:  select_clause.sort_clause 
+	select_no_parens:  select_clause.opt_sort_clause for_locking_clause opt_select_limit 
+	select_no_parens:  select_clause.opt_sort_clause select_limit opt_for_locking_clause 
+	simple_select:  select_clause.UNION all_or_distinct select_clause 
+	simple_select:  select_clause.INTERSECT all_or_distinct select_clause 
+	simple_select:  select_clause.EXCEPT all_or_distinct select_clause 
+	opt_sort_clause: .    (52)
+
+	ORDER  shift 14
+	UNION  shift 11
+	EXCEPT  shift 13
+	INTERSECT  shift 12
+	.  reduce 52 (src line 300)
+
+	opt_sort_clause  goto 10
+	sort_clause  goto 9
+
+state 7
+	select_with_parens:  '('.select_no_parens ')' 
+	select_with_parens:  '('.select_with_parens ')' 
+
+	SELECT  shift 8
+	'('  shift 7
+	.  error
+
+	select_no_parens  goto 15
+	select_with_parens  goto 16
+	simple_select  goto 5
+	select_clause  goto 6
+
+state 8
+	simple_select:  SELECT.opt_target_list into_clause from_clause where_clause group_clause having_clause 
+	simple_select:  SELECT.distinct_clause target_list into_clause from_clause where_clause group_clause having_clause 
+	opt_target_list: .    (22)
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	DISTINCT  shift 20
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	'*'  shift 23
+	.  reduce 22 (src line 187)
+
+	opt_target_list  goto 17
+	target_list  goto 19
+	target_el  goto 21
+	ColLabel  goto 33
+	a_expr  goto 22
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+	distinct_clause  goto 18
+
+state 9
+	select_no_parens:  select_clause sort_clause.    (7)
+	opt_sort_clause:  sort_clause.    (51)
+
+	$end  reduce 7 (src line 125)
+	')'  reduce 7 (src line 125)
+	.  reduce 51 (src line 298)
+
+
+state 10
+	select_no_parens:  select_clause opt_sort_clause.for_locking_clause opt_select_limit 
+	select_no_parens:  select_clause opt_sort_clause.select_limit opt_for_locking_clause 
+
+	FOR  shift 41
+	LIMIT  shift 44
+	OFFSET  shift 45
+	.  error
+
+	for_locking_clause  goto 39
+	select_limit  goto 40
+	limit_clause  goto 42
+	offset_clause  goto 43
+
+state 11
+	simple_select:  select_clause UNION.all_or_distinct select_clause 
+	all_or_distinct: .    (20)
+
+	ALL  shift 47
+	DISTINCT  shift 48
+	.  reduce 20 (src line 175)
+
+	all_or_distinct  goto 46
+
+state 12
+	simple_select:  select_clause INTERSECT.all_or_distinct select_clause 
+	all_or_distinct: .    (20)
+
+	ALL  shift 47
+	DISTINCT  shift 48
+	.  reduce 20 (src line 175)
+
+	all_or_distinct  goto 49
+
+state 13
+	simple_select:  select_clause EXCEPT.all_or_distinct select_clause 
+	all_or_distinct: .    (20)
+
+	ALL  shift 47
+	DISTINCT  shift 48
+	.  reduce 20 (src line 175)
+
+	all_or_distinct  goto 50
+
+state 14
+	sort_clause:  ORDER.BY sortby_list 
+
+	BY  shift 51
+	.  error
+
+
+state 15
+	select_with_parens:  '(' select_no_parens.')' 
+
+	')'  shift 52
+	.  error
+
+
+state 16
+	select_with_parens:  '(' select_with_parens.')' 
+	select_clause:  select_with_parens.    (11)
+
+	')'  shift 53
+	.  reduce 11 (src line 137)
+
+
+state 17
+	simple_select:  SELECT opt_target_list.into_clause from_clause where_clause group_clause having_clause 
+	into_clause: .    (33)
+
+	INTO  shift 55
+	.  reduce 33 (src line 226)
+
+	into_clause  goto 54
+
+state 18
+	simple_select:  SELECT distinct_clause.target_list into_clause from_clause where_clause group_clause having_clause 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	'*'  shift 23
+	.  error
+
+	target_list  goto 56
+	target_el  goto 21
+	ColLabel  goto 33
+	a_expr  goto 22
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 19
+	opt_target_list:  target_list.    (21)
+	target_list:  target_list.',' target_el 
+
+	','  shift 57
+	.  reduce 21 (src line 185)
+
+
+state 20
+	distinct_clause:  DISTINCT.    (17)
+
+	.  reduce 17 (src line 168)
+
+
+state 21
+	target_list:  target_el.    (23)
+
+	.  reduce 23 (src line 189)
+
+
+state 22
+	target_el:  a_expr.opt_alias_clause 
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+	opt_alias_clause: .    (28)
+
+	IDENT  shift 84
+	AS  shift 82
+	OR  shift 74
+	AND  shift 73
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 28 (src line 208)
+
+	opt_alias_clause  goto 58
+	alias_clause  goto 81
+	ColLabel  goto 83
+	subquery_op  goto 80
+
+state 23
+	target_el:  '*'.    (26)
+
+	.  reduce 26 (src line 196)
+
+
+state 24
+	a_expr:  c_expr.    (89)
+
+	.  reduce 89 (src line 429)
+
+
+state 25
+	a_expr:  NOT.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 85
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 26
+	c_expr:  STRING.    (145)
+
+	.  reduce 145 (src line 489)
+
+
+state 27
+	c_expr:  NUMBER.    (146)
+
+	.  reduce 146 (src line 491)
+
+
+state 28
+	c_expr:  '('.a_expr ')' 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 86
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 29
+	c_expr:  EXISTS.select_with_parens 
+
+	'('  shift 7
+	.  error
+
+	select_with_parens  goto 87
+
+state 30
+	c_expr:  func_expr.    (149)
+
+	.  reduce 149 (src line 494)
+
+
+state 31
+	c_expr:  columnref.    (150)
+
+	.  reduce 150 (src line 495)
+
+
+state 32
+	func_expr:  func_name.'(' ')' 
+	func_expr:  func_name.'(' func_arg_list ')' 
+
+	'('  shift 88
+	.  error
+
+
+state 33
+	columnref:  ColLabel.    (151)
+	columnref:  ColLabel.indirection 
+
+	'.'  shift 91
+	.  reduce 151 (src line 505)
+
+	indirection  goto 89
+	indirection_el  goto 90
+
+state 34
+	ColLabel:  IDENT.    (31)
+	func_name:  IDENT.    (173)
+
+	'('  reduce 173 (src line 569)
+	.  reduce 31 (src line 214)
+
+
+state 35
+	func_name:  unreserved_keyword.    (174)
+
+	.  reduce 174 (src line 571)
+
+
+state 36
+	unreserved_keyword:  SUM.    (178)
+
+	.  reduce 178 (src line 586)
+
+
+state 37
+	unreserved_keyword:  AVG.    (179)
+
+	.  reduce 179 (src line 588)
+
+
+state 38
+	unreserved_keyword:  COUNT.    (180)
+
+	.  reduce 180 (src line 589)
+
+
+state 39
+	select_no_parens:  select_clause opt_sort_clause for_locking_clause.opt_select_limit 
+	opt_select_limit: .    (79)
+
+	LIMIT  shift 44
+	OFFSET  shift 45
+	.  reduce 79 (src line 394)
+
+	opt_select_limit  goto 92
+	select_limit  goto 93
+	limit_clause  goto 42
+	offset_clause  goto 43
+
+state 40
+	select_no_parens:  select_clause opt_sort_clause select_limit.opt_for_locking_clause 
+	opt_for_locking_clause: .    (75)
+
+	FOR  shift 41
+	.  reduce 75 (src line 379)
+
+	opt_for_locking_clause  goto 94
+	for_locking_clause  goto 95
+
+state 41
+	for_locking_clause:  FOR.UPDATE $$76 FOR SHARE 
+
+	UPDATE  shift 96
+	.  error
+
+
+state 42
+	select_limit:  limit_clause.offset_clause 
+	select_limit:  limit_clause.    (82)
+
+	OFFSET  shift 45
+	.  reduce 82 (src line 400)
+
+	offset_clause  goto 97
+
+state 43
+	select_limit:  offset_clause.limit_clause 
+	select_limit:  offset_clause.    (83)
+
+	LIMIT  shift 44
+	.  reduce 83 (src line 401)
+
+	limit_clause  goto 98
+
+state 44
+	limit_clause:  LIMIT.select_limit_value 
+	limit_clause:  LIMIT.select_limit_value ',' select_offset_value 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 100
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+	select_limit_value  goto 99
+
+state 45
+	offset_clause:  OFFSET.select_offset_value 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 102
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+	select_offset_value  goto 101
+
+state 46
+	simple_select:  select_clause UNION all_or_distinct.select_clause 
+
+	SELECT  shift 8
+	'('  shift 7
+	.  error
+
+	select_with_parens  goto 105
+	simple_select  goto 104
+	select_clause  goto 103
+
+state 47
+	all_or_distinct:  ALL.    (18)
+
+	.  reduce 18 (src line 172)
+
+
+state 48
+	all_or_distinct:  DISTINCT.    (19)
+
+	.  reduce 19 (src line 174)
+
+
+state 49
+	simple_select:  select_clause INTERSECT all_or_distinct.select_clause 
+
+	SELECT  shift 8
+	'('  shift 7
+	.  error
+
+	select_with_parens  goto 105
+	simple_select  goto 104
+	select_clause  goto 106
+
+state 50
+	simple_select:  select_clause EXCEPT all_or_distinct.select_clause 
+
+	SELECT  shift 8
+	'('  shift 7
+	.  error
+
+	select_with_parens  goto 105
+	simple_select  goto 104
+	select_clause  goto 107
+
+state 51
+	sort_clause:  ORDER BY.sortby_list 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 110
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+	sortby_list  goto 108
+	sortby  goto 109
+
+state 52
+	select_with_parens:  '(' select_no_parens ')'.    (4)
+
+	.  reduce 4 (src line 118)
+
+
+state 53
+	select_with_parens:  '(' select_with_parens ')'.    (5)
+
+	.  reduce 5 (src line 120)
+
+
+state 54
+	simple_select:  SELECT opt_target_list into_clause.from_clause where_clause group_clause having_clause 
+	from_clause: .    (35)
+
+	FROM  shift 112
+	.  reduce 35 (src line 236)
+
+	from_clause  goto 111
+
+state 55
+	into_clause:  INTO.ColLabel 
+
+	IDENT  shift 84
+	.  error
+
+	ColLabel  goto 113
+
+state 56
+	simple_select:  SELECT distinct_clause target_list.into_clause from_clause where_clause group_clause having_clause 
+	target_list:  target_list.',' target_el 
+	into_clause: .    (33)
+
+	INTO  shift 55
+	','  shift 57
+	.  reduce 33 (src line 226)
+
+	into_clause  goto 114
+
+state 57
+	target_list:  target_list ','.target_el 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	'*'  shift 23
+	.  error
+
+	target_el  goto 115
+	ColLabel  goto 33
+	a_expr  goto 22
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 58
+	target_el:  a_expr opt_alias_clause.    (25)
+
+	.  reduce 25 (src line 194)
+
+
+state 59
+	a_expr:  a_expr '+'.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 116
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 60
+	a_expr:  a_expr '-'.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 117
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 61
+	a_expr:  a_expr '*'.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 118
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 62
+	a_expr:  a_expr '/'.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 119
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 63
+	a_expr:  a_expr '%'.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 120
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 64
+	a_expr:  a_expr '^'.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 121
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 65
+	a_expr:  a_expr '<'.a_expr 
+	subquery_op:  '<'.    (161)
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  reduce 161 (src line 544)
+
+	ColLabel  goto 33
+	a_expr  goto 122
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 66
+	a_expr:  a_expr '>'.a_expr 
+	subquery_op:  '>'.    (162)
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  reduce 162 (src line 546)
+
+	ColLabel  goto 33
+	a_expr  goto 123
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 67
+	a_expr:  a_expr '='.a_expr 
+	subquery_op:  '='.    (163)
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  reduce 163 (src line 547)
+
+	ColLabel  goto 33
+	a_expr  goto 124
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 68
+	a_expr:  a_expr LNE.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 125
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 69
+	a_expr:  a_expr NE.a_expr 
+	subquery_op:  NE.    (167)
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  reduce 167 (src line 551)
+
+	ColLabel  goto 33
+	a_expr  goto 126
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 70
+	a_expr:  a_expr IE.a_expr 
+	subquery_op:  IE.    (164)
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  reduce 164 (src line 548)
+
+	ColLabel  goto 33
+	a_expr  goto 127
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 71
+	a_expr:  a_expr LE.a_expr 
+	subquery_op:  LE.    (166)
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  reduce 166 (src line 550)
+
+	ColLabel  goto 33
+	a_expr  goto 128
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 72
+	a_expr:  a_expr GE.a_expr 
+	subquery_op:  GE.    (165)
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  reduce 165 (src line 549)
+
+	ColLabel  goto 33
+	a_expr  goto 129
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 73
+	a_expr:  a_expr AND.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 130
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 74
+	a_expr:  a_expr OR.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 131
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 75
+	a_expr:  a_expr LIKE.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 132
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 76
+	a_expr:  a_expr NOT.LIKE a_expr 
+	a_expr:  a_expr NOT.IS TRUE 
+	a_expr:  a_expr NOT.IS FALSE 
+	a_expr:  a_expr NOT.IN in_expr 
+
+	IS  shift 134
+	LIKE  shift 133
+	IN  shift 135
+	.  error
+
+
+state 77
+	a_expr:  a_expr IS.NULL 
+	a_expr:  a_expr IS.NOT NULL 
+	a_expr:  a_expr IS.TRUE 
+	a_expr:  a_expr IS.FALSE 
+
+	FALSE  shift 139
+	NULL  shift 136
+	TRUE  shift 138
+	NOT  shift 137
+	.  error
+
+
+state 78
+	a_expr:  a_expr BETWEEN.b_expr AND a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 140
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 79
+	a_expr:  a_expr IN.in_expr 
+
+	'('  shift 145
+	.  error
+
+	select_with_parens  goto 144
+	in_expr  goto 143
+
+state 80
+	a_expr:  a_expr subquery_op.subquery_type select_with_parens 
+	a_expr:  a_expr subquery_op.subquery_type '(' a_expr ')' 
+
+	ALL  shift 149
+	ANY  shift 148
+	SOME  shift 147
+	.  error
+
+	subquery_type  goto 146
+
+state 81
+	opt_alias_clause:  alias_clause.    (27)
+
+	.  reduce 27 (src line 206)
+
+
+state 82
+	alias_clause:  AS.ColLabel 
+
+	IDENT  shift 84
+	.  error
+
+	ColLabel  goto 150
+
+state 83
+	alias_clause:  ColLabel.    (30)
+
+	.  reduce 30 (src line 212)
+
+
+state 84
+	ColLabel:  IDENT.    (31)
+
+	.  reduce 31 (src line 214)
+
+
+state 85
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  NOT a_expr.    (106)
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 106 (src line 447)
+
+	subquery_op  goto 80
+
+state 86
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+	c_expr:  '(' a_expr.')' 
+
+	OR  shift 74
+	AND  shift 73
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	')'  shift 151
+	.  error
+
+	subquery_op  goto 80
+
+state 87
+	c_expr:  EXISTS select_with_parens.    (148)
+
+	.  reduce 148 (src line 493)
+
+
+state 88
+	func_expr:  func_name '('.')' 
+	func_expr:  func_name '('.func_arg_list ')' 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	')'  shift 152
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 155
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	func_arg_list  goto 153
+	func_arg_expr  goto 154
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 89
+	columnref:  ColLabel indirection.    (152)
+	indirection:  indirection.indirection_el 
+
+	'.'  shift 91
+	.  reduce 152 (src line 509)
+
+	indirection_el  goto 156
+
+state 90
+	indirection:  indirection_el.    (153)
+
+	.  reduce 153 (src line 514)
+
+
+state 91
+	indirection_el:  '.'.ColLabel 
+	indirection_el:  '.'.'*' 
+
+	IDENT  shift 84
+	'*'  shift 158
+	.  error
+
+	ColLabel  goto 157
+
+state 92
+	select_no_parens:  select_clause opt_sort_clause for_locking_clause opt_select_limit.    (8)
+
+	.  reduce 8 (src line 126)
+
+
+state 93
+	opt_select_limit:  select_limit.    (78)
+
+	.  reduce 78 (src line 392)
+
+
+state 94
+	select_no_parens:  select_clause opt_sort_clause select_limit opt_for_locking_clause.    (9)
+
+	.  reduce 9 (src line 130)
+
+
+state 95
+	opt_for_locking_clause:  for_locking_clause.    (74)
+
+	.  reduce 74 (src line 377)
+
+
+state 96
+	for_locking_clause:  FOR UPDATE.$$76 FOR SHARE 
+	$$76: .    (76)
+
+	.  reduce 76 (src line 381)
+
+	$$76  goto 159
+
+state 97
+	select_limit:  limit_clause offset_clause.    (80)
+
+	.  reduce 80 (src line 397)
+
+
+state 98
+	select_limit:  offset_clause limit_clause.    (81)
+
+	.  reduce 81 (src line 399)
+
+
+state 99
+	limit_clause:  LIMIT select_limit_value.    (84)
+	limit_clause:  LIMIT select_limit_value.',' select_offset_value 
+
+	','  shift 160
+	.  reduce 84 (src line 404)
+
+
+state 100
+	select_limit_value:  a_expr.    (86)
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	OR  shift 74
+	AND  shift 73
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 86 (src line 412)
+
+	subquery_op  goto 80
+
+state 101
+	offset_clause:  OFFSET select_offset_value.    (88)
+
+	.  reduce 88 (src line 419)
+
+
+state 102
+	select_offset_value:  a_expr.    (87)
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	OR  shift 74
+	AND  shift 73
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 87 (src line 415)
+
+	subquery_op  goto 80
+
+state 103
+	simple_select:  select_clause.UNION all_or_distinct select_clause 
+	simple_select:  select_clause UNION all_or_distinct select_clause.    (14)
+	simple_select:  select_clause.INTERSECT all_or_distinct select_clause 
+	simple_select:  select_clause.EXCEPT all_or_distinct select_clause 
+
+	INTERSECT  shift 12
+	.  reduce 14 (src line 149)
+
+
+state 104
+	select_clause:  simple_select.    (10)
+
+	.  reduce 10 (src line 135)
+
+
+state 105
+	select_clause:  select_with_parens.    (11)
+
+	.  reduce 11 (src line 137)
+
+
+state 106
+	simple_select:  select_clause.UNION all_or_distinct select_clause 
+	simple_select:  select_clause.INTERSECT all_or_distinct select_clause 
+	simple_select:  select_clause INTERSECT all_or_distinct select_clause.    (15)
+	simple_select:  select_clause.EXCEPT all_or_distinct select_clause 
+
+	.  reduce 15 (src line 153)
+
+
+state 107
+	simple_select:  select_clause.UNION all_or_distinct select_clause 
+	simple_select:  select_clause.INTERSECT all_or_distinct select_clause 
+	simple_select:  select_clause.EXCEPT all_or_distinct select_clause 
+	simple_select:  select_clause EXCEPT all_or_distinct select_clause.    (16)
+
+	INTERSECT  shift 12
+	.  reduce 16 (src line 157)
+
+
+state 108
+	sort_clause:  ORDER BY sortby_list.    (53)
+	sortby_list:  sortby_list.',' sortby 
+
+	','  shift 161
+	.  reduce 53 (src line 302)
+
+
+state 109
+	sortby_list:  sortby.    (54)
+
+	.  reduce 54 (src line 306)
+
+
+state 110
+	sortby:  a_expr.opt_asc_desc 
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+	opt_asc_desc: .    (59)
+
+	ASC  shift 163
+	DESC  shift 164
+	OR  shift 74
+	AND  shift 73
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 59 (src line 316)
+
+	subquery_op  goto 80
+	opt_asc_desc  goto 162
+
+state 111
+	simple_select:  SELECT opt_target_list into_clause from_clause.where_clause group_clause having_clause 
+	where_clause: .    (43)
+
+	WHERE  shift 166
+	.  reduce 43 (src line 258)
+
+	where_clause  goto 165
+
+state 112
+	from_clause:  FROM.from_list 
+
+	IDENT  shift 84
+	'('  shift 173
+	.  error
+
+	select_with_parens  goto 170
+	ColLabel  goto 33
+	columnref  goto 172
+	from_list  goto 167
+	table_ref  goto 168
+	relation_expr  goto 169
+	joined_table  goto 171
+
+state 113
+	into_clause:  INTO ColLabel.    (32)
+
+	.  reduce 32 (src line 224)
+
+
+state 114
+	simple_select:  SELECT distinct_clause target_list into_clause.from_clause where_clause group_clause having_clause 
+	from_clause: .    (35)
+
+	FROM  shift 112
+	.  reduce 35 (src line 236)
+
+	from_clause  goto 174
+
+state 115
+	target_list:  target_list ',' target_el.    (24)
+
+	.  reduce 24 (src line 191)
+
+
+state 116
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr '+' a_expr.    (90)
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 90 (src line 431)
+
+	subquery_op  goto 80
+
+state 117
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr '-' a_expr.    (91)
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 91 (src line 432)
+
+	subquery_op  goto 80
+
+state 118
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr '*' a_expr.    (92)
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'^'  shift 64
+	.  reduce 92 (src line 433)
+
+	subquery_op  goto 80
+
+state 119
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr '/' a_expr.    (93)
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'^'  shift 64
+	.  reduce 93 (src line 434)
+
+	subquery_op  goto 80
+
+state 120
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr '%' a_expr.    (94)
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'^'  shift 64
+	.  reduce 94 (src line 435)
+
+	subquery_op  goto 80
+
+state 121
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr '^' a_expr.    (95)
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	.  reduce 95 (src line 436)
+
+	subquery_op  goto 80
+
+state 122
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr '<' a_expr.    (96)
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 96 (src line 437)
+
+	subquery_op  goto 80
+
+state 123
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr '>' a_expr.    (97)
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 97 (src line 438)
+
+	subquery_op  goto 80
+
+state 124
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr '=' a_expr.    (98)
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 98 (src line 439)
+
+	subquery_op  goto 80
+
+state 125
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr LNE a_expr.    (99)
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 99 (src line 440)
+
+	subquery_op  goto 80
+
+state 126
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr NE a_expr.    (100)
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 100 (src line 441)
+
+	subquery_op  goto 80
+
+state 127
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr IE a_expr.    (101)
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 101 (src line 442)
+
+	subquery_op  goto 80
+
+state 128
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr LE a_expr.    (102)
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 102 (src line 443)
+
+	subquery_op  goto 80
+
+state 129
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr GE a_expr.    (103)
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 103 (src line 444)
+
+	subquery_op  goto 80
+
+state 130
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr AND a_expr.    (104)
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 104 (src line 445)
+
+	subquery_op  goto 80
+
+state 131
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr OR a_expr.    (105)
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	AND  shift 73
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 105 (src line 446)
+
+	subquery_op  goto 80
+
+state 132
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr LIKE a_expr.    (107)
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 107 (src line 448)
+
+	subquery_op  goto 80
+
+state 133
+	a_expr:  a_expr NOT LIKE.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 175
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 134
+	a_expr:  a_expr NOT IS.TRUE 
+	a_expr:  a_expr NOT IS.FALSE 
+
+	FALSE  shift 177
+	TRUE  shift 176
+	.  error
+
+
+state 135
+	a_expr:  a_expr NOT IN.in_expr 
+
+	'('  shift 145
+	.  error
+
+	select_with_parens  goto 144
+	in_expr  goto 178
+
+state 136
+	a_expr:  a_expr IS NULL.    (109)
+
+	.  reduce 109 (src line 450)
+
+
+state 137
+	a_expr:  a_expr IS NOT.NULL 
+
+	NULL  shift 179
+	.  error
+
+
+state 138
+	a_expr:  a_expr IS TRUE.    (111)
+
+	.  reduce 111 (src line 452)
+
+
+state 139
+	a_expr:  a_expr IS FALSE.    (113)
+
+	.  reduce 113 (src line 454)
+
+
+state 140
+	a_expr:  a_expr BETWEEN b_expr.AND a_expr 
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	OR  shift 195
+	AND  shift 180
+	NOT  shift 197
+	'='  shift 189
+	'<'  shift 187
+	'>'  shift 188
+	IS  shift 198
+	LIKE  shift 196
+	GE  shift 194
+	LE  shift 193
+	NE  shift 191
+	IE  shift 192
+	LNE  shift 190
+	'+'  shift 181
+	'-'  shift 182
+	'*'  shift 183
+	'/'  shift 184
+	'%'  shift 185
+	'^'  shift 186
+	.  error
+
+
+state 141
+	b_expr:  c_expr.    (120)
+
+	.  reduce 120 (src line 462)
+
+
+state 142
+	b_expr:  NOT.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 199
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 143
+	a_expr:  a_expr IN in_expr.    (116)
+
+	.  reduce 116 (src line 457)
+
+
+state 144
+	in_expr:  select_with_parens.    (157)
+
+	.  reduce 157 (src line 534)
+
+
+state 145
+	select_with_parens:  '('.select_no_parens ')' 
+	select_with_parens:  '('.select_with_parens ')' 
+	in_expr:  '('.expr_list ')' 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SELECT  shift 8
+	SUM  shift 36
+	'('  shift 201
+	NOT  shift 25
+	.  error
+
+	select_no_parens  goto 15
+	select_with_parens  goto 16
+	simple_select  goto 5
+	select_clause  goto 6
+	ColLabel  goto 33
+	a_expr  goto 202
+	c_expr  goto 24
+	expr_list  goto 200
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 146
+	a_expr:  a_expr subquery_op subquery_type.select_with_parens 
+	a_expr:  a_expr subquery_op subquery_type.'(' a_expr ')' 
+
+	'('  shift 204
+	.  error
+
+	select_with_parens  goto 203
+
+state 147
+	subquery_type:  SOME.    (168)
+
+	.  reduce 168 (src line 554)
+
+
+state 148
+	subquery_type:  ANY.    (169)
+
+	.  reduce 169 (src line 556)
+
+
+state 149
+	subquery_type:  ALL.    (170)
+
+	.  reduce 170 (src line 557)
+
+
+state 150
+	alias_clause:  AS ColLabel.    (29)
+
+	.  reduce 29 (src line 210)
+
+
+state 151
+	c_expr:  '(' a_expr ')'.    (147)
+
+	.  reduce 147 (src line 492)
+
+
+state 152
+	func_expr:  func_name '(' ')'.    (171)
+
+	.  reduce 171 (src line 565)
+
+
+state 153
+	func_expr:  func_name '(' func_arg_list.')' 
+	func_arg_list:  func_arg_list.',' func_arg_expr 
+
+	','  shift 206
+	')'  shift 205
+	.  error
+
+
+state 154
+	func_arg_list:  func_arg_expr.    (175)
+
+	.  reduce 175 (src line 574)
+
+
+state 155
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+	func_arg_expr:  a_expr.    (177)
+
+	OR  shift 74
+	AND  shift 73
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 177 (src line 581)
+
+	subquery_op  goto 80
+
+state 156
+	indirection:  indirection indirection_el.    (154)
+
+	.  reduce 154 (src line 516)
+
+
+state 157
+	indirection_el:  '.' ColLabel.    (155)
+
+	.  reduce 155 (src line 519)
+
+
+state 158
+	indirection_el:  '.' '*'.    (156)
+
+	.  reduce 156 (src line 524)
+
+
+state 159
+	for_locking_clause:  FOR UPDATE $$76.FOR SHARE 
+
+	FOR  shift 207
+	.  error
+
+
+state 160
+	limit_clause:  LIMIT select_limit_value ','.select_offset_value 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 102
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+	select_offset_value  goto 208
+
+state 161
+	sortby_list:  sortby_list ','.sortby 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 110
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+	sortby  goto 209
+
+state 162
+	sortby:  a_expr opt_asc_desc.    (56)
+
+	.  reduce 56 (src line 310)
+
+
+state 163
+	opt_asc_desc:  ASC.    (57)
+
+	.  reduce 57 (src line 314)
+
+
+state 164
+	opt_asc_desc:  DESC.    (58)
+
+	.  reduce 58 (src line 315)
+
+
+state 165
+	simple_select:  SELECT opt_target_list into_clause from_clause where_clause.group_clause having_clause 
+	group_clause: .    (45)
+
+	GROUP  shift 211
+	.  reduce 45 (src line 269)
+
+	group_clause  goto 210
+
+state 166
+	where_clause:  WHERE.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 212
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 167
+	from_clause:  FROM from_list.    (34)
+	from_list:  from_list.',' table_ref 
+
+	','  shift 213
+	.  reduce 34 (src line 234)
+
+
+state 168
+	from_list:  table_ref.    (36)
+	joined_table:  table_ref.CROSS JOIN table_ref 
+	joined_table:  table_ref.join_type JOIN table_ref join_qual 
+	joined_table:  table_ref.JOIN table_ref join_qual 
+	joined_table:  table_ref.NATURAL join_type JOIN table_ref 
+	joined_table:  table_ref.NATURAL JOIN table_ref 
+
+	JOIN  shift 216
+	LEFT  shift 218
+	RIGHT  shift 219
+	INNER  shift 220
+	CROSS  shift 214
+	NATURAL  shift 217
+	.  reduce 36 (src line 238)
+
+	join_type  goto 215
+
+state 169
+	table_ref:  relation_expr.opt_alias_clause 
+	opt_alias_clause: .    (28)
+
+	IDENT  shift 84
+	AS  shift 82
+	.  reduce 28 (src line 208)
+
+	opt_alias_clause  goto 221
+	alias_clause  goto 81
+	ColLabel  goto 83
+
+state 170
+	table_ref:  select_with_parens.alias_clause 
+
+	IDENT  shift 84
+	AS  shift 82
+	.  error
+
+	alias_clause  goto 222
+	ColLabel  goto 83
+
+state 171
+	table_ref:  joined_table.    (40)
+
+	.  reduce 40 (src line 245)
+
+
+state 172
+	relation_expr:  columnref.    (41)
+
+	.  reduce 41 (src line 247)
+
+
+state 173
+	select_with_parens:  '('.select_no_parens ')' 
+	select_with_parens:  '('.select_with_parens ')' 
+	joined_table:  '('.joined_table ')' 
+
+	IDENT  shift 84
+	SELECT  shift 8
+	'('  shift 173
+	.  error
+
+	select_no_parens  goto 15
+	select_with_parens  goto 223
+	simple_select  goto 5
+	select_clause  goto 6
+	ColLabel  goto 33
+	columnref  goto 172
+	table_ref  goto 225
+	relation_expr  goto 169
+	joined_table  goto 224
+
+state 174
+	simple_select:  SELECT distinct_clause target_list into_clause from_clause.where_clause group_clause having_clause 
+	where_clause: .    (43)
+
+	WHERE  shift 166
+	.  reduce 43 (src line 258)
+
+	where_clause  goto 226
+
+state 175
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr NOT LIKE a_expr.    (108)
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 108 (src line 449)
+
+	subquery_op  goto 80
+
+state 176
+	a_expr:  a_expr NOT IS TRUE.    (112)
+
+	.  reduce 112 (src line 453)
+
+
+state 177
+	a_expr:  a_expr NOT IS FALSE.    (114)
+
+	.  reduce 114 (src line 455)
+
+
+state 178
+	a_expr:  a_expr NOT IN in_expr.    (117)
+
+	.  reduce 117 (src line 458)
+
+
+state 179
+	a_expr:  a_expr IS NOT NULL.    (110)
+
+	.  reduce 110 (src line 451)
+
+
+state 180
+	a_expr:  a_expr BETWEEN b_expr AND.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 227
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 181
+	b_expr:  b_expr '+'.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 228
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 182
+	b_expr:  b_expr '-'.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 229
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 183
+	b_expr:  b_expr '*'.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 230
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 184
+	b_expr:  b_expr '/'.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 231
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 185
+	b_expr:  b_expr '%'.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 232
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 186
+	b_expr:  b_expr '^'.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 233
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 187
+	b_expr:  b_expr '<'.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 234
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 188
+	b_expr:  b_expr '>'.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 235
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 189
+	b_expr:  b_expr '='.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 236
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 190
+	b_expr:  b_expr LNE.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 237
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 191
+	b_expr:  b_expr NE.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 238
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 192
+	b_expr:  b_expr IE.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 239
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 193
+	b_expr:  b_expr LE.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 240
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 194
+	b_expr:  b_expr GE.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 241
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 195
+	b_expr:  b_expr OR.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 242
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 196
+	b_expr:  b_expr LIKE.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 243
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 197
+	b_expr:  b_expr NOT.LIKE b_expr 
+	b_expr:  b_expr NOT.IS TRUE 
+	b_expr:  b_expr NOT.IS FALSE 
+
+	IS  shift 245
+	LIKE  shift 244
+	.  error
+
+
+state 198
+	b_expr:  b_expr IS.NULL 
+	b_expr:  b_expr IS.NOT NULL 
+	b_expr:  b_expr IS.TRUE 
+	b_expr:  b_expr IS.FALSE 
+
+	FALSE  shift 249
+	NULL  shift 246
+	TRUE  shift 248
+	NOT  shift 247
+	.  error
+
+
+state 199
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  NOT b_expr.    (136)
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	NOT  shift 197
+	'='  shift 189
+	'<'  shift 187
+	'>'  shift 188
+	IS  shift 198
+	LIKE  shift 196
+	GE  shift 194
+	LE  shift 193
+	NE  shift 191
+	IE  shift 192
+	LNE  shift 190
+	'+'  shift 181
+	'-'  shift 182
+	'*'  shift 183
+	'/'  shift 184
+	'%'  shift 185
+	'^'  shift 186
+	.  reduce 136 (src line 479)
+
+
+state 200
+	in_expr:  '(' expr_list.')' 
+	expr_list:  expr_list.',' a_expr 
+
+	','  shift 251
+	')'  shift 250
+	.  error
+
+
+state 201
+	select_with_parens:  '('.select_no_parens ')' 
+	select_with_parens:  '('.select_with_parens ')' 
+	c_expr:  '('.a_expr ')' 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SELECT  shift 8
+	SUM  shift 36
+	'('  shift 201
+	NOT  shift 25
+	.  error
+
+	select_no_parens  goto 15
+	select_with_parens  goto 16
+	simple_select  goto 5
+	select_clause  goto 6
+	ColLabel  goto 33
+	a_expr  goto 86
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 202
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+	expr_list:  a_expr.    (159)
+
+	OR  shift 74
+	AND  shift 73
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 159 (src line 539)
+
+	subquery_op  goto 80
+
+state 203
+	a_expr:  a_expr subquery_op subquery_type select_with_parens.    (118)
+
+	.  reduce 118 (src line 459)
+
+
+state 204
+	select_with_parens:  '('.select_no_parens ')' 
+	select_with_parens:  '('.select_with_parens ')' 
+	a_expr:  a_expr subquery_op subquery_type '('.a_expr ')' 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SELECT  shift 8
+	SUM  shift 36
+	'('  shift 201
+	NOT  shift 25
+	.  error
+
+	select_no_parens  goto 15
+	select_with_parens  goto 16
+	simple_select  goto 5
+	select_clause  goto 6
+	ColLabel  goto 33
+	a_expr  goto 252
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 205
+	func_expr:  func_name '(' func_arg_list ')'.    (172)
+
+	.  reduce 172 (src line 567)
+
+
+state 206
+	func_arg_list:  func_arg_list ','.func_arg_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 155
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	func_arg_expr  goto 253
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 207
+	for_locking_clause:  FOR UPDATE $$76 FOR.SHARE 
+
+	SHARE  shift 254
+	.  error
+
+
+state 208
+	limit_clause:  LIMIT select_limit_value ',' select_offset_value.    (85)
+
+	.  reduce 85 (src line 407)
+
+
+state 209
+	sortby_list:  sortby_list ',' sortby.    (55)
+
+	.  reduce 55 (src line 308)
+
+
+state 210
+	simple_select:  SELECT opt_target_list into_clause from_clause where_clause group_clause.having_clause 
+	having_clause: .    (50)
+
+	HAVING  shift 256
+	.  reduce 50 (src line 289)
+
+	having_clause  goto 255
+
+state 211
+	group_clause:  GROUP.BY group_by_list 
+
+	BY  shift 257
+	.  error
+
+
+state 212
+	where_clause:  WHERE a_expr.    (42)
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	OR  shift 74
+	AND  shift 73
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 42 (src line 256)
+
+	subquery_op  goto 80
+
+state 213
+	from_list:  from_list ','.table_ref 
+
+	IDENT  shift 84
+	'('  shift 173
+	.  error
+
+	select_with_parens  goto 170
+	ColLabel  goto 33
+	columnref  goto 172
+	table_ref  goto 258
+	relation_expr  goto 169
+	joined_table  goto 171
+
+state 214
+	joined_table:  table_ref CROSS.JOIN table_ref 
+
+	JOIN  shift 259
+	.  error
+
+
+state 215
+	joined_table:  table_ref join_type.JOIN table_ref join_qual 
+
+	JOIN  shift 260
+	.  error
+
+
+state 216
+	joined_table:  table_ref JOIN.table_ref join_qual 
+
+	IDENT  shift 84
+	'('  shift 173
+	.  error
+
+	select_with_parens  goto 170
+	ColLabel  goto 33
+	columnref  goto 172
+	table_ref  goto 261
+	relation_expr  goto 169
+	joined_table  goto 171
+
+state 217
+	joined_table:  table_ref NATURAL.join_type JOIN table_ref 
+	joined_table:  table_ref NATURAL.JOIN table_ref 
+
+	JOIN  shift 263
+	LEFT  shift 218
+	RIGHT  shift 219
+	INNER  shift 220
+	.  error
+
+	join_type  goto 262
+
+state 218
+	join_type:  LEFT.    (66)
+
+	.  reduce 66 (src line 350)
+
+
+state 219
+	join_type:  RIGHT.    (67)
+
+	.  reduce 67 (src line 352)
+
+
+state 220
+	join_type:  INNER.    (68)
+
+	.  reduce 68 (src line 353)
+
+
+state 221
+	table_ref:  relation_expr opt_alias_clause.    (38)
+
+	.  reduce 38 (src line 242)
+
+
+state 222
+	table_ref:  select_with_parens alias_clause.    (39)
+
+	.  reduce 39 (src line 244)
+
+
+state 223
+	select_with_parens:  '(' select_with_parens.')' 
+	select_clause:  select_with_parens.    (11)
+	table_ref:  select_with_parens.alias_clause 
+
+	IDENT  shift 84
+	AS  shift 82
+	')'  shift 53
+	.  reduce 11 (src line 137)
+
+	alias_clause  goto 222
+	ColLabel  goto 83
+
+state 224
+	table_ref:  joined_table.    (40)
+	joined_table:  '(' joined_table.')' 
+
+	')'  shift 264
+	.  reduce 40 (src line 245)
+
+
+state 225
+	joined_table:  table_ref.CROSS JOIN table_ref 
+	joined_table:  table_ref.join_type JOIN table_ref join_qual 
+	joined_table:  table_ref.JOIN table_ref join_qual 
+	joined_table:  table_ref.NATURAL join_type JOIN table_ref 
+	joined_table:  table_ref.NATURAL JOIN table_ref 
+
+	JOIN  shift 216
+	LEFT  shift 218
+	RIGHT  shift 219
+	INNER  shift 220
+	CROSS  shift 214
+	NATURAL  shift 217
+	.  error
+
+	join_type  goto 215
+
+state 226
+	simple_select:  SELECT distinct_clause target_list into_clause from_clause where_clause.group_clause having_clause 
+	group_clause: .    (45)
+
+	GROUP  shift 211
+	.  reduce 45 (src line 269)
+
+	group_clause  goto 265
+
+state 227
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr BETWEEN b_expr AND a_expr.    (115)
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 115 (src line 456)
+
+	subquery_op  goto 80
+
+state 228
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr '+' b_expr.    (121)
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	'*'  shift 183
+	'/'  shift 184
+	'%'  shift 185
+	'^'  shift 186
+	.  reduce 121 (src line 464)
+
+
+state 229
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr '-' b_expr.    (122)
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	'*'  shift 183
+	'/'  shift 184
+	'%'  shift 185
+	'^'  shift 186
+	.  reduce 122 (src line 465)
+
+
+state 230
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr '*' b_expr.    (123)
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	'^'  shift 186
+	.  reduce 123 (src line 466)
+
+
+state 231
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr '/' b_expr.    (124)
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	'^'  shift 186
+	.  reduce 124 (src line 467)
+
+
+state 232
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr '%' b_expr.    (125)
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	'^'  shift 186
+	.  reduce 125 (src line 468)
+
+
+state 233
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr '^' b_expr.    (126)
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	.  reduce 126 (src line 469)
+
+
+state 234
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr '<' b_expr.    (127)
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	'+'  shift 181
+	'-'  shift 182
+	'*'  shift 183
+	'/'  shift 184
+	'%'  shift 185
+	'^'  shift 186
+	.  reduce 127 (src line 470)
+
+
+state 235
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr '>' b_expr.    (128)
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	'+'  shift 181
+	'-'  shift 182
+	'*'  shift 183
+	'/'  shift 184
+	'%'  shift 185
+	'^'  shift 186
+	.  reduce 128 (src line 471)
+
+
+state 236
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr '=' b_expr.    (129)
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	'+'  shift 181
+	'-'  shift 182
+	'*'  shift 183
+	'/'  shift 184
+	'%'  shift 185
+	'^'  shift 186
+	.  reduce 129 (src line 472)
+
+
+state 237
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr LNE b_expr.    (130)
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	'+'  shift 181
+	'-'  shift 182
+	'*'  shift 183
+	'/'  shift 184
+	'%'  shift 185
+	'^'  shift 186
+	.  reduce 130 (src line 473)
+
+
+state 238
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr NE b_expr.    (131)
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	'+'  shift 181
+	'-'  shift 182
+	'*'  shift 183
+	'/'  shift 184
+	'%'  shift 185
+	'^'  shift 186
+	.  reduce 131 (src line 474)
+
+
+state 239
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr IE b_expr.    (132)
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	'+'  shift 181
+	'-'  shift 182
+	'*'  shift 183
+	'/'  shift 184
+	'%'  shift 185
+	'^'  shift 186
+	.  reduce 132 (src line 475)
+
+
+state 240
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr LE b_expr.    (133)
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	'+'  shift 181
+	'-'  shift 182
+	'*'  shift 183
+	'/'  shift 184
+	'%'  shift 185
+	'^'  shift 186
+	.  reduce 133 (src line 476)
+
+
+state 241
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr GE b_expr.    (134)
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	'+'  shift 181
+	'-'  shift 182
+	'*'  shift 183
+	'/'  shift 184
+	'%'  shift 185
+	'^'  shift 186
+	.  reduce 134 (src line 477)
+
+
+state 242
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr OR b_expr.    (135)
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	NOT  shift 197
+	'='  shift 189
+	'<'  shift 187
+	'>'  shift 188
+	IS  shift 198
+	LIKE  shift 196
+	GE  shift 194
+	LE  shift 193
+	NE  shift 191
+	IE  shift 192
+	LNE  shift 190
+	'+'  shift 181
+	'-'  shift 182
+	'*'  shift 183
+	'/'  shift 184
+	'%'  shift 185
+	'^'  shift 186
+	.  reduce 135 (src line 478)
+
+
+state 243
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr LIKE b_expr.    (137)
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	'+'  shift 181
+	'-'  shift 182
+	'*'  shift 183
+	'/'  shift 184
+	'%'  shift 185
+	'^'  shift 186
+	.  reduce 137 (src line 480)
+
+
+state 244
+	b_expr:  b_expr NOT LIKE.b_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 142
+	.  error
+
+	ColLabel  goto 33
+	b_expr  goto 266
+	c_expr  goto 141
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 245
+	b_expr:  b_expr NOT IS.TRUE 
+	b_expr:  b_expr NOT IS.FALSE 
+
+	FALSE  shift 268
+	TRUE  shift 267
+	.  error
+
+
+state 246
+	b_expr:  b_expr IS NULL.    (139)
+
+	.  reduce 139 (src line 482)
+
+
+state 247
+	b_expr:  b_expr IS NOT.NULL 
+
+	NULL  shift 269
+	.  error
+
+
+state 248
+	b_expr:  b_expr IS TRUE.    (141)
+
+	.  reduce 141 (src line 484)
+
+
+state 249
+	b_expr:  b_expr IS FALSE.    (143)
+
+	.  reduce 143 (src line 486)
+
+
+state 250
+	in_expr:  '(' expr_list ')'.    (158)
+
+	.  reduce 158 (src line 536)
+
+
+state 251
+	expr_list:  expr_list ','.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 270
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 252
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+	a_expr:  a_expr subquery_op subquery_type '(' a_expr.')' 
+
+	OR  shift 74
+	AND  shift 73
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	')'  shift 271
+	.  error
+
+	subquery_op  goto 80
+
+state 253
+	func_arg_list:  func_arg_list ',' func_arg_expr.    (176)
+
+	.  reduce 176 (src line 576)
+
+
+state 254
+	for_locking_clause:  FOR UPDATE $$76 FOR SHARE.    (77)
+
+	.  reduce 77 (src line 383)
+
+
+state 255
+	simple_select:  SELECT opt_target_list into_clause from_clause where_clause group_clause having_clause.    (12)
+
+	.  reduce 12 (src line 140)
+
+
+state 256
+	having_clause:  HAVING.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 272
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 257
+	group_clause:  GROUP BY.group_by_list 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 275
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+	group_by_list  goto 273
+	group_by_item  goto 274
+
+state 258
+	from_list:  from_list ',' table_ref.    (37)
+	joined_table:  table_ref.CROSS JOIN table_ref 
+	joined_table:  table_ref.join_type JOIN table_ref join_qual 
+	joined_table:  table_ref.JOIN table_ref join_qual 
+	joined_table:  table_ref.NATURAL join_type JOIN table_ref 
+	joined_table:  table_ref.NATURAL JOIN table_ref 
+
+	JOIN  shift 216
+	LEFT  shift 218
+	RIGHT  shift 219
+	INNER  shift 220
+	CROSS  shift 214
+	NATURAL  shift 217
+	.  reduce 37 (src line 240)
+
+	join_type  goto 215
+
+state 259
+	joined_table:  table_ref CROSS JOIN.table_ref 
+
+	IDENT  shift 84
+	'('  shift 173
+	.  error
+
+	select_with_parens  goto 170
+	ColLabel  goto 33
+	columnref  goto 172
+	table_ref  goto 276
+	relation_expr  goto 169
+	joined_table  goto 171
+
+state 260
+	joined_table:  table_ref join_type JOIN.table_ref join_qual 
+
+	IDENT  shift 84
+	'('  shift 173
+	.  error
+
+	select_with_parens  goto 170
+	ColLabel  goto 33
+	columnref  goto 172
+	table_ref  goto 277
+	relation_expr  goto 169
+	joined_table  goto 171
+
+state 261
+	joined_table:  table_ref.CROSS JOIN table_ref 
+	joined_table:  table_ref.join_type JOIN table_ref join_qual 
+	joined_table:  table_ref.JOIN table_ref join_qual 
+	joined_table:  table_ref JOIN table_ref.join_qual 
+	joined_table:  table_ref.NATURAL join_type JOIN table_ref 
+	joined_table:  table_ref.NATURAL JOIN table_ref 
+
+	USING  shift 280
+	JOIN  shift 216
+	LEFT  shift 218
+	RIGHT  shift 219
+	INNER  shift 220
+	CROSS  shift 214
+	NATURAL  shift 217
+	ON  shift 279
+	.  error
+
+	join_type  goto 215
+	join_qual  goto 278
+
+state 262
+	joined_table:  table_ref NATURAL join_type.JOIN table_ref 
+
+	JOIN  shift 281
+	.  error
+
+
+state 263
+	joined_table:  table_ref NATURAL JOIN.table_ref 
+
+	IDENT  shift 84
+	'('  shift 173
+	.  error
+
+	select_with_parens  goto 170
+	ColLabel  goto 33
+	columnref  goto 172
+	table_ref  goto 282
+	relation_expr  goto 169
+	joined_table  goto 171
+
+state 264
+	joined_table:  '(' joined_table ')'.    (60)
+
+	.  reduce 60 (src line 324)
+
+
+state 265
+	simple_select:  SELECT distinct_clause target_list into_clause from_clause where_clause group_clause.having_clause 
+	having_clause: .    (50)
+
+	HAVING  shift 256
+	.  reduce 50 (src line 289)
+
+	having_clause  goto 283
+
+state 266
+	b_expr:  b_expr.'+' b_expr 
+	b_expr:  b_expr.'-' b_expr 
+	b_expr:  b_expr.'*' b_expr 
+	b_expr:  b_expr.'/' b_expr 
+	b_expr:  b_expr.'%' b_expr 
+	b_expr:  b_expr.'^' b_expr 
+	b_expr:  b_expr.'<' b_expr 
+	b_expr:  b_expr.'>' b_expr 
+	b_expr:  b_expr.'=' b_expr 
+	b_expr:  b_expr.LNE b_expr 
+	b_expr:  b_expr.NE b_expr 
+	b_expr:  b_expr.IE b_expr 
+	b_expr:  b_expr.LE b_expr 
+	b_expr:  b_expr.GE b_expr 
+	b_expr:  b_expr.OR b_expr 
+	b_expr:  b_expr.LIKE b_expr 
+	b_expr:  b_expr.NOT LIKE b_expr 
+	b_expr:  b_expr NOT LIKE b_expr.    (138)
+	b_expr:  b_expr.IS NULL 
+	b_expr:  b_expr.IS NOT NULL 
+	b_expr:  b_expr.IS TRUE 
+	b_expr:  b_expr.NOT IS TRUE 
+	b_expr:  b_expr.IS FALSE 
+	b_expr:  b_expr.NOT IS FALSE 
+
+	'+'  shift 181
+	'-'  shift 182
+	'*'  shift 183
+	'/'  shift 184
+	'%'  shift 185
+	'^'  shift 186
+	.  reduce 138 (src line 481)
+
+
+state 267
+	b_expr:  b_expr NOT IS TRUE.    (142)
+
+	.  reduce 142 (src line 485)
+
+
+state 268
+	b_expr:  b_expr NOT IS FALSE.    (144)
+
+	.  reduce 144 (src line 487)
+
+
+state 269
+	b_expr:  b_expr IS NOT NULL.    (140)
+
+	.  reduce 140 (src line 483)
+
+
+state 270
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+	expr_list:  expr_list ',' a_expr.    (160)
+
+	OR  shift 74
+	AND  shift 73
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 160 (src line 541)
+
+	subquery_op  goto 80
+
+state 271
+	a_expr:  a_expr subquery_op subquery_type '(' a_expr ')'.    (119)
+
+	.  reduce 119 (src line 460)
+
+
+state 272
+	having_clause:  HAVING a_expr.    (49)
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	OR  shift 74
+	AND  shift 73
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 49 (src line 287)
+
+	subquery_op  goto 80
+
+state 273
+	group_clause:  GROUP BY group_by_list.    (44)
+	group_by_list:  group_by_list.',' group_by_item 
+
+	','  shift 284
+	.  reduce 44 (src line 267)
+
+
+state 274
+	group_by_list:  group_by_item.    (46)
+
+	.  reduce 46 (src line 272)
+
+
+state 275
+	group_by_item:  a_expr.    (48)
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	OR  shift 74
+	AND  shift 73
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 48 (src line 277)
+
+	subquery_op  goto 80
+
+state 276
+	joined_table:  table_ref.CROSS JOIN table_ref 
+	joined_table:  table_ref CROSS JOIN table_ref.    (61)
+	joined_table:  table_ref.join_type JOIN table_ref join_qual 
+	joined_table:  table_ref.JOIN table_ref join_qual 
+	joined_table:  table_ref.NATURAL join_type JOIN table_ref 
+	joined_table:  table_ref.NATURAL JOIN table_ref 
+
+	.  reduce 61 (src line 329)
+
+	join_type  goto 215
+
+state 277
+	joined_table:  table_ref.CROSS JOIN table_ref 
+	joined_table:  table_ref.join_type JOIN table_ref join_qual 
+	joined_table:  table_ref join_type JOIN table_ref.join_qual 
+	joined_table:  table_ref.JOIN table_ref join_qual 
+	joined_table:  table_ref.NATURAL join_type JOIN table_ref 
+	joined_table:  table_ref.NATURAL JOIN table_ref 
+
+	USING  shift 280
+	JOIN  shift 216
+	LEFT  shift 218
+	RIGHT  shift 219
+	INNER  shift 220
+	CROSS  shift 214
+	NATURAL  shift 217
+	ON  shift 279
+	.  error
+
+	join_type  goto 215
+	join_qual  goto 285
+
+state 278
+	joined_table:  table_ref JOIN table_ref join_qual.    (63)
+
+	.  reduce 63 (src line 337)
+
+
+state 279
+	join_qual:  ON.a_expr 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 286
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+
+state 280
+	join_qual:  USING.'(' name_list ')' 
+
+	'('  shift 287
+	.  error
+
+
+state 281
+	joined_table:  table_ref NATURAL join_type JOIN.table_ref 
+
+	IDENT  shift 84
+	'('  shift 173
+	.  error
+
+	select_with_parens  goto 170
+	ColLabel  goto 33
+	columnref  goto 172
+	table_ref  goto 288
+	relation_expr  goto 169
+	joined_table  goto 171
+
+state 282
+	joined_table:  table_ref.CROSS JOIN table_ref 
+	joined_table:  table_ref.join_type JOIN table_ref join_qual 
+	joined_table:  table_ref.JOIN table_ref join_qual 
+	joined_table:  table_ref.NATURAL join_type JOIN table_ref 
+	joined_table:  table_ref.NATURAL JOIN table_ref 
+	joined_table:  table_ref NATURAL JOIN table_ref.    (65)
+
+	.  reduce 65 (src line 345)
+
+	join_type  goto 215
+
+state 283
+	simple_select:  SELECT distinct_clause target_list into_clause from_clause where_clause group_clause having_clause.    (13)
+
+	.  reduce 13 (src line 145)
+
+
+state 284
+	group_by_list:  group_by_list ','.group_by_item 
+
+	IDENT  shift 34
+	STRING  shift 26
+	NUMBER  shift 27
+	AVG  shift 37
+	COUNT  shift 38
+	EXISTS  shift 29
+	SUM  shift 36
+	'('  shift 28
+	NOT  shift 25
+	.  error
+
+	ColLabel  goto 33
+	a_expr  goto 275
+	c_expr  goto 24
+	func_expr  goto 30
+	func_name  goto 32
+	unreserved_keyword  goto 35
+	columnref  goto 31
+	group_by_item  goto 289
+
+state 285
+	joined_table:  table_ref join_type JOIN table_ref join_qual.    (62)
+
+	.  reduce 62 (src line 333)
+
+
+state 286
+	join_qual:  ON a_expr.    (69)
+	a_expr:  a_expr.'+' a_expr 
+	a_expr:  a_expr.'-' a_expr 
+	a_expr:  a_expr.'*' a_expr 
+	a_expr:  a_expr.'/' a_expr 
+	a_expr:  a_expr.'%' a_expr 
+	a_expr:  a_expr.'^' a_expr 
+	a_expr:  a_expr.'<' a_expr 
+	a_expr:  a_expr.'>' a_expr 
+	a_expr:  a_expr.'=' a_expr 
+	a_expr:  a_expr.LNE a_expr 
+	a_expr:  a_expr.NE a_expr 
+	a_expr:  a_expr.IE a_expr 
+	a_expr:  a_expr.LE a_expr 
+	a_expr:  a_expr.GE a_expr 
+	a_expr:  a_expr.AND a_expr 
+	a_expr:  a_expr.OR a_expr 
+	a_expr:  a_expr.LIKE a_expr 
+	a_expr:  a_expr.NOT LIKE a_expr 
+	a_expr:  a_expr.IS NULL 
+	a_expr:  a_expr.IS NOT NULL 
+	a_expr:  a_expr.IS TRUE 
+	a_expr:  a_expr.NOT IS TRUE 
+	a_expr:  a_expr.IS FALSE 
+	a_expr:  a_expr.NOT IS FALSE 
+	a_expr:  a_expr.BETWEEN b_expr AND a_expr 
+	a_expr:  a_expr.IN in_expr 
+	a_expr:  a_expr.NOT IN in_expr 
+	a_expr:  a_expr.subquery_op subquery_type select_with_parens 
+	a_expr:  a_expr.subquery_op subquery_type '(' a_expr ')' 
+
+	OR  shift 74
+	AND  shift 73
+	NOT  shift 76
+	BETWEEN  shift 78
+	'='  shift 67
+	'<'  shift 65
+	'>'  shift 66
+	IS  shift 77
+	LIKE  shift 75
+	IN  shift 79
+	GE  shift 72
+	LE  shift 71
+	NE  shift 69
+	IE  shift 70
+	LNE  shift 68
+	'+'  shift 59
+	'-'  shift 60
+	'*'  shift 61
+	'/'  shift 62
+	'%'  shift 63
+	'^'  shift 64
+	.  reduce 69 (src line 355)
+
+	subquery_op  goto 80
+
+state 287
+	join_qual:  USING '('.name_list ')' 
+
+	IDENT  shift 84
+	.  error
+
+	ColLabel  goto 292
+	name_list  goto 290
+	name  goto 291
+
+state 288
+	joined_table:  table_ref.CROSS JOIN table_ref 
+	joined_table:  table_ref.join_type JOIN table_ref join_qual 
+	joined_table:  table_ref.JOIN table_ref join_qual 
+	joined_table:  table_ref.NATURAL join_type JOIN table_ref 
+	joined_table:  table_ref NATURAL join_type JOIN table_ref.    (64)
+	joined_table:  table_ref.NATURAL JOIN table_ref 
+
+	.  reduce 64 (src line 341)
+
+	join_type  goto 215
+
+state 289
+	group_by_list:  group_by_list ',' group_by_item.    (47)
+
+	.  reduce 47 (src line 274)
+
+
+state 290
+	join_qual:  USING '(' name_list.')' 
+	name_list:  name_list.',' name 
+
+	','  shift 294
+	')'  shift 293
+	.  error
+
+
+state 291
+	name_list:  name.    (71)
+
+	.  reduce 71 (src line 360)
+
+
+state 292
+	name:  ColLabel.    (73)
+
+	.  reduce 73 (src line 364)
+
+
+state 293
+	join_qual:  USING '(' name_list ')'.    (70)
+
+	.  reduce 70 (src line 357)
+
+
+state 294
+	name_list:  name_list ','.name 
+
+	IDENT  shift 84
+	.  error
+
+	ColLabel  goto 292
+	name  goto 295
+
+state 295
+	name_list:  name_list ',' name.    (72)
+
+	.  reduce 72 (src line 362)
+
+
+86 terminals, 59 nonterminals
+181 grammar rules, 296/8000 states
+0 shift/reduce, 0 reduce/reduce conflicts reported
+108 working sets used
+memory: parser 863/120000
+276 extra closures
+1249 shift entries, 7 exceptions
+202 goto entries
+415 entries saved by goto default
+Optimizer space used: output 732/120000
+732 table entries, 141 zero
+maximum spread: 86, maximum offset: 294
