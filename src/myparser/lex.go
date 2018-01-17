@@ -13,7 +13,7 @@ func (token *Tokener) Lex(lval *yySymType) int {
 	//判断正确的类型
 	switch tok{
 		case NUMBER,IDENT,STRING:
-			lval.val=val
+			lval.value=val
 	}
 	return tok
 }
