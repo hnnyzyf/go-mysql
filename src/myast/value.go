@@ -200,8 +200,6 @@ func (e *FuncArgExpr) IsExprNode() {}
 //实现Node接口
 func (e *FuncArgExpr) Accept(v Visitor) { v.Walk(e) }
 
-
-
 /*****************************************************************************
  *
  *	when arg item for SELECT
@@ -210,8 +208,8 @@ func (e *FuncArgExpr) Accept(v Visitor) { v.Walk(e) }
 
 //实现
 type WhenExpr struct {
-	Ntype     NodeType
-	Left ExprNode
+	Ntype NodeType
+	Left  ExprNode
 	Right ExprNode
 }
 
@@ -226,11 +224,10 @@ func (e *WhenExpr) IsExprNode() {}
 //实现Node接口
 func (e *WhenExpr) Accept(v Visitor) { v.Walk(e) }
 
-
 //实现
 type ElseExpr struct {
-	Ntype     NodeType
-	Expr ExprNode
+	Ntype NodeType
+	Expr  ExprNode
 }
 
 //初始化函数

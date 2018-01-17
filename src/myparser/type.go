@@ -1,92 +1,91 @@
 package myparser
 
-
 var Keywords = map[string]int{
-	"all":           		ALL,
-	"and":           		AND,
-	"any":           		ANY,
-	"as":            		AS,
-	"asc":           		ASC,
+	"all": ALL,
+	"and": AND,
+	"any": ANY,
+	"as":  AS,
+	"asc": ASC,
 	//"avg":           		AVG,
-	"between":       		BETWEEN,
-	"by":            		BY,
-	"case":          		CASE,
+	"between": BETWEEN,
+	"by":      BY,
+	"case":    CASE,
 	//"count":         		COUNT,
-	"collate":				COLLATE,
-	"cross":         		CROSS,
-	"character":			CHARACTER,
-	"day":           		DAY,
-	"day_hour":      		DAY_HOUR,
-	"day_microsecond":		DAY_MICROSECOND,
-	"day_minute":    		DAY_MINUTE,
-	"day_second":    		DAY_SECOND,
-	"desc":          		DESC,
-	"distinct":      		DISTINCT,
-	"distinctrow":      	DISTINCTROW,
-	"end":					END,
-	"else":          		ELSE,
-	"except":        		EXCEPT,
-	"exists":        		EXISTS,
-	"false":         		FALSE,
-	"for":           		FOR,
-	"from":          		FROM,
-	"group":         		GROUP,
-	"having":        		HAVING,
-	"hour":          		HOUR,
-	"hour_microsecond":		HOUR_MICROSECOND,
-	"hour_minute":   		HOUR_MINUTE,
-	"hour_second":   		HOUR_SECOND,
-	"ident":         		IDENT,
-	"if":            		IF,
-	"in":            		IN,
-	"inner":         		INNER,
-	"intersect":     		INTERSECT,
-	"interval":      		INTERVAL,
-	"into":          		INTO,
-	"is":            		IS,
-	"join":          		JOIN,
-	"left":          		LEFT,
-	"like":          		LIKE,
-	"limit":         		LIMIT,
-	"lock":          		LOCK,
-	"microsecond":	 		MICROSECOND,
-	"minute":        		MINUTE,
-	"minute_microsecond":   MINUTE_MICROSECOND,
-	"minute_second": 		MINUTE_SECOND,
-	"mode":          		MODE,
-	"month":         		MONTH,
-	"natural":       		NATURAL,
-	"not":           		NOT,
-	"null":          		NULL,
-	"number":        		NUMBER,
-	"offset":        		OFFSET,
-	"on":            		ON,
-	"or":            		OR,
-	"order":         		ORDER,
-	"outer":         		OUTER,
-	"quarter":				QUARTER,
-	"right":         		RIGHT,
-	"second":        		SECOND,
-	"second_microsecond":   SECOND_MICROSECOND,
-	"set":					SET,
-	"select":        		SELECT,
-	"share":         		SHARE,
-	"some":          		SOME,
-	"straight_join": 		STRAIGHT_JOIN,
-	"string":        		STRING,
+	"collate":            COLLATE,
+	"cross":              CROSS,
+	"character":          CHARACTER,
+	"day":                DAY,
+	"day_hour":           DAY_HOUR,
+	"day_microsecond":    DAY_MICROSECOND,
+	"day_minute":         DAY_MINUTE,
+	"day_second":         DAY_SECOND,
+	"desc":               DESC,
+	"distinct":           DISTINCT,
+	"distinctrow":        DISTINCTROW,
+	"end":                END,
+	"else":               ELSE,
+	"except":             EXCEPT,
+	"exists":             EXISTS,
+	"false":              FALSE,
+	"for":                FOR,
+	"from":               FROM,
+	"group":              GROUP,
+	"having":             HAVING,
+	"hour":               HOUR,
+	"hour_microsecond":   HOUR_MICROSECOND,
+	"hour_minute":        HOUR_MINUTE,
+	"hour_second":        HOUR_SECOND,
+	"ident":              IDENT,
+	"if":                 IF,
+	"in":                 IN,
+	"inner":              INNER,
+	"intersect":          INTERSECT,
+	"interval":           INTERVAL,
+	"into":               INTO,
+	"is":                 IS,
+	"join":               JOIN,
+	"left":               LEFT,
+	"like":               LIKE,
+	"limit":              LIMIT,
+	"lock":               LOCK,
+	"microsecond":        MICROSECOND,
+	"minute":             MINUTE,
+	"minute_microsecond": MINUTE_MICROSECOND,
+	"minute_second":      MINUTE_SECOND,
+	"mode":               MODE,
+	"month":              MONTH,
+	"natural":            NATURAL,
+	"not":                NOT,
+	"null":               NULL,
+	"number":             NUMBER,
+	"offset":             OFFSET,
+	"on":                 ON,
+	"or":                 OR,
+	"order":              ORDER,
+	"outer":              OUTER,
+	"quarter":            QUARTER,
+	"right":              RIGHT,
+	"second":             SECOND,
+	"second_microsecond": SECOND_MICROSECOND,
+	"set":                SET,
+	"select":             SELECT,
+	"share":              SHARE,
+	"some":               SOME,
+	"straight_join":      STRAIGHT_JOIN,
+	"string":             STRING,
 	//"sum":           		SUM,
-	"then":          		THEN,
-	"to":            		TO,
-	"true":          		TRUE,
-	"union":         		UNION,
-	"update":        		UPDATE,
-	"use":           		USE,
-	"using":         		USING,
-	"when":          		WHEN,
-	"where":         		WHERE,
-	"week":					WEEK,
-	"year":          		YEAR,
-	"year_month":    		YEAR_MONTH,
+	"then":       THEN,
+	"to":         TO,
+	"true":       TRUE,
+	"union":      UNION,
+	"update":     UPDATE,
+	"use":        USE,
+	"using":      USING,
+	"when":       WHEN,
+	"where":      WHERE,
+	"week":       WEEK,
+	"year":       YEAR,
+	"year_month": YEAR_MONTH,
 }
 
 //判断是否是String类型的前缀
@@ -98,10 +97,10 @@ func IsStringPrefix(ch rune) bool {
 	}
 }
 
-func IsQuestion (ch rune) bool{
-	if ch =='?'{
+func IsQuestion(ch rune) bool {
+	if ch == '?' {
 		return true
-	}else{
+	} else {
 		return false
 	}
 }
@@ -142,8 +141,6 @@ func IsNumberPrefix(ch rune) bool {
 	}
 }
 
-
-
 //判断是否是带.开始的小数
 func IsDot(ch rune) bool {
 	if ch == '.' {
@@ -161,7 +158,6 @@ func IsDigit(ch rune) bool {
 		return false
 	}
 }
-
 
 //判断是否是十六进制
 func IsHex(ch rune) bool {
@@ -216,10 +212,10 @@ func IsIdentPrefix(ch rune) bool {
 	}
 }
 
-func IsIdentLetter(ch rune) bool{
-	if IsLetter(ch) || IsDigit(ch) || IsUnderLine(ch){
+func IsIdentLetter(ch rune) bool {
+	if IsLetter(ch) || IsDigit(ch) || IsUnderLine(ch) {
 		return true
-	}else{
+	} else {
 		return false
 	}
 }
@@ -264,7 +260,6 @@ func IsLogicalOP(ch rune) bool {
 		return false
 	}
 }
-
 
 func IsComment(ch rune) bool {
 	if ch == '/' {

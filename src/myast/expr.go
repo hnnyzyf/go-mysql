@@ -236,8 +236,6 @@ func (e *TimeExpr) IsExprNode() {}
 //实现Node接口
 func (e *TimeExpr) Accept(v Visitor) { v.Walk(e) }
 
-
-
 /*****************************************************************************
  *
  *	case_expr 类型表达式
@@ -245,11 +243,10 @@ func (e *TimeExpr) Accept(v Visitor) { v.Walk(e) }
  *****************************************************************************/
 type CaseExpr struct {
 	Ntype NodeType
-	Expr ExprNode
-	When List
-	Else ExprNode
+	Expr  ExprNode
+	When  List
+	Else  ExprNode
 }
-
 
 //初始化函数
 func NewCaseExpr(t NodeType) *CaseExpr {

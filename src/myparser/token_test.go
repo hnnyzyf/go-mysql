@@ -325,7 +325,6 @@ func Test_scan(t *testing.T) {
 		t.Error("comment测试失败了,位置是:", ty)
 	}
 
-
 	sql = " fsdgdfg "
 	mtoken = NewTokener(sql)
 	ty, str1 = mtoken.Scan()
@@ -337,7 +336,6 @@ func Test_scan(t *testing.T) {
 		t.Error("IDENT测试失败了,位置是:", str1)
 		t.Error("IDENT测试失败了,位置是:", ty)
 	}
-
 
 	sql = " ,fsdgdfg "
 	mtoken = NewTokener(sql)
@@ -355,7 +353,7 @@ func Test_scan(t *testing.T) {
 
 func Test_Scansql(t *testing.T) {
 	//sql := "SELECT -1.234,classno,classname,avg(score) as `avg_score 12321` From sc,(SELECT *.a FROM class WHERE class.gno='%grade one%') as sub WHERE sc.sno in (SELECT cno FROM student WHERE student.classno=sub.classno) and sc.sno in (SELECT course.cno FROM course WHERE  course.cname='computer') GROUP BY classno,classname HAVING avg(score)>60 ORDER BY avg_score"
-	sql:="SELECT count(1) from sub_settlement_record_43 where id in (select id from sub_settlement_record_43 where settlement_date >= '2018-01-16' and settlement_date <= '2018-01-16') and oper_type = 'P' and id not in (select a.id from sub_settlement_record_43 a join atom_sale_void_settlement_record b on a.settlement_date >= '2018-01-16' and a.settlement_date <= '2018-01-16' and a.unique_id = b.related_unique_id ) and matching_state in (0,1)"
+	sql := "SELECT count(1) from sub_settlement_record_43 where id in (select id from sub_settlement_record_43 where settlement_date >= '2018-01-16' and settlement_date <= '2018-01-16') and oper_type = 'P' and id not in (select a.id from sub_settlement_record_43 a join atom_sale_void_settlement_record b on a.settlement_date >= '2018-01-16' and a.settlement_date <= '2018-01-16' and a.unique_id = b.related_unique_id ) and matching_state in (0,1)"
 	//sql := "select 123.123"
 	mtoken := NewTokener(sql)
 	i := 0

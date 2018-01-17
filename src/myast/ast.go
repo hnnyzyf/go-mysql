@@ -32,7 +32,6 @@ type ExprNode interface {
 	IsExprNode()
 }
 
-
 //初始化一个list
 
 type NodeType int
@@ -111,7 +110,6 @@ const (
 	EXPR_CASE
 	EXPR_CASE_WHEN
 	EXPR_CASE_ELSE
-
 
 	VALUE_TARGET
 	VALUE_COLUMN

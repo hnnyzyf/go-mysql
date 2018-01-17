@@ -18,7 +18,6 @@ func Test_NewExpr(t *testing.T) {
 	e := NewSubQueryExpr()
 	t.Log("SubQueryExpr通过测试")
 
-
-	t.Log(a,b,c,d,e)
+	t.Log(a, b, c, d, e)
 
 }

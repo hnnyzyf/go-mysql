@@ -15,7 +15,7 @@ type Tokener struct {
 	Lastchar  rune
 	EOF       bool //输出语句结尾
 	LastError string
-	ASTree 	AST.SelectNode
+	ASTree    AST.SelectNode
 }
 
 func NewTokener(sql string) *Tokener {
@@ -94,7 +94,7 @@ func (token *Tokener) Scan() (int, string) {
 		return token.scanComment()
 	case IsQuestion(ch):
 		token.next()
-		return STRING,"?"
+		return STRING, "?"
 	default:
 		token.next()
 		return int(ch), string(ch)
@@ -158,9 +158,9 @@ func (token *Tokener) ScanDecimal() (int, string) {
 	if IsDigit(token.Lastchar) {
 		buffer.WriteRune(token.Lastchar)
 		token.next()
-	}else if IsDot(token.Lastchar){
+	} else if IsDot(token.Lastchar) {
 		return token.ScanDot()
-	}else{
+	} else {
 		return int('.'), buffer.String()
 	}
 
@@ -171,7 +171,6 @@ func (token *Tokener) ScanDecimal() (int, string) {
 
 	return NUMBER, buffer.String()
 }
-
 
 func (token *Tokener) ScanDot() (int, string) {
 	buffer := token.Buf
@@ -187,7 +186,6 @@ func (token *Tokener) ScanDot() (int, string) {
 
 	return STRING, buffer.String()
 }
-
 
 func (token *Tokener) ScanBackQuote() (int, string) {
 	buffer := token.Buf
@@ -238,10 +236,10 @@ func (token *Tokener) ScanHexAndBit() (int, string) {
 		quote = token.Lastchar
 		buffer.WriteRune(token.Lastchar)
 		token.next()
-	} else if IsIdentLetter(token.Lastchar){
+	} else if IsIdentLetter(token.Lastchar) {
 		return token.ScanIdent()
-	}else{
-		return IDENT,buffer.String()
+	} else {
+		return IDENT, buffer.String()
 	}
 
 	StringType := NUMBER
@@ -310,17 +308,16 @@ func (token *Tokener) ScanHexOrBit() (int, string) {
 		}
 	default:
 		//判断是否是数字
-		switch ch:=token.Lastchar;{
-			case IsDigit(ch):
-				return token.ScanNumber()
-			default:
-				return NUMBER,buffer.String()
+		switch ch := token.Lastchar; {
+		case IsDigit(ch):
+			return token.ScanNumber()
+		default:
+			return NUMBER, buffer.String()
 		}
 	}
 	return NUMBER, buffer.String()
 
 }
-
 
 //判断Hex和bit的另一种写法
 func (token *Tokener) ScanNumber() (int, string) {
@@ -341,7 +338,6 @@ func (token *Tokener) ScanNumber() (int, string) {
 	}
 
 }
-
 
 //判断Hex和bit的另一种写法
 func (token *Tokener) ScanLogicalOp() (int, string) {
@@ -418,7 +414,7 @@ func (token *Tokener) ScanIdent() (int, string) {
 	buffer.WriteRune(token.Lastchar)
 	token.next()
 
-	for token.EOF == false && IsIdentLetter(token.Lastchar){
+	for token.EOF == false && IsIdentLetter(token.Lastchar) {
 		buffer.WriteRune(token.Lastchar)
 		token.next()
 	}
@@ -431,8 +427,6 @@ func (token *Tokener) ScanIdent() (int, string) {
 		return IDENT, ident
 	}
 }
-
-
 
 func (token *Tokener) scanComment() (int, string) {
 	buffer := token.Buf
