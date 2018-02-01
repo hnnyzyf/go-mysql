@@ -791,6 +791,18 @@ literal:
   		    		expr.SetTag(ast.AST_VALUE_DOUBLE_QUOTA_STRING)
 			   		$$ = expr
 				}
+      |true_or_false
+        {
+            expr :=&ast.ValExpr{Symbol:0,Sval:$1}
+            switch $1{
+              case "TRUE":
+                 expr.SetTag(ast.AST_VALUE_TRUE)
+              case "FALSE":
+                 expr.SetTag(ast.AST_VALUE_FALSE)
+            }
+
+            $$ = expr
+        }
 
 identifier:
         	IDENT
