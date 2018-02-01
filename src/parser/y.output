@@ -1,0 +1,6312 @@
+
+state 0
+	$accept: .start $end 
+
+	SELECT  shift 8
+	'('  shift 7
+	.  error
+
+	select_clause  goto 6
+	select_no_parens  goto 3
+	select_stmt  goto 2
+	select_with_parens  goto 4
+	simple_select  goto 5
+	start  goto 1
+
+state 1
+	$accept:  start.$end 
+
+	$end  accept
+	.  error
+
+
+state 2
+	start:  select_stmt.    (1)
+
+	.  reduce 1 (src line 261)
+
+
+state 3
+	select_stmt:  select_no_parens.    (2)
+
+	.  reduce 2 (src line 275)
+
+
+state 4
+	select_stmt:  select_with_parens.    (3)
+	select_clause:  select_with_parens.    (11)
+
+	$end  reduce 3 (src line 277)
+	.  reduce 11 (src line 308)
+
+
+state 5
+	select_no_parens:  simple_select.    (6)
+	select_clause:  simple_select.    (10)
+
+	$end  reduce 6 (src line 290)
+	')'  reduce 6 (src line 290)
+	.  reduce 10 (src line 306)
+
+
+state 6
+	select_no_parens:  select_clause.sort_clause 
+	select_no_parens:  select_clause.opt_sort_clause for_locking_clause opt_select_limit 
+	select_no_parens:  select_clause.opt_sort_clause select_limit opt_for_locking_clause 
+	simple_select:  select_clause.UNION all_or_distinct select_clause 
+	simple_select:  select_clause.INTERSECT all_or_distinct select_clause 
+	simple_select:  select_clause.EXCEPT all_or_distinct select_clause 
+	opt_sort_clause: .    (244)
+
+	ORDER  shift 14
+	UNION  shift 11
+	EXCEPT  shift 13
+	INTERSECT  shift 12
+	.  reduce 244 (src line 1566)
+
+	opt_sort_clause  goto 10
+	sort_clause  goto 9
+
+state 7
+	select_with_parens:  '('.select_no_parens ')' 
+	select_with_parens:  '('.select_with_parens ')' 
+
+	SELECT  shift 8
+	'('  shift 7
+	.  error
+
+	select_clause  goto 6
+	select_no_parens  goto 15
+	select_with_parens  goto 16
+	simple_select  goto 5
+
+state 8
+	simple_select:  SELECT.opt_target_list into_clause from_clause where_clause group_clause having_clause 
+	simple_select:  SELECT.distinct_clause target_list into_clause from_clause where_clause group_clause having_clause 
+	opt_target_list: .    (102)
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	DISTINCT  shift 22
+	DISTINCTROW  shift 23
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'*'  shift 25
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  reduce 102 (src line 1028)
+
+	distinct_clause  goto 18
+	select_with_parens  goto 41
+	identifier  goto 50
+	opt_distinct  goto 20
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 24
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	target_el  goto 21
+	variable  goto 33
+	opt_target_list  goto 17
+	target_list  goto 19
+
+state 9
+	select_no_parens:  select_clause sort_clause.    (7)
+	opt_sort_clause:  sort_clause.    (243)
+
+	$end  reduce 7 (src line 295)
+	')'  reduce 7 (src line 295)
+	.  reduce 243 (src line 1561)
+
+
+state 10
+	select_no_parens:  select_clause opt_sort_clause.for_locking_clause opt_select_limit 
+	select_no_parens:  select_clause opt_sort_clause.select_limit opt_for_locking_clause 
+
+	FOR  shift 64
+	LIMIT  shift 68
+	LOCK  shift 65
+	OFFSET  shift 69
+	.  error
+
+	for_locking_clause  goto 62
+	select_limit  goto 63
+	offset_expr  goto 67
+	limit_list  goto 66
+
+state 11
+	simple_select:  select_clause UNION.all_or_distinct select_clause 
+	all_or_distinct: .    (194)
+
+	ALL  shift 71
+	DISTINCT  shift 22
+	DISTINCTROW  shift 23
+	.  reduce 194 (src line 1213)
+
+	all_or_distinct  goto 70
+	opt_distinct  goto 72
+
+state 12
+	simple_select:  select_clause INTERSECT.all_or_distinct select_clause 
+	all_or_distinct: .    (194)
+
+	ALL  shift 71
+	DISTINCT  shift 22
+	DISTINCTROW  shift 23
+	.  reduce 194 (src line 1213)
+
+	all_or_distinct  goto 73
+	opt_distinct  goto 72
+
+state 13
+	simple_select:  select_clause EXCEPT.all_or_distinct select_clause 
+	all_or_distinct: .    (194)
+
+	ALL  shift 71
+	DISTINCT  shift 22
+	DISTINCTROW  shift 23
+	.  reduce 194 (src line 1213)
+
+	all_or_distinct  goto 74
+	opt_distinct  goto 72
+
+state 14
+	sort_clause:  ORDER.BY sortby_list 
+
+	BY  shift 75
+	.  error
+
+
+state 15
+	select_with_parens:  '(' select_no_parens.')' 
+
+	')'  shift 76
+	.  error
+
+
+state 16
+	select_with_parens:  '(' select_with_parens.')' 
+	select_clause:  select_with_parens.    (11)
+
+	')'  shift 77
+	.  reduce 11 (src line 308)
+
+
+state 17
+	simple_select:  SELECT opt_target_list.into_clause from_clause where_clause group_clause having_clause 
+	into_clause: .    (198)
+
+	INTO  shift 79
+	.  reduce 198 (src line 1238)
+
+	into_clause  goto 78
+
+state 18
+	simple_select:  SELECT distinct_clause.target_list into_clause from_clause where_clause group_clause having_clause 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'*'  shift 25
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 24
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	target_el  goto 21
+	variable  goto 33
+	target_list  goto 80
+
+state 19
+	opt_target_list:  target_list.    (101)
+	target_list:  target_list.',' target_el 
+
+	','  shift 81
+	.  reduce 101 (src line 1023)
+
+
+state 20
+	distinct_clause:  opt_distinct.    (191)
+
+	.  reduce 191 (src line 1188)
+
+
+state 21
+	target_list:  target_el.    (103)
+
+	.  reduce 103 (src line 1033)
+
+
+state 22
+	opt_distinct:  DISTINCT.    (195)
+
+	.  reduce 195 (src line 1217)
+
+
+state 23
+	opt_distinct:  DISTINCTROW.    (196)
+
+	.  reduce 196 (src line 1222)
+
+
+state 24
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	target_el:  expr.opt_alias 
+	opt_alias: .    (108)
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 93
+	SINGLE_QUOTA_STRING  shift 94
+	STRING  shift 92
+	AS  shift 89
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 108 (src line 1074)
+
+	alias  goto 88
+	alias_name  goto 90
+	identifier  goto 91
+	opt_alias  goto 87
+
+state 25
+	target_el:  '*'.    (106)
+
+	.  reduce 106 (src line 1064)
+
+
+state 26
+	expr:  NOT.expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 95
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 27
+	expr:  boolean_primary.is_or_not true_or_false 
+	expr:  boolean_primary.    (24)
+	boolean_primary:  boolean_primary.is_or_not NULL 
+	boolean_primary:  boolean_primary.LEG predicate 
+	boolean_primary:  boolean_primary.comparison_operator predicate 
+	boolean_primary:  boolean_primary.comparison_operator subquery_type select_with_parens 
+
+	IS  shift 99
+	'='  shift 100
+	'<'  shift 104
+	'>'  shift 102
+	GE  shift 101
+	LE  shift 103
+	LG  shift 105
+	LNE  shift 106
+	LEG  shift 97
+	.  reduce 24 (src line 445)
+
+	comparison_operator  goto 98
+	is_or_not  goto 96
+
+state 28
+	boolean_primary:  predicate.    (29)
+
+	.  reduce 29 (src line 503)
+
+
+state 29
+	predicate:  bit_expr.opt_not IN select_with_parens 
+	predicate:  bit_expr.opt_not IN '(' expr_list ')' 
+	predicate:  bit_expr.opt_not BETWEEN bit_expr AND predicate 
+	predicate:  bit_expr.SOUNDS LIKE bit_expr 
+	predicate:  bit_expr.opt_not LIKE simple_expr 
+	predicate:  bit_expr.opt_not REGEXP bit_expr 
+	predicate:  bit_expr.    (36)
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+	opt_not: .    (130)
+
+	SOUNDS  shift 108
+	NOT  shift 121
+	BETWEEN  reduce 130 (src line 1113)
+	LIKE  reduce 130 (src line 1113)
+	REGEXP  reduce 130 (src line 1113)
+	IN  reduce 130 (src line 1113)
+	SL  shift 111
+	SR  shift 112
+	'|'  shift 109
+	'&'  shift 110
+	'+'  shift 113
+	'-'  shift 114
+	'*'  shift 115
+	'/'  shift 116
+	'%'  shift 119
+	DIV  shift 117
+	MOD  shift 118
+	'^'  shift 120
+	.  reduce 36 (src line 573)
+
+	opt_not  goto 107
+
+state 30
+	bit_expr:  simple_expr.    (51)
+	simple_expr:  simple_expr.COLLATE collation_name 
+	simple_expr:  simple_expr.OO simple_expr 
+
+	OO  shift 123
+	COLLATE  shift 122
+	.  reduce 51 (src line 664)
+
+
+state 31
+	simple_expr:  literal.    (52)
+
+	.  reduce 52 (src line 669)
+
+
+state 32
+	simple_expr:  column_ref.    (53)
+
+	.  reduce 53 (src line 677)
+
+
+state 33
+	simple_expr:  variable.    (54)
+
+	.  reduce 54 (src line 682)
+
+
+state 34
+	simple_expr:  func_expr.    (55)
+
+	.  reduce 55 (src line 686)
+
+
+state 35
+	simple_expr:  marker.    (57)
+
+	.  reduce 57 (src line 702)
+
+
+state 36
+	simple_expr:  '+'.simple_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 124
+	variable  goto 33
+
+state 37
+	simple_expr:  '-'.simple_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 125
+	variable  goto 33
+
+state 38
+	simple_expr:  '~'.simple_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 126
+	variable  goto 33
+
+state 39
+	simple_expr:  '!'.simple_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 127
+	variable  goto 33
+
+state 40
+	select_with_parens:  '('.select_no_parens ')' 
+	select_with_parens:  '('.select_with_parens ')' 
+	simple_expr:  '('.expr ')' 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SELECT  shift 8
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_clause  goto 6
+	select_no_parens  goto 15
+	select_with_parens  goto 128
+	simple_select  goto 5
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 129
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 41
+	simple_expr:  select_with_parens.    (64)
+
+	.  reduce 64 (src line 740)
+
+
+state 42
+	simple_expr:  EXISTS.select_with_parens 
+
+	'('  shift 7
+	.  error
+
+	select_with_parens  goto 130
+
+state 43
+	simple_expr:  case_expr.    (66)
+
+	.  reduce 66 (src line 752)
+
+
+state 44
+	literal:  BIT_NUMBER.    (67)
+
+	.  reduce 67 (src line 757)
+
+
+state 45
+	literal:  HEX_NUMBER.    (68)
+
+	.  reduce 68 (src line 764)
+
+
+state 46
+	literal:  NUMBER.    (69)
+
+	.  reduce 69 (src line 770)
+
+
+state 47
+	literal:  STRING.    (70)
+
+	.  reduce 70 (src line 776)
+
+
+state 48
+	literal:  SINGLE_QUOTA_STRING.    (71)
+
+	.  reduce 71 (src line 782)
+
+
+state 49
+	literal:  DOUBLE_QUOTA_STRING.    (72)
+
+	.  reduce 72 (src line 788)
+
+
+state 50
+	column_ref:  identifier.    (77)
+	column_ref:  identifier.'.' identifier 
+	column_ref:  identifier.'.' identifier '.' identifier 
+	func_expr:  identifier.'(' expr_list ')' 
+
+	'('  shift 132
+	'.'  shift 131
+	.  reduce 77 (src line 823)
+
+
+state 51
+	variable:  SINGLE_AT_IDENT.    (74)
+
+	.  reduce 74 (src line 802)
+
+
+state 52
+	variable:  DOUBLE_AT_IDENT.    (75)
+	variable:  DOUBLE_AT_IDENT.'.' identifier 
+
+	'.'  shift 133
+	.  reduce 75 (src line 809)
+
+
+state 53
+	func_expr:  agg_expr.    (81)
+
+	.  reduce 81 (src line 851)
+
+
+state 54
+	marker:  PARAM_MARKER.    (92)
+
+	.  reduce 92 (src line 960)
+
+
+state 55
+	case_expr:  CASE.case_arg when_list else_arg END 
+	case_arg: .    (95)
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  reduce 95 (src line 983)
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_arg  goto 134
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 135
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 56
+	identifier:  IDENT.    (73)
+
+	.  reduce 73 (src line 795)
+
+
+state 57
+	agg_expr:  AVG.'(' all_or_distinct expr ')' 
+
+	'('  shift 136
+	.  error
+
+
+state 58
+	agg_expr:  COUNT.'(' opt_distinct expr_list ')' 
+	agg_expr:  COUNT.'(' ALL expr ')' 
+	agg_expr:  COUNT.'(' expr ')' 
+	agg_expr:  COUNT.'(' '*' ')' 
+
+	'('  shift 137
+	.  error
+
+
+state 59
+	agg_expr:  MAX.'(' all_or_distinct expr ')' 
+
+	'('  shift 138
+	.  error
+
+
+state 60
+	agg_expr:  MIN.'(' all_or_distinct expr ')' 
+
+	'('  shift 139
+	.  error
+
+
+state 61
+	agg_expr:  SUM.'(' all_or_distinct expr ')' 
+
+	'('  shift 140
+	.  error
+
+
+state 62
+	select_no_parens:  select_clause opt_sort_clause for_locking_clause.opt_select_limit 
+	opt_select_limit: .    (257)
+
+	LIMIT  shift 68
+	OFFSET  shift 69
+	.  reduce 257 (src line 1645)
+
+	opt_select_limit  goto 141
+	select_limit  goto 142
+	offset_expr  goto 67
+	limit_list  goto 66
+
+state 63
+	select_no_parens:  select_clause opt_sort_clause select_limit.opt_for_locking_clause 
+	opt_for_locking_clause: .    (253)
+
+	FOR  shift 64
+	LOCK  shift 65
+	.  reduce 253 (src line 1621)
+
+	for_locking_clause  goto 144
+	opt_for_locking_clause  goto 143
+
+state 64
+	for_locking_clause:  FOR.UPDATE 
+
+	UPDATE  shift 145
+	.  error
+
+
+state 65
+	for_locking_clause:  LOCK.IN SHARE MODE 
+
+	IN  shift 146
+	.  error
+
+
+state 66
+	select_limit:  limit_list.offset_expr 
+	select_limit:  limit_list.    (260)
+
+	OFFSET  shift 69
+	.  reduce 260 (src line 1660)
+
+	offset_expr  goto 147
+
+state 67
+	select_limit:  offset_expr.limit_list 
+	select_limit:  offset_expr.    (261)
+
+	LIMIT  shift 68
+	.  reduce 261 (src line 1664)
+
+	limit_list  goto 148
+
+state 68
+	limit_list:  LIMIT.rows 
+	limit_list:  LIMIT.rows ',' rows_offset 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 150
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+	rows  goto 149
+
+state 69
+	offset_expr:  OFFSET.rows_offset 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 152
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+	rows_offset  goto 151
+
+state 70
+	simple_select:  select_clause UNION all_or_distinct.select_clause 
+
+	SELECT  shift 8
+	'('  shift 7
+	.  error
+
+	select_clause  goto 153
+	select_with_parens  goto 155
+	simple_select  goto 154
+
+state 71
+	all_or_distinct:  ALL.    (192)
+
+	.  reduce 192 (src line 1204)
+
+
+state 72
+	all_or_distinct:  opt_distinct.    (193)
+
+	.  reduce 193 (src line 1209)
+
+
+state 73
+	simple_select:  select_clause INTERSECT all_or_distinct.select_clause 
+
+	SELECT  shift 8
+	'('  shift 7
+	.  error
+
+	select_clause  goto 156
+	select_with_parens  goto 155
+	simple_select  goto 154
+
+state 74
+	simple_select:  select_clause EXCEPT all_or_distinct.select_clause 
+
+	SELECT  shift 8
+	'('  shift 7
+	.  error
+
+	select_clause  goto 157
+	select_with_parens  goto 155
+	simple_select  goto 154
+
+state 75
+	sort_clause:  ORDER BY.sortby_list 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 160
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	sortby  goto 159
+	variable  goto 33
+	sortby_list  goto 158
+
+state 76
+	select_with_parens:  '(' select_no_parens ')'.    (4)
+
+	.  reduce 4 (src line 280)
+
+
+state 77
+	select_with_parens:  '(' select_with_parens ')'.    (5)
+
+	.  reduce 5 (src line 285)
+
+
+state 78
+	simple_select:  SELECT opt_target_list into_clause.from_clause where_clause group_clause having_clause 
+	from_clause: .    (203)
+
+	FROM  shift 162
+	.  reduce 203 (src line 1271)
+
+	from_clause  goto 161
+
+state 79
+	into_clause:  INTO.table_name 
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 166
+	STRING  shift 165
+	.  error
+
+	identifier  goto 164
+	table_name  goto 163
+
+state 80
+	simple_select:  SELECT distinct_clause target_list.into_clause from_clause where_clause group_clause having_clause 
+	target_list:  target_list.',' target_el 
+	into_clause: .    (198)
+
+	INTO  shift 79
+	','  shift 81
+	.  reduce 198 (src line 1238)
+
+	into_clause  goto 167
+
+state 81
+	target_list:  target_list ','.target_el 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'*'  shift 25
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 24
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	target_el  goto 168
+	variable  goto 33
+
+state 82
+	expr:  expr OR.expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 169
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 83
+	expr:  expr OO.expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 170
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 84
+	expr:  expr XOR.expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 171
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 85
+	expr:  expr AND.expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 172
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 86
+	expr:  expr AA.expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 173
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 87
+	target_el:  expr opt_alias.    (105)
+
+	.  reduce 105 (src line 1045)
+
+
+state 88
+	opt_alias:  alias.    (107)
+
+	.  reduce 107 (src line 1072)
+
+
+state 89
+	alias:  AS.alias_name 
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 93
+	SINGLE_QUOTA_STRING  shift 94
+	STRING  shift 92
+	.  error
+
+	alias_name  goto 174
+	identifier  goto 91
+
+state 90
+	alias:  alias_name.    (110)
+
+	.  reduce 110 (src line 1078)
+
+
+state 91
+	alias_name:  identifier.    (111)
+
+	.  reduce 111 (src line 1080)
+
+
+state 92
+	alias_name:  STRING.    (112)
+
+	.  reduce 112 (src line 1082)
+
+
+state 93
+	alias_name:  DOUBLE_QUOTA_STRING.    (113)
+
+	.  reduce 113 (src line 1083)
+
+
+state 94
+	alias_name:  SINGLE_QUOTA_STRING.    (114)
+
+	.  reduce 114 (src line 1084)
+
+
+state 95
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	expr:  NOT expr.    (22)
+
+	XOR  shift 84
+	.  reduce 22 (src line 413)
+
+
+state 96
+	expr:  boolean_primary is_or_not.true_or_false 
+	boolean_primary:  boolean_primary is_or_not.NULL 
+
+	FALSE  shift 178
+	NULL  shift 176
+	TRUE  shift 177
+	.  error
+
+	true_or_false  goto 175
+
+state 97
+	boolean_primary:  boolean_primary LEG.predicate 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 179
+	simple_expr  goto 30
+	variable  goto 33
+
+state 98
+	boolean_primary:  boolean_primary comparison_operator.predicate 
+	boolean_primary:  boolean_primary comparison_operator.subquery_type select_with_parens 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	ALL  shift 184
+	ANY  shift 183
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SOME  shift 182
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	subquery_type  goto 181
+	agg_expr  goto 53
+	bit_expr  goto 29
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 180
+	simple_expr  goto 30
+	variable  goto 33
+
+state 99
+	is_or_not:  IS.    (127)
+	is_or_not:  IS.NOT 
+
+	NOT  shift 185
+	.  reduce 127 (src line 1106)
+
+
+state 100
+	comparison_operator:  '='.    (120)
+
+	.  reduce 120 (src line 1097)
+
+
+state 101
+	comparison_operator:  GE.    (121)
+
+	.  reduce 121 (src line 1099)
+
+
+state 102
+	comparison_operator:  '>'.    (122)
+
+	.  reduce 122 (src line 1100)
+
+
+state 103
+	comparison_operator:  LE.    (123)
+
+	.  reduce 123 (src line 1101)
+
+
+state 104
+	comparison_operator:  '<'.    (124)
+
+	.  reduce 124 (src line 1102)
+
+
+state 105
+	comparison_operator:  LG.    (125)
+
+	.  reduce 125 (src line 1103)
+
+
+state 106
+	comparison_operator:  LNE.    (126)
+
+	.  reduce 126 (src line 1104)
+
+
+state 107
+	predicate:  bit_expr opt_not.IN select_with_parens 
+	predicate:  bit_expr opt_not.IN '(' expr_list ')' 
+	predicate:  bit_expr opt_not.BETWEEN bit_expr AND predicate 
+	predicate:  bit_expr opt_not.LIKE simple_expr 
+	predicate:  bit_expr opt_not.REGEXP bit_expr 
+
+	BETWEEN  shift 187
+	LIKE  shift 188
+	REGEXP  shift 189
+	IN  shift 186
+	.  error
+
+
+state 108
+	predicate:  bit_expr SOUNDS.LIKE bit_expr 
+
+	LIKE  shift 190
+	.  error
+
+
+state 109
+	bit_expr:  bit_expr '|'.bit_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 191
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 30
+	variable  goto 33
+
+state 110
+	bit_expr:  bit_expr '&'.bit_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 192
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 30
+	variable  goto 33
+
+state 111
+	bit_expr:  bit_expr SL.bit_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 193
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 30
+	variable  goto 33
+
+state 112
+	bit_expr:  bit_expr SR.bit_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 194
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 30
+	variable  goto 33
+
+state 113
+	bit_expr:  bit_expr '+'.bit_expr 
+	bit_expr:  bit_expr '+'.INTERVAL expr time_unit 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	INTERVAL  shift 196
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 195
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 30
+	variable  goto 33
+
+state 114
+	bit_expr:  bit_expr '-'.bit_expr 
+	bit_expr:  bit_expr '-'.INTERVAL expr time_unit 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	INTERVAL  shift 198
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 197
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 30
+	variable  goto 33
+
+state 115
+	bit_expr:  bit_expr '*'.bit_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 199
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 30
+	variable  goto 33
+
+state 116
+	bit_expr:  bit_expr '/'.bit_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 200
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 30
+	variable  goto 33
+
+state 117
+	bit_expr:  bit_expr DIV.bit_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 201
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 30
+	variable  goto 33
+
+state 118
+	bit_expr:  bit_expr MOD.bit_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 202
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 30
+	variable  goto 33
+
+state 119
+	bit_expr:  bit_expr '%'.bit_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 203
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 30
+	variable  goto 33
+
+state 120
+	bit_expr:  bit_expr '^'.bit_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 204
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 30
+	variable  goto 33
+
+state 121
+	opt_not:  NOT.    (129)
+
+	.  reduce 129 (src line 1111)
+
+
+state 122
+	simple_expr:  simple_expr COLLATE.collation_name 
+
+	armscii8_general_ci  shift 206
+	.  error
+
+	collation_name  goto 205
+
+state 123
+	simple_expr:  simple_expr OO.simple_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 207
+	variable  goto 33
+
+state 124
+	simple_expr:  simple_expr.COLLATE collation_name 
+	simple_expr:  simple_expr.OO simple_expr 
+	simple_expr:  '+' simple_expr.    (59)
+
+	COLLATE  shift 122
+	.  reduce 59 (src line 713)
+
+
+state 125
+	simple_expr:  simple_expr.COLLATE collation_name 
+	simple_expr:  simple_expr.OO simple_expr 
+	simple_expr:  '-' simple_expr.    (60)
+
+	COLLATE  shift 122
+	.  reduce 60 (src line 717)
+
+
+state 126
+	simple_expr:  simple_expr.COLLATE collation_name 
+	simple_expr:  simple_expr.OO simple_expr 
+	simple_expr:  '~' simple_expr.    (61)
+
+	COLLATE  shift 122
+	.  reduce 61 (src line 723)
+
+
+state 127
+	simple_expr:  simple_expr.COLLATE collation_name 
+	simple_expr:  simple_expr.OO simple_expr 
+	simple_expr:  '!' simple_expr.    (62)
+
+	COLLATE  shift 122
+	.  reduce 62 (src line 729)
+
+
+state 128
+	select_with_parens:  '(' select_with_parens.')' 
+	select_clause:  select_with_parens.    (11)
+	simple_expr:  select_with_parens.    (64)
+
+	FOR  reduce 11 (src line 308)
+	LIMIT  reduce 11 (src line 308)
+	LOCK  reduce 11 (src line 308)
+	ORDER  reduce 11 (src line 308)
+	OFFSET  reduce 11 (src line 308)
+	UNION  reduce 11 (src line 308)
+	EXCEPT  reduce 11 (src line 308)
+	INTERSECT  reduce 11 (src line 308)
+	')'  shift 77
+	.  reduce 64 (src line 740)
+
+
+state 129
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	simple_expr:  '(' expr.')' 
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	')'  shift 208
+	.  error
+
+
+state 130
+	simple_expr:  EXISTS select_with_parens.    (65)
+
+	.  reduce 65 (src line 746)
+
+
+state 131
+	column_ref:  identifier '.'.identifier 
+	column_ref:  identifier '.'.identifier '.' identifier 
+
+	IDENT  shift 56
+	.  error
+
+	identifier  goto 209
+
+state 132
+	func_expr:  identifier '('.expr_list ')' 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 211
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+	expr_list  goto 210
+
+state 133
+	variable:  DOUBLE_AT_IDENT '.'.identifier 
+
+	IDENT  shift 56
+	.  error
+
+	identifier  goto 212
+
+state 134
+	case_expr:  CASE case_arg.when_list else_arg END 
+
+	WHEN  shift 215
+	.  error
+
+	when_arg  goto 214
+	when_list  goto 213
+
+state 135
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	case_arg:  expr.    (94)
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 94 (src line 979)
+
+
+state 136
+	agg_expr:  AVG '('.all_or_distinct expr ')' 
+	all_or_distinct: .    (194)
+
+	ALL  shift 71
+	DISTINCT  shift 22
+	DISTINCTROW  shift 23
+	.  reduce 194 (src line 1213)
+
+	all_or_distinct  goto 216
+	opt_distinct  goto 72
+
+state 137
+	agg_expr:  COUNT '('.opt_distinct expr_list ')' 
+	agg_expr:  COUNT '('.ALL expr ')' 
+	agg_expr:  COUNT '('.expr ')' 
+	agg_expr:  COUNT '('.'*' ')' 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	ALL  shift 218
+	AVG  shift 57
+	COUNT  shift 58
+	DISTINCT  shift 22
+	DISTINCTROW  shift 23
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'*'  shift 220
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	opt_distinct  goto 217
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 219
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 138
+	agg_expr:  MAX '('.all_or_distinct expr ')' 
+	all_or_distinct: .    (194)
+
+	ALL  shift 71
+	DISTINCT  shift 22
+	DISTINCTROW  shift 23
+	.  reduce 194 (src line 1213)
+
+	all_or_distinct  goto 221
+	opt_distinct  goto 72
+
+state 139
+	agg_expr:  MIN '('.all_or_distinct expr ')' 
+	all_or_distinct: .    (194)
+
+	ALL  shift 71
+	DISTINCT  shift 22
+	DISTINCTROW  shift 23
+	.  reduce 194 (src line 1213)
+
+	all_or_distinct  goto 222
+	opt_distinct  goto 72
+
+state 140
+	agg_expr:  SUM '('.all_or_distinct expr ')' 
+	all_or_distinct: .    (194)
+
+	ALL  shift 71
+	DISTINCT  shift 22
+	DISTINCTROW  shift 23
+	.  reduce 194 (src line 1213)
+
+	all_or_distinct  goto 223
+	opt_distinct  goto 72
+
+state 141
+	select_no_parens:  select_clause opt_sort_clause for_locking_clause opt_select_limit.    (8)
+
+	.  reduce 8 (src line 299)
+
+
+state 142
+	opt_select_limit:  select_limit.    (256)
+
+	.  reduce 256 (src line 1640)
+
+
+state 143
+	select_no_parens:  select_clause opt_sort_clause select_limit opt_for_locking_clause.    (9)
+
+	.  reduce 9 (src line 302)
+
+
+state 144
+	opt_for_locking_clause:  for_locking_clause.    (252)
+
+	.  reduce 252 (src line 1619)
+
+
+state 145
+	for_locking_clause:  FOR UPDATE.    (254)
+
+	.  reduce 254 (src line 1623)
+
+
+state 146
+	for_locking_clause:  LOCK IN.SHARE MODE 
+
+	SHARE  shift 224
+	.  error
+
+
+state 147
+	select_limit:  limit_list offset_expr.    (258)
+
+	.  reduce 258 (src line 1651)
+
+
+state 148
+	select_limit:  offset_expr limit_list.    (259)
+
+	.  reduce 259 (src line 1656)
+
+
+state 149
+	limit_list:  LIMIT rows.    (262)
+	limit_list:  LIMIT rows.',' rows_offset 
+
+	','  shift 225
+	.  reduce 262 (src line 1670)
+
+
+state 150
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	rows:  expr.    (264)
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 264 (src line 1680)
+
+
+state 151
+	offset_expr:  OFFSET rows_offset.    (266)
+
+	.  reduce 266 (src line 1694)
+
+
+state 152
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	rows_offset:  expr.    (265)
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 265 (src line 1687)
+
+
+state 153
+	simple_select:  select_clause.UNION all_or_distinct select_clause 
+	simple_select:  select_clause UNION all_or_distinct select_clause.    (14)
+	simple_select:  select_clause.INTERSECT all_or_distinct select_clause 
+	simple_select:  select_clause.EXCEPT all_or_distinct select_clause 
+
+	INTERSECT  shift 12
+	.  reduce 14 (src line 355)
+
+
+state 154
+	select_clause:  simple_select.    (10)
+
+	.  reduce 10 (src line 306)
+
+
+state 155
+	select_clause:  select_with_parens.    (11)
+
+	.  reduce 11 (src line 308)
+
+
+state 156
+	simple_select:  select_clause.UNION all_or_distinct select_clause 
+	simple_select:  select_clause.INTERSECT all_or_distinct select_clause 
+	simple_select:  select_clause INTERSECT all_or_distinct select_clause.    (15)
+	simple_select:  select_clause.EXCEPT all_or_distinct select_clause 
+
+	.  reduce 15 (src line 361)
+
+
+state 157
+	simple_select:  select_clause.UNION all_or_distinct select_clause 
+	simple_select:  select_clause.INTERSECT all_or_distinct select_clause 
+	simple_select:  select_clause.EXCEPT all_or_distinct select_clause 
+	simple_select:  select_clause EXCEPT all_or_distinct select_clause.    (16)
+
+	INTERSECT  shift 12
+	.  reduce 16 (src line 367)
+
+
+state 158
+	sort_clause:  ORDER BY sortby_list.    (245)
+	sortby_list:  sortby_list.',' sortby 
+
+	','  shift 226
+	.  reduce 245 (src line 1571)
+
+
+state 159
+	sortby_list:  sortby.    (246)
+
+	.  reduce 246 (src line 1578)
+
+
+state 160
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	sortby:  expr.asc_or_desc 
+	asc_or_desc: .    (251)
+
+	ASC  shift 228
+	DESC  shift 229
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 251 (src line 1608)
+
+	asc_or_desc  goto 227
+
+state 161
+	simple_select:  SELECT opt_target_list into_clause from_clause.where_clause group_clause having_clause 
+	where_clause: .    (235)
+
+	WHERE  shift 231
+	.  reduce 235 (src line 1495)
+
+	where_clause  goto 230
+
+state 162
+	from_clause:  FROM.from_list 
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 166
+	STRING  shift 242
+	'('  shift 238
+	.  error
+
+	select_with_parens  goto 237
+	db_name  goto 240
+	identifier  goto 241
+	table_name  goto 239
+	joined_table  goto 235
+	relation  goto 236
+	table_factor  goto 234
+	table_ref  goto 233
+	from_list  goto 232
+
+state 163
+	into_clause:  INTO table_name.    (197)
+
+	.  reduce 197 (src line 1233)
+
+
+state 164
+	table_name:  identifier.    (199)
+
+	.  reduce 199 (src line 1243)
+
+
+state 165
+	table_name:  STRING.    (200)
+
+	.  reduce 200 (src line 1248)
+
+
+state 166
+	table_name:  DOUBLE_QUOTA_STRING.    (201)
+
+	.  reduce 201 (src line 1252)
+
+
+state 167
+	simple_select:  SELECT distinct_clause target_list into_clause.from_clause where_clause group_clause having_clause 
+	from_clause: .    (203)
+
+	FROM  shift 162
+	.  reduce 203 (src line 1271)
+
+	from_clause  goto 243
+
+state 168
+	target_list:  target_list ',' target_el.    (104)
+
+	.  reduce 104 (src line 1039)
+
+
+state 169
+	expr:  expr.OR expr 
+	expr:  expr OR expr.    (17)
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 17 (src line 382)
+
+
+state 170
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr OO expr.    (18)
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 18 (src line 389)
+
+
+state 171
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr XOR expr.    (19)
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+
+	.  reduce 19 (src line 395)
+
+
+state 172
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr AND expr.    (20)
+	expr:  expr.AA expr 
+
+	XOR  shift 84
+	.  reduce 20 (src line 401)
+
+
+state 173
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	expr:  expr AA expr.    (21)
+
+	XOR  shift 84
+	.  reduce 21 (src line 407)
+
+
+state 174
+	alias:  AS alias_name.    (109)
+
+	.  reduce 109 (src line 1076)
+
+
+state 175
+	expr:  boolean_primary is_or_not true_or_false.    (23)
+
+	.  reduce 23 (src line 426)
+
+
+state 176
+	boolean_primary:  boolean_primary is_or_not NULL.    (25)
+
+	.  reduce 25 (src line 450)
+
+
+state 177
+	true_or_false:  TRUE.    (115)
+
+	.  reduce 115 (src line 1087)
+
+
+state 178
+	true_or_false:  FALSE.    (116)
+
+	.  reduce 116 (src line 1089)
+
+
+state 179
+	boolean_primary:  boolean_primary LEG predicate.    (26)
+
+	.  reduce 26 (src line 463)
+
+
+state 180
+	boolean_primary:  boolean_primary comparison_operator predicate.    (27)
+
+	.  reduce 27 (src line 469)
+
+
+state 181
+	boolean_primary:  boolean_primary comparison_operator subquery_type.select_with_parens 
+
+	'('  shift 7
+	.  error
+
+	select_with_parens  goto 244
+
+state 182
+	subquery_type:  SOME.    (117)
+
+	.  reduce 117 (src line 1092)
+
+
+state 183
+	subquery_type:  ANY.    (118)
+
+	.  reduce 118 (src line 1094)
+
+
+state 184
+	subquery_type:  ALL.    (119)
+
+	.  reduce 119 (src line 1095)
+
+
+state 185
+	is_or_not:  IS NOT.    (128)
+
+	.  reduce 128 (src line 1108)
+
+
+state 186
+	predicate:  bit_expr opt_not IN.select_with_parens 
+	predicate:  bit_expr opt_not IN.'(' expr_list ')' 
+
+	'('  shift 246
+	.  error
+
+	select_with_parens  goto 245
+
+state 187
+	predicate:  bit_expr opt_not BETWEEN.bit_expr AND predicate 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 247
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 30
+	variable  goto 33
+
+state 188
+	predicate:  bit_expr opt_not LIKE.simple_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 248
+	variable  goto 33
+
+state 189
+	predicate:  bit_expr opt_not REGEXP.bit_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 249
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 30
+	variable  goto 33
+
+state 190
+	predicate:  bit_expr SOUNDS LIKE.bit_expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 250
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	simple_expr  goto 30
+	variable  goto 33
+
+state 191
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr '|' bit_expr.    (37)
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+
+	'&'  shift 110
+	'+'  shift 113
+	'-'  shift 114
+	'*'  shift 115
+	'/'  shift 116
+	'%'  shift 119
+	DIV  shift 117
+	MOD  shift 118
+	'^'  shift 120
+	.  reduce 37 (src line 579)
+
+
+state 192
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr '&' bit_expr.    (38)
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+
+	'+'  shift 113
+	'-'  shift 114
+	'*'  shift 115
+	'/'  shift 116
+	'%'  shift 119
+	DIV  shift 117
+	MOD  shift 118
+	'^'  shift 120
+	.  reduce 38 (src line 586)
+
+
+state 193
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr SL bit_expr.    (39)
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+
+	'|'  shift 109
+	'&'  shift 110
+	'+'  shift 113
+	'-'  shift 114
+	'*'  shift 115
+	'/'  shift 116
+	'%'  shift 119
+	DIV  shift 117
+	MOD  shift 118
+	'^'  shift 120
+	.  reduce 39 (src line 592)
+
+
+state 194
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr SR bit_expr.    (40)
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+
+	'|'  shift 109
+	'&'  shift 110
+	'+'  shift 113
+	'-'  shift 114
+	'*'  shift 115
+	'/'  shift 116
+	'%'  shift 119
+	DIV  shift 117
+	MOD  shift 118
+	'^'  shift 120
+	.  reduce 40 (src line 598)
+
+
+state 195
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr '+' bit_expr.    (41)
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+
+	'*'  shift 115
+	'/'  shift 116
+	'%'  shift 119
+	DIV  shift 117
+	MOD  shift 118
+	'^'  shift 120
+	.  reduce 41 (src line 604)
+
+
+state 196
+	bit_expr:  bit_expr '+' INTERVAL.expr time_unit 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 251
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 197
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr '-' bit_expr.    (42)
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+
+	'*'  shift 115
+	'/'  shift 116
+	'%'  shift 119
+	DIV  shift 117
+	MOD  shift 118
+	'^'  shift 120
+	.  reduce 42 (src line 610)
+
+
+state 198
+	bit_expr:  bit_expr '-' INTERVAL.expr time_unit 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 252
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 199
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr '*' bit_expr.    (43)
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+
+	'^'  shift 120
+	.  reduce 43 (src line 616)
+
+
+state 200
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr '/' bit_expr.    (44)
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+
+	'^'  shift 120
+	.  reduce 44 (src line 622)
+
+
+state 201
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr DIV bit_expr.    (45)
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+
+	'^'  shift 120
+	.  reduce 45 (src line 628)
+
+
+state 202
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr MOD bit_expr.    (46)
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+
+	'^'  shift 120
+	.  reduce 46 (src line 634)
+
+
+state 203
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr '%' bit_expr.    (47)
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+
+	'^'  shift 120
+	.  reduce 47 (src line 640)
+
+
+state 204
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr '^' bit_expr.    (48)
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+
+	.  reduce 48 (src line 646)
+
+
+state 205
+	simple_expr:  simple_expr COLLATE collation_name.    (56)
+
+	.  reduce 56 (src line 690)
+
+
+state 206
+	collation_name:  armscii8_general_ci.$$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$150: .    (150)
+
+	.  reduce 150 (src line 1137)
+
+	$$150  goto 253
+
+state 207
+	simple_expr:  simple_expr.COLLATE collation_name 
+	simple_expr:  simple_expr.OO simple_expr 
+	simple_expr:  simple_expr OO simple_expr.    (58)
+
+	COLLATE  shift 122
+	.  reduce 58 (src line 707)
+
+
+state 208
+	simple_expr:  '(' expr ')'.    (63)
+
+	.  reduce 63 (src line 735)
+
+
+state 209
+	column_ref:  identifier '.' identifier.    (78)
+	column_ref:  identifier '.' identifier.'.' identifier 
+
+	'.'  shift 254
+	.  reduce 78 (src line 830)
+
+
+state 210
+	func_expr:  identifier '(' expr_list.')' 
+	expr_list:  expr_list.',' expr 
+
+	','  shift 256
+	')'  shift 255
+	.  error
+
+
+state 211
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	expr_list:  expr.    (90)
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 90 (src line 948)
+
+
+state 212
+	variable:  DOUBLE_AT_IDENT '.' identifier.    (76)
+
+	.  reduce 76 (src line 815)
+
+
+state 213
+	case_expr:  CASE case_arg when_list.else_arg END 
+	when_list:  when_list.when_arg 
+	else_arg: .    (100)
+
+	WHEN  shift 215
+	ELSE  shift 259
+	.  reduce 100 (src line 1016)
+
+	else_arg  goto 257
+	when_arg  goto 258
+
+state 214
+	when_list:  when_arg.    (96)
+
+	.  reduce 96 (src line 989)
+
+
+state 215
+	when_arg:  WHEN.expr THEN expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 260
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 216
+	agg_expr:  AVG '(' all_or_distinct.expr ')' 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 261
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 217
+	agg_expr:  COUNT '(' opt_distinct.expr_list ')' 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 211
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+	expr_list  goto 262
+
+state 218
+	agg_expr:  COUNT '(' ALL.expr ')' 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 263
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 219
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	agg_expr:  COUNT '(' expr.')' 
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	')'  shift 264
+	.  error
+
+
+state 220
+	agg_expr:  COUNT '(' '*'.')' 
+
+	')'  shift 265
+	.  error
+
+
+state 221
+	agg_expr:  MAX '(' all_or_distinct.expr ')' 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 266
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 222
+	agg_expr:  MIN '(' all_or_distinct.expr ')' 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 267
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 223
+	agg_expr:  SUM '(' all_or_distinct.expr ')' 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 268
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 224
+	for_locking_clause:  LOCK IN SHARE.MODE 
+
+	MODE  shift 269
+	.  error
+
+
+state 225
+	limit_list:  LIMIT rows ','.rows_offset 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 152
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+	rows_offset  goto 270
+
+state 226
+	sortby_list:  sortby_list ','.sortby 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 160
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	sortby  goto 271
+	variable  goto 33
+
+state 227
+	sortby:  expr asc_or_desc.    (248)
+
+	.  reduce 248 (src line 1588)
+
+
+state 228
+	asc_or_desc:  ASC.    (249)
+
+	.  reduce 249 (src line 1599)
+
+
+state 229
+	asc_or_desc:  DESC.    (250)
+
+	.  reduce 250 (src line 1604)
+
+
+state 230
+	simple_select:  SELECT opt_target_list into_clause from_clause where_clause.group_clause having_clause 
+	group_clause: .    (237)
+
+	GROUP  shift 273
+	.  reduce 237 (src line 1511)
+
+	group_clause  goto 272
+
+state 231
+	where_clause:  WHERE.expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 274
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 232
+	from_clause:  FROM from_list.    (202)
+	from_list:  from_list.',' table_ref 
+
+	','  shift 275
+	.  reduce 202 (src line 1266)
+
+
+state 233
+	from_list:  table_ref.    (204)
+	joined_table:  table_ref.inner table_ref 
+	joined_table:  table_ref.inner table_ref join_qual 
+	joined_table:  table_ref.STRAIGHT_JOIN table_factor 
+	joined_table:  table_ref.STRAIGHT_JOIN table_factor ON expr 
+	joined_table:  table_ref.join_type outer_opt JOIN table_ref join_qual 
+	joined_table:  table_ref.NATURAL join_type outer_opt JOIN table_factor 
+
+	JOIN  shift 280
+	STRAIGHT_JOIN  shift 277
+	LEFT  shift 283
+	RIGHT  shift 284
+	INNER  shift 281
+	CROSS  shift 282
+	NATURAL  shift 279
+	.  reduce 204 (src line 1276)
+
+	inner  goto 276
+	join_type  goto 278
+
+state 234
+	table_ref:  table_factor.    (206)
+
+	.  reduce 206 (src line 1286)
+
+
+state 235
+	table_ref:  joined_table.    (207)
+
+	.  reduce 207 (src line 1291)
+
+
+state 236
+	table_factor:  relation.opt_alias 
+	opt_alias: .    (108)
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 93
+	SINGLE_QUOTA_STRING  shift 94
+	STRING  shift 92
+	AS  shift 89
+	.  reduce 108 (src line 1074)
+
+	alias  goto 88
+	alias_name  goto 90
+	identifier  goto 91
+	opt_alias  goto 285
+
+state 237
+	table_factor:  select_with_parens.alias 
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 93
+	SINGLE_QUOTA_STRING  shift 94
+	STRING  shift 92
+	AS  shift 89
+	.  error
+
+	alias  goto 286
+	alias_name  goto 90
+	identifier  goto 91
+
+state 238
+	select_with_parens:  '('.select_no_parens ')' 
+	select_with_parens:  '('.select_with_parens ')' 
+	table_factor:  '('.table_refs ')' 
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 166
+	STRING  shift 242
+	SELECT  shift 8
+	'('  shift 238
+	.  error
+
+	select_clause  goto 6
+	select_no_parens  goto 15
+	select_with_parens  goto 287
+	simple_select  goto 5
+	db_name  goto 240
+	identifier  goto 241
+	table_name  goto 239
+	joined_table  goto 235
+	relation  goto 236
+	table_factor  goto 234
+	table_ref  goto 289
+	table_refs  goto 288
+
+state 239
+	relation:  table_name.    (211)
+
+	.  reduce 211 (src line 1321)
+
+
+state 240
+	relation:  db_name.'.' table_name 
+
+	'.'  shift 290
+	.  error
+
+
+state 241
+	table_name:  identifier.    (199)
+	db_name:  identifier.    (213)
+
+	'.'  reduce 213 (src line 1335)
+	.  reduce 199 (src line 1243)
+
+
+state 242
+	table_name:  STRING.    (200)
+	db_name:  STRING.    (214)
+
+	'.'  reduce 214 (src line 1340)
+	.  reduce 200 (src line 1248)
+
+
+state 243
+	simple_select:  SELECT distinct_clause target_list into_clause from_clause.where_clause group_clause having_clause 
+	where_clause: .    (235)
+
+	WHERE  shift 231
+	.  reduce 235 (src line 1495)
+
+	where_clause  goto 291
+
+state 244
+	boolean_primary:  boolean_primary comparison_operator subquery_type select_with_parens.    (28)
+
+	.  reduce 28 (src line 490)
+
+
+state 245
+	predicate:  bit_expr opt_not IN select_with_parens.    (30)
+
+	.  reduce 30 (src line 508)
+
+
+state 246
+	select_with_parens:  '('.select_no_parens ')' 
+	select_with_parens:  '('.select_with_parens ')' 
+	predicate:  bit_expr opt_not IN '('.expr_list ')' 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SELECT  shift 8
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_clause  goto 6
+	select_no_parens  goto 15
+	select_with_parens  goto 128
+	simple_select  goto 5
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 211
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+	expr_list  goto 292
+
+state 247
+	predicate:  bit_expr opt_not BETWEEN bit_expr.AND predicate 
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+
+	AND  shift 293
+	SL  shift 111
+	SR  shift 112
+	'|'  shift 109
+	'&'  shift 110
+	'+'  shift 113
+	'-'  shift 114
+	'*'  shift 115
+	'/'  shift 116
+	'%'  shift 119
+	DIV  shift 117
+	MOD  shift 118
+	'^'  shift 120
+	.  error
+
+
+state 248
+	predicate:  bit_expr opt_not LIKE simple_expr.    (34)
+	simple_expr:  simple_expr.COLLATE collation_name 
+	simple_expr:  simple_expr.OO simple_expr 
+
+	COLLATE  shift 122
+	.  reduce 34 (src line 549)
+
+
+state 249
+	predicate:  bit_expr opt_not REGEXP bit_expr.    (35)
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+
+	SL  shift 111
+	SR  shift 112
+	'|'  shift 109
+	'&'  shift 110
+	'+'  shift 113
+	'-'  shift 114
+	'*'  shift 115
+	'/'  shift 116
+	'%'  shift 119
+	DIV  shift 117
+	MOD  shift 118
+	'^'  shift 120
+	.  reduce 35 (src line 561)
+
+
+state 250
+	predicate:  bit_expr SOUNDS LIKE bit_expr.    (33)
+	bit_expr:  bit_expr.'|' bit_expr 
+	bit_expr:  bit_expr.'&' bit_expr 
+	bit_expr:  bit_expr.SL bit_expr 
+	bit_expr:  bit_expr.SR bit_expr 
+	bit_expr:  bit_expr.'+' bit_expr 
+	bit_expr:  bit_expr.'-' bit_expr 
+	bit_expr:  bit_expr.'*' bit_expr 
+	bit_expr:  bit_expr.'/' bit_expr 
+	bit_expr:  bit_expr.DIV bit_expr 
+	bit_expr:  bit_expr.MOD bit_expr 
+	bit_expr:  bit_expr.'%' bit_expr 
+	bit_expr:  bit_expr.'^' bit_expr 
+	bit_expr:  bit_expr.'+' INTERVAL expr time_unit 
+	bit_expr:  bit_expr.'-' INTERVAL expr time_unit 
+
+	SL  shift 111
+	SR  shift 112
+	'|'  shift 109
+	'&'  shift 110
+	'+'  shift 113
+	'-'  shift 114
+	'*'  shift 115
+	'/'  shift 116
+	'%'  shift 119
+	DIV  shift 117
+	MOD  shift 118
+	'^'  shift 120
+	.  reduce 33 (src line 543)
+
+
+state 251
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	bit_expr:  bit_expr '+' INTERVAL expr.time_unit 
+
+	DAY  shift 295
+	DAY_HOUR  shift 296
+	DAY_MICROSECOND  shift 297
+	DAY_MINUTE  shift 298
+	DAY_SECOND  shift 299
+	HOUR  shift 300
+	HOUR_MICROSECOND  shift 301
+	HOUR_MINUTE  shift 302
+	HOUR_SECOND  shift 303
+	MINUTE  shift 304
+	MINUTE_SECOND  shift 305
+	MONTH  shift 306
+	MICROSECOND  shift 307
+	MINUTE_MICROSECOND  shift 308
+	SECOND  shift 309
+	SECOND_MICROSECOND  shift 310
+	WEEK  shift 311
+	YEAR  shift 312
+	YEAR_MONTH  shift 313
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  error
+
+	time_unit  goto 294
+
+state 252
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	bit_expr:  bit_expr '-' INTERVAL expr.time_unit 
+
+	DAY  shift 295
+	DAY_HOUR  shift 296
+	DAY_MICROSECOND  shift 297
+	DAY_MINUTE  shift 298
+	DAY_SECOND  shift 299
+	HOUR  shift 300
+	HOUR_MICROSECOND  shift 301
+	HOUR_MINUTE  shift 302
+	HOUR_SECOND  shift 303
+	MINUTE  shift 304
+	MINUTE_SECOND  shift 305
+	MONTH  shift 306
+	MICROSECOND  shift 307
+	MINUTE_MICROSECOND  shift 308
+	SECOND  shift 309
+	SECOND_MICROSECOND  shift 310
+	WEEK  shift 311
+	YEAR  shift 312
+	YEAR_MONTH  shift 313
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  error
+
+	time_unit  goto 314
+
+state 253
+	collation_name:  armscii8_general_ci $$150.ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	ascii_general_ci  shift 315
+	.  error
+
+
+state 254
+	column_ref:  identifier '.' identifier '.'.identifier 
+
+	IDENT  shift 56
+	.  error
+
+	identifier  goto 316
+
+state 255
+	func_expr:  identifier '(' expr_list ')'.    (80)
+
+	.  reduce 80 (src line 844)
+
+
+state 256
+	expr_list:  expr_list ','.expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 317
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 257
+	case_expr:  CASE case_arg when_list else_arg.END 
+
+	END  shift 318
+	.  error
+
+
+state 258
+	when_list:  when_list when_arg.    (97)
+
+	.  reduce 97 (src line 994)
+
+
+state 259
+	else_arg:  ELSE.expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 319
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 260
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	when_arg:  WHEN expr.THEN expr 
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	THEN  shift 320
+	XOR  shift 84
+	.  error
+
+
+state 261
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	agg_expr:  AVG '(' all_or_distinct expr.')' 
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	')'  shift 321
+	.  error
+
+
+state 262
+	agg_expr:  COUNT '(' opt_distinct expr_list.')' 
+	expr_list:  expr_list.',' expr 
+
+	','  shift 256
+	')'  shift 322
+	.  error
+
+
+state 263
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	agg_expr:  COUNT '(' ALL expr.')' 
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	')'  shift 323
+	.  error
+
+
+state 264
+	agg_expr:  COUNT '(' expr ')'.    (85)
+
+	.  reduce 85 (src line 889)
+
+
+state 265
+	agg_expr:  COUNT '(' '*' ')'.    (86)
+
+	.  reduce 86 (src line 895)
+
+
+state 266
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	agg_expr:  MAX '(' all_or_distinct expr.')' 
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	')'  shift 324
+	.  error
+
+
+state 267
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	agg_expr:  MIN '(' all_or_distinct expr.')' 
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	')'  shift 325
+	.  error
+
+
+state 268
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	agg_expr:  SUM '(' all_or_distinct expr.')' 
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	')'  shift 326
+	.  error
+
+
+state 269
+	for_locking_clause:  LOCK IN SHARE MODE.    (255)
+
+	.  reduce 255 (src line 1628)
+
+
+state 270
+	limit_list:  LIMIT rows ',' rows_offset.    (263)
+
+	.  reduce 263 (src line 1675)
+
+
+state 271
+	sortby_list:  sortby_list ',' sortby.    (247)
+
+	.  reduce 247 (src line 1583)
+
+
+state 272
+	simple_select:  SELECT opt_target_list into_clause from_clause where_clause group_clause.having_clause 
+	having_clause: .    (242)
+
+	HAVING  shift 328
+	.  reduce 242 (src line 1547)
+
+	having_clause  goto 327
+
+state 273
+	group_clause:  GROUP.BY group_by_list 
+
+	BY  shift 329
+	.  error
+
+
+state 274
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	where_clause:  WHERE expr.    (234)
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 234 (src line 1490)
+
+
+state 275
+	from_list:  from_list ','.table_ref 
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 166
+	STRING  shift 242
+	'('  shift 238
+	.  error
+
+	select_with_parens  goto 237
+	db_name  goto 240
+	identifier  goto 241
+	table_name  goto 239
+	joined_table  goto 235
+	relation  goto 236
+	table_factor  goto 234
+	table_ref  goto 330
+
+state 276
+	joined_table:  table_ref inner.table_ref 
+	joined_table:  table_ref inner.table_ref join_qual 
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 166
+	STRING  shift 242
+	'('  shift 238
+	.  error
+
+	select_with_parens  goto 237
+	db_name  goto 240
+	identifier  goto 241
+	table_name  goto 239
+	joined_table  goto 235
+	relation  goto 236
+	table_factor  goto 234
+	table_ref  goto 331
+
+state 277
+	joined_table:  table_ref STRAIGHT_JOIN.table_factor 
+	joined_table:  table_ref STRAIGHT_JOIN.table_factor ON expr 
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 166
+	STRING  shift 242
+	'('  shift 238
+	.  error
+
+	select_with_parens  goto 237
+	db_name  goto 240
+	identifier  goto 241
+	table_name  goto 239
+	relation  goto 236
+	table_factor  goto 332
+
+state 278
+	joined_table:  table_ref join_type.outer_opt JOIN table_ref join_qual 
+	outer_opt: .    (229)
+
+	OUTER  shift 334
+	.  reduce 229 (src line 1457)
+
+	outer_opt  goto 333
+
+state 279
+	joined_table:  table_ref NATURAL.join_type outer_opt JOIN table_factor 
+
+	LEFT  shift 283
+	RIGHT  shift 284
+	.  error
+
+	join_type  goto 335
+
+state 280
+	inner:  JOIN.    (223)
+
+	.  reduce 223 (src line 1426)
+
+
+state 281
+	inner:  INNER.JOIN 
+
+	JOIN  shift 336
+	.  error
+
+
+state 282
+	inner:  CROSS.JOIN 
+
+	JOIN  shift 337
+	.  error
+
+
+state 283
+	join_type:  LEFT.    (226)
+
+	.  reduce 226 (src line 1441)
+
+
+state 284
+	join_type:  RIGHT.    (227)
+
+	.  reduce 227 (src line 1446)
+
+
+state 285
+	table_factor:  relation opt_alias.    (208)
+
+	.  reduce 208 (src line 1296)
+
+
+state 286
+	table_factor:  select_with_parens alias.    (209)
+
+	.  reduce 209 (src line 1309)
+
+
+state 287
+	select_with_parens:  '(' select_with_parens.')' 
+	select_clause:  select_with_parens.    (11)
+	table_factor:  select_with_parens.alias 
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 93
+	SINGLE_QUOTA_STRING  shift 94
+	STRING  shift 92
+	AS  shift 89
+	')'  shift 77
+	.  reduce 11 (src line 308)
+
+	alias  goto 286
+	alias_name  goto 90
+	identifier  goto 91
+
+state 288
+	table_factor:  '(' table_refs.')' 
+	table_refs:  table_refs.',' table_ref 
+
+	','  shift 339
+	')'  shift 338
+	.  error
+
+
+state 289
+	table_refs:  table_ref.    (215)
+	joined_table:  table_ref.inner table_ref 
+	joined_table:  table_ref.inner table_ref join_qual 
+	joined_table:  table_ref.STRAIGHT_JOIN table_factor 
+	joined_table:  table_ref.STRAIGHT_JOIN table_factor ON expr 
+	joined_table:  table_ref.join_type outer_opt JOIN table_ref join_qual 
+	joined_table:  table_ref.NATURAL join_type outer_opt JOIN table_factor 
+
+	JOIN  shift 280
+	STRAIGHT_JOIN  shift 277
+	LEFT  shift 283
+	RIGHT  shift 284
+	INNER  shift 281
+	CROSS  shift 282
+	NATURAL  shift 279
+	.  reduce 215 (src line 1346)
+
+	inner  goto 276
+	join_type  goto 278
+
+state 290
+	relation:  db_name '.'.table_name 
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 166
+	STRING  shift 165
+	.  error
+
+	identifier  goto 164
+	table_name  goto 340
+
+state 291
+	simple_select:  SELECT distinct_clause target_list into_clause from_clause where_clause.group_clause having_clause 
+	group_clause: .    (237)
+
+	GROUP  shift 273
+	.  reduce 237 (src line 1511)
+
+	group_clause  goto 341
+
+state 292
+	predicate:  bit_expr opt_not IN '(' expr_list.')' 
+	expr_list:  expr_list.',' expr 
+
+	','  shift 256
+	')'  shift 342
+	.  error
+
+
+state 293
+	predicate:  bit_expr opt_not BETWEEN bit_expr AND.predicate 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	case_expr  goto 43
+	column_ref  goto 32
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 343
+	simple_expr  goto 30
+	variable  goto 33
+
+state 294
+	bit_expr:  bit_expr '+' INTERVAL expr time_unit.    (49)
+
+	.  reduce 49 (src line 652)
+
+
+state 295
+	time_unit:  DAY.    (131)
+
+	.  reduce 131 (src line 1115)
+
+
+state 296
+	time_unit:  DAY_HOUR.    (132)
+
+	.  reduce 132 (src line 1117)
+
+
+state 297
+	time_unit:  DAY_MICROSECOND.    (133)
+
+	.  reduce 133 (src line 1118)
+
+
+state 298
+	time_unit:  DAY_MINUTE.    (134)
+
+	.  reduce 134 (src line 1119)
+
+
+state 299
+	time_unit:  DAY_SECOND.    (135)
+
+	.  reduce 135 (src line 1120)
+
+
+state 300
+	time_unit:  HOUR.    (136)
+
+	.  reduce 136 (src line 1121)
+
+
+state 301
+	time_unit:  HOUR_MICROSECOND.    (137)
+
+	.  reduce 137 (src line 1122)
+
+
+state 302
+	time_unit:  HOUR_MINUTE.    (138)
+
+	.  reduce 138 (src line 1123)
+
+
+state 303
+	time_unit:  HOUR_SECOND.    (139)
+
+	.  reduce 139 (src line 1124)
+
+
+state 304
+	time_unit:  MINUTE.    (140)
+
+	.  reduce 140 (src line 1125)
+
+
+state 305
+	time_unit:  MINUTE_SECOND.    (141)
+
+	.  reduce 141 (src line 1126)
+
+
+state 306
+	time_unit:  MONTH.    (142)
+
+	.  reduce 142 (src line 1127)
+
+
+state 307
+	time_unit:  MICROSECOND.    (143)
+
+	.  reduce 143 (src line 1128)
+
+
+state 308
+	time_unit:  MINUTE_MICROSECOND.    (144)
+
+	.  reduce 144 (src line 1129)
+
+
+state 309
+	time_unit:  SECOND.    (145)
+
+	.  reduce 145 (src line 1130)
+
+
+state 310
+	time_unit:  SECOND_MICROSECOND.    (146)
+
+	.  reduce 146 (src line 1131)
+
+
+state 311
+	time_unit:  WEEK.    (147)
+
+	.  reduce 147 (src line 1132)
+
+
+state 312
+	time_unit:  YEAR.    (148)
+
+	.  reduce 148 (src line 1133)
+
+
+state 313
+	time_unit:  YEAR_MONTH.    (149)
+
+	.  reduce 149 (src line 1134)
+
+
+state 314
+	bit_expr:  bit_expr '-' INTERVAL expr time_unit.    (50)
+
+	.  reduce 50 (src line 658)
+
+
+state 315
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci.$$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$151: .    (151)
+
+	.  reduce 151 (src line 1139)
+
+	$$151  goto 344
+
+state 316
+	column_ref:  identifier '.' identifier '.' identifier.    (79)
+
+	.  reduce 79 (src line 836)
+
+
+state 317
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	expr_list:  expr_list ',' expr.    (91)
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 91 (src line 953)
+
+
+state 318
+	case_expr:  CASE case_arg when_list else_arg END.    (93)
+
+	.  reduce 93 (src line 970)
+
+
+state 319
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	else_arg:  ELSE expr.    (99)
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 99 (src line 1009)
+
+
+state 320
+	when_arg:  WHEN expr THEN.expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 345
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 321
+	agg_expr:  AVG '(' all_or_distinct expr ')'.    (82)
+
+	.  reduce 82 (src line 856)
+
+
+state 322
+	agg_expr:  COUNT '(' opt_distinct expr_list ')'.    (83)
+
+	.  reduce 83 (src line 872)
+
+
+state 323
+	agg_expr:  COUNT '(' ALL expr ')'.    (84)
+
+	.  reduce 84 (src line 883)
+
+
+state 324
+	agg_expr:  MAX '(' all_or_distinct expr ')'.    (87)
+
+	.  reduce 87 (src line 901)
+
+
+state 325
+	agg_expr:  MIN '(' all_or_distinct expr ')'.    (88)
+
+	.  reduce 88 (src line 916)
+
+
+state 326
+	agg_expr:  SUM '(' all_or_distinct expr ')'.    (89)
+
+	.  reduce 89 (src line 931)
+
+
+state 327
+	simple_select:  SELECT opt_target_list into_clause from_clause where_clause group_clause having_clause.    (12)
+
+	.  reduce 12 (src line 311)
+
+
+state 328
+	having_clause:  HAVING.expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 346
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 329
+	group_clause:  GROUP BY.group_by_list 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 349
+	func_expr  goto 34
+	group_by_item  goto 348
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+	group_by_list  goto 347
+
+state 330
+	from_list:  from_list ',' table_ref.    (205)
+	joined_table:  table_ref.inner table_ref 
+	joined_table:  table_ref.inner table_ref join_qual 
+	joined_table:  table_ref.STRAIGHT_JOIN table_factor 
+	joined_table:  table_ref.STRAIGHT_JOIN table_factor ON expr 
+	joined_table:  table_ref.join_type outer_opt JOIN table_ref join_qual 
+	joined_table:  table_ref.NATURAL join_type outer_opt JOIN table_factor 
+
+	JOIN  shift 280
+	STRAIGHT_JOIN  shift 277
+	LEFT  shift 283
+	RIGHT  shift 284
+	INNER  shift 281
+	CROSS  shift 282
+	NATURAL  shift 279
+	.  reduce 205 (src line 1281)
+
+	inner  goto 276
+	join_type  goto 278
+
+state 331
+	joined_table:  table_ref.inner table_ref 
+	joined_table:  table_ref inner table_ref.    (217)
+	joined_table:  table_ref.inner table_ref join_qual 
+	joined_table:  table_ref inner table_ref.join_qual 
+	joined_table:  table_ref.STRAIGHT_JOIN table_factor 
+	joined_table:  table_ref.STRAIGHT_JOIN table_factor ON expr 
+	joined_table:  table_ref.join_type outer_opt JOIN table_ref join_qual 
+	joined_table:  table_ref.NATURAL join_type outer_opt JOIN table_factor 
+
+	JOIN  shift 280
+	STRAIGHT_JOIN  shift 277
+	LEFT  shift 283
+	RIGHT  shift 284
+	INNER  shift 281
+	CROSS  shift 282
+	NATURAL  shift 279
+	ON  shift 351
+	USING  shift 352
+	.  reduce 217 (src line 1358)
+
+	inner  goto 276
+	join_type  goto 278
+	join_qual  goto 350
+
+state 332
+	joined_table:  table_ref STRAIGHT_JOIN table_factor.    (219)
+	joined_table:  table_ref STRAIGHT_JOIN table_factor.ON expr 
+
+	ON  shift 353
+	.  reduce 219 (src line 1390)
+
+
+state 333
+	joined_table:  table_ref join_type outer_opt.JOIN table_ref join_qual 
+
+	JOIN  shift 354
+	.  error
+
+
+state 334
+	outer_opt:  OUTER.    (228)
+
+	.  reduce 228 (src line 1452)
+
+
+state 335
+	joined_table:  table_ref NATURAL join_type.outer_opt JOIN table_factor 
+	outer_opt: .    (229)
+
+	OUTER  shift 334
+	.  reduce 229 (src line 1457)
+
+	outer_opt  goto 355
+
+state 336
+	inner:  INNER JOIN.    (224)
+
+	.  reduce 224 (src line 1431)
+
+
+state 337
+	inner:  CROSS JOIN.    (225)
+
+	.  reduce 225 (src line 1435)
+
+
+state 338
+	table_factor:  '(' table_refs ')'.    (210)
+
+	.  reduce 210 (src line 1316)
+
+
+state 339
+	table_refs:  table_refs ','.table_ref 
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 166
+	STRING  shift 242
+	'('  shift 238
+	.  error
+
+	select_with_parens  goto 237
+	db_name  goto 240
+	identifier  goto 241
+	table_name  goto 239
+	joined_table  goto 235
+	relation  goto 236
+	table_factor  goto 234
+	table_ref  goto 356
+
+state 340
+	relation:  db_name '.' table_name.    (212)
+
+	.  reduce 212 (src line 1328)
+
+
+state 341
+	simple_select:  SELECT distinct_clause target_list into_clause from_clause where_clause group_clause.having_clause 
+	having_clause: .    (242)
+
+	HAVING  shift 328
+	.  reduce 242 (src line 1547)
+
+	having_clause  goto 357
+
+state 342
+	predicate:  bit_expr opt_not IN '(' expr_list ')'.    (31)
+
+	.  reduce 31 (src line 520)
+
+
+state 343
+	predicate:  bit_expr opt_not BETWEEN bit_expr AND predicate.    (32)
+
+	.  reduce 32 (src line 531)
+
+
+state 344
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151.big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	big5_chinese_ci  shift 358
+	.  error
+
+
+state 345
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	when_arg:  WHEN expr THEN expr.    (98)
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 98 (src line 1000)
+
+
+state 346
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	having_clause:  HAVING expr.    (241)
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 241 (src line 1542)
+
+
+state 347
+	group_clause:  GROUP BY group_by_list.    (236)
+	group_by_list:  group_by_list.',' group_by_item 
+
+	','  shift 359
+	.  reduce 236 (src line 1506)
+
+
+state 348
+	group_by_list:  group_by_item.    (238)
+
+	.  reduce 238 (src line 1517)
+
+
+state 349
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	group_by_item:  expr.    (240)
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 240 (src line 1528)
+
+
+state 350
+	joined_table:  table_ref inner table_ref join_qual.    (218)
+
+	.  reduce 218 (src line 1375)
+
+
+state 351
+	join_qual:  ON.expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 360
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 352
+	join_qual:  USING.'(' relation_list ')' 
+
+	'('  shift 361
+	.  error
+
+
+state 353
+	joined_table:  table_ref STRAIGHT_JOIN table_factor ON.expr 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 362
+	func_expr  goto 34
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 354
+	joined_table:  table_ref join_type outer_opt JOIN.table_ref join_qual 
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 166
+	STRING  shift 242
+	'('  shift 238
+	.  error
+
+	select_with_parens  goto 237
+	db_name  goto 240
+	identifier  goto 241
+	table_name  goto 239
+	joined_table  goto 235
+	relation  goto 236
+	table_factor  goto 234
+	table_ref  goto 363
+
+state 355
+	joined_table:  table_ref NATURAL join_type outer_opt.JOIN table_factor 
+
+	JOIN  shift 364
+	.  error
+
+
+state 356
+	table_refs:  table_refs ',' table_ref.    (216)
+	joined_table:  table_ref.inner table_ref 
+	joined_table:  table_ref.inner table_ref join_qual 
+	joined_table:  table_ref.STRAIGHT_JOIN table_factor 
+	joined_table:  table_ref.STRAIGHT_JOIN table_factor ON expr 
+	joined_table:  table_ref.join_type outer_opt JOIN table_ref join_qual 
+	joined_table:  table_ref.NATURAL join_type outer_opt JOIN table_factor 
+
+	JOIN  shift 280
+	STRAIGHT_JOIN  shift 277
+	LEFT  shift 283
+	RIGHT  shift 284
+	INNER  shift 281
+	CROSS  shift 282
+	NATURAL  shift 279
+	.  reduce 216 (src line 1351)
+
+	inner  goto 276
+	join_type  goto 278
+
+state 357
+	simple_select:  SELECT distinct_clause target_list into_clause from_clause where_clause group_clause having_clause.    (13)
+
+	.  reduce 13 (src line 334)
+
+
+state 358
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci.$$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$152: .    (152)
+
+	.  reduce 152 (src line 1140)
+
+	$$152  goto 365
+
+state 359
+	group_by_list:  group_by_list ','.group_by_item 
+
+	DOUBLE_AT_IDENT  shift 52
+	IDENT  shift 56
+	SINGLE_AT_IDENT  shift 51
+	PARAM_MARKER  shift 54
+	DOUBLE_QUOTA_STRING  shift 49
+	SINGLE_QUOTA_STRING  shift 48
+	STRING  shift 47
+	BIT_NUMBER  shift 44
+	HEX_NUMBER  shift 45
+	NUMBER  shift 46
+	AVG  shift 57
+	COUNT  shift 58
+	MAX  shift 59
+	MIN  shift 60
+	SUM  shift 61
+	NOT  shift 26
+	CASE  shift 55
+	EXISTS  shift 42
+	'+'  shift 36
+	'-'  shift 37
+	'~'  shift 38
+	'('  shift 40
+	'!'  shift 39
+	.  error
+
+	select_with_parens  goto 41
+	identifier  goto 50
+	agg_expr  goto 53
+	bit_expr  goto 29
+	boolean_primary  goto 27
+	case_expr  goto 43
+	column_ref  goto 32
+	expr  goto 349
+	func_expr  goto 34
+	group_by_item  goto 366
+	literal  goto 31
+	marker  goto 35
+	predicate  goto 28
+	simple_expr  goto 30
+	variable  goto 33
+
+state 360
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	join_qual:  ON expr.    (230)
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 230 (src line 1462)
+
+
+state 361
+	join_qual:  USING '('.relation_list ')' 
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 166
+	STRING  shift 242
+	.  error
+
+	db_name  goto 240
+	identifier  goto 241
+	table_name  goto 239
+	relation  goto 368
+	relation_list  goto 367
+
+state 362
+	expr:  expr.OR expr 
+	expr:  expr.OO expr 
+	expr:  expr.XOR expr 
+	expr:  expr.AND expr 
+	expr:  expr.AA expr 
+	joined_table:  table_ref STRAIGHT_JOIN table_factor ON expr.    (220)
+
+	OR  shift 82
+	OO  shift 83
+	AND  shift 85
+	AA  shift 86
+	XOR  shift 84
+	.  reduce 220 (src line 1397)
+
+
+state 363
+	joined_table:  table_ref.inner table_ref 
+	joined_table:  table_ref.inner table_ref join_qual 
+	joined_table:  table_ref.STRAIGHT_JOIN table_factor 
+	joined_table:  table_ref.STRAIGHT_JOIN table_factor ON expr 
+	joined_table:  table_ref.join_type outer_opt JOIN table_ref join_qual 
+	joined_table:  table_ref join_type outer_opt JOIN table_ref.join_qual 
+	joined_table:  table_ref.NATURAL join_type outer_opt JOIN table_factor 
+
+	JOIN  shift 280
+	STRAIGHT_JOIN  shift 277
+	LEFT  shift 283
+	RIGHT  shift 284
+	INNER  shift 281
+	CROSS  shift 282
+	NATURAL  shift 279
+	ON  shift 351
+	USING  shift 352
+	.  error
+
+	inner  goto 276
+	join_type  goto 278
+	join_qual  goto 369
+
+state 364
+	joined_table:  table_ref NATURAL join_type outer_opt JOIN.table_factor 
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 166
+	STRING  shift 242
+	'('  shift 238
+	.  error
+
+	select_with_parens  goto 237
+	db_name  goto 240
+	identifier  goto 241
+	table_name  goto 239
+	relation  goto 236
+	table_factor  goto 370
+
+state 365
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152.binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	binary  shift 371
+	.  error
+
+
+state 366
+	group_by_list:  group_by_list ',' group_by_item.    (239)
+
+	.  reduce 239 (src line 1522)
+
+
+state 367
+	join_qual:  USING '(' relation_list.')' 
+	relation_list:  relation_list.',' relation 
+
+	','  shift 373
+	')'  shift 372
+	.  error
+
+
+state 368
+	relation_list:  relation.    (232)
+
+	.  reduce 232 (src line 1473)
+
+
+state 369
+	joined_table:  table_ref join_type outer_opt JOIN table_ref join_qual.    (221)
+
+	.  reduce 221 (src line 1403)
+
+
+state 370
+	joined_table:  table_ref NATURAL join_type outer_opt JOIN table_factor.    (222)
+
+	.  reduce 222 (src line 1414)
+
+
+state 371
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary.$$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$153: .    (153)
+
+	.  reduce 153 (src line 1141)
+
+	$$153  goto 374
+
+state 372
+	join_qual:  USING '(' relation_list ')'.    (231)
+
+	.  reduce 231 (src line 1467)
+
+
+state 373
+	relation_list:  relation_list ','.relation 
+
+	IDENT  shift 56
+	DOUBLE_QUOTA_STRING  shift 166
+	STRING  shift 242
+	.  error
+
+	db_name  goto 240
+	identifier  goto 241
+	table_name  goto 239
+	relation  goto 375
+
+state 374
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153.cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	cp1250_general_ci  shift 376
+	.  error
+
+
+state 375
+	relation_list:  relation_list ',' relation.    (233)
+
+	.  reduce 233 (src line 1478)
+
+
+state 376
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci.$$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$154: .    (154)
+
+	.  reduce 154 (src line 1142)
+
+	$$154  goto 377
+
+state 377
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154.cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	cp1251_general_ci  shift 378
+	.  error
+
+
+state 378
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci.$$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$155: .    (155)
+
+	.  reduce 155 (src line 1143)
+
+	$$155  goto 379
+
+state 379
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155.cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	cp1256_general_ci  shift 380
+	.  error
+
+
+state 380
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci.$$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$156: .    (156)
+
+	.  reduce 156 (src line 1144)
+
+	$$156  goto 381
+
+state 381
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156.cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	cp1257_general_ci  shift 382
+	.  error
+
+
+state 382
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci.$$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$157: .    (157)
+
+	.  reduce 157 (src line 1145)
+
+	$$157  goto 383
+
+state 383
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157.cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	cp850_general_ci  shift 384
+	.  error
+
+
+state 384
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci.$$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$158: .    (158)
+
+	.  reduce 158 (src line 1146)
+
+	$$158  goto 385
+
+state 385
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158.cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	cp852_general_ci  shift 386
+	.  error
+
+
+state 386
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci.$$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$159: .    (159)
+
+	.  reduce 159 (src line 1147)
+
+	$$159  goto 387
+
+state 387
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159.cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	cp866_general_ci  shift 388
+	.  error
+
+
+state 388
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci.$$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$160: .    (160)
+
+	.  reduce 160 (src line 1148)
+
+	$$160  goto 389
+
+state 389
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160.cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	cp932_japanese_ci  shift 390
+	.  error
+
+
+state 390
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci.$$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$161: .    (161)
+
+	.  reduce 161 (src line 1149)
+
+	$$161  goto 391
+
+state 391
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161.dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	dec8_swedish_ci  shift 392
+	.  error
+
+
+state 392
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci.$$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$162: .    (162)
+
+	.  reduce 162 (src line 1150)
+
+	$$162  goto 393
+
+state 393
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162.eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	eucjpms_japanese_ci  shift 394
+	.  error
+
+
+state 394
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci.$$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$163: .    (163)
+
+	.  reduce 163 (src line 1151)
+
+	$$163  goto 395
+
+state 395
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163.euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	euckr_korean_ci  shift 396
+	.  error
+
+
+state 396
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci.$$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$164: .    (164)
+
+	.  reduce 164 (src line 1152)
+
+	$$164  goto 397
+
+state 397
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164.gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	gb18030_chinese_ci  shift 398
+	.  error
+
+
+state 398
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci.$$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$165: .    (165)
+
+	.  reduce 165 (src line 1153)
+
+	$$165  goto 399
+
+state 399
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165.gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	gb2312_chinese_ci  shift 400
+	.  error
+
+
+state 400
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci.$$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$166: .    (166)
+
+	.  reduce 166 (src line 1154)
+
+	$$166  goto 401
+
+state 401
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166.gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	gbk_chinese_ci  shift 402
+	.  error
+
+
+state 402
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci.$$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$167: .    (167)
+
+	.  reduce 167 (src line 1155)
+
+	$$167  goto 403
+
+state 403
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167.geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	geostd8_general_ci  shift 404
+	.  error
+
+
+state 404
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci.$$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$168: .    (168)
+
+	.  reduce 168 (src line 1156)
+
+	$$168  goto 405
+
+state 405
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168.greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	greek_general_ci  shift 406
+	.  error
+
+
+state 406
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci.$$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$169: .    (169)
+
+	.  reduce 169 (src line 1157)
+
+	$$169  goto 407
+
+state 407
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169.hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	hebrew_general_ci  shift 408
+	.  error
+
+
+state 408
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci.$$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$170: .    (170)
+
+	.  reduce 170 (src line 1158)
+
+	$$170  goto 409
+
+state 409
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170.hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	hp8_english_ci  shift 410
+	.  error
+
+
+state 410
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci.$$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$171: .    (171)
+
+	.  reduce 171 (src line 1159)
+
+	$$171  goto 411
+
+state 411
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171.keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	keybcs2_general_ci  shift 412
+	.  error
+
+
+state 412
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci.$$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$172: .    (172)
+
+	.  reduce 172 (src line 1160)
+
+	$$172  goto 413
+
+state 413
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172.koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	koi8r_general_ci  shift 414
+	.  error
+
+
+state 414
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci.$$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$173: .    (173)
+
+	.  reduce 173 (src line 1161)
+
+	$$173  goto 415
+
+state 415
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173.koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	koi8u_general_ci  shift 416
+	.  error
+
+
+state 416
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci.$$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$174: .    (174)
+
+	.  reduce 174 (src line 1162)
+
+	$$174  goto 417
+
+state 417
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174.latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	latin1_swedish_ci  shift 418
+	.  error
+
+
+state 418
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci.$$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$175: .    (175)
+
+	.  reduce 175 (src line 1163)
+
+	$$175  goto 419
+
+state 419
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175.latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	latin2_general_ci  shift 420
+	.  error
+
+
+state 420
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci.$$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$176: .    (176)
+
+	.  reduce 176 (src line 1164)
+
+	$$176  goto 421
+
+state 421
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176.latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	latin5_turkish_ci  shift 422
+	.  error
+
+
+state 422
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci.$$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$177: .    (177)
+
+	.  reduce 177 (src line 1165)
+
+	$$177  goto 423
+
+state 423
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177.latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	latin7_general_ci  shift 424
+	.  error
+
+
+state 424
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci.$$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$178: .    (178)
+
+	.  reduce 178 (src line 1166)
+
+	$$178  goto 425
+
+state 425
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178.macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	macce_general_ci  shift 426
+	.  error
+
+
+state 426
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci.$$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$179: .    (179)
+
+	.  reduce 179 (src line 1167)
+
+	$$179  goto 427
+
+state 427
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179.macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	macroman_general_ci  shift 428
+	.  error
+
+
+state 428
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci.$$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$180: .    (180)
+
+	.  reduce 180 (src line 1168)
+
+	$$180  goto 429
+
+state 429
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180.sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	sjis_japanese_ci  shift 430
+	.  error
+
+
+state 430
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci.$$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$181: .    (181)
+
+	.  reduce 181 (src line 1169)
+
+	$$181  goto 431
+
+state 431
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181.swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	swe7_swedish_ci  shift 432
+	.  error
+
+
+state 432
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci.$$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$182: .    (182)
+
+	.  reduce 182 (src line 1170)
+
+	$$182  goto 433
+
+state 433
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182.tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	tis620_thai_ci  shift 434
+	.  error
+
+
+state 434
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci.$$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$183: .    (183)
+
+	.  reduce 183 (src line 1171)
+
+	$$183  goto 435
+
+state 435
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183.ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	ucs2_general_ci  shift 436
+	.  error
+
+
+state 436
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci.$$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$184: .    (184)
+
+	.  reduce 184 (src line 1172)
+
+	$$184  goto 437
+
+state 437
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184.ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	ujis_japanese_ci  shift 438
+	.  error
+
+
+state 438
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci.$$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$185: .    (185)
+
+	.  reduce 185 (src line 1173)
+
+	$$185  goto 439
+
+state 439
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185.utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	utf16_general_ci  shift 440
+	.  error
+
+
+state 440
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci.$$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$186: .    (186)
+
+	.  reduce 186 (src line 1174)
+
+	$$186  goto 441
+
+state 441
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186.utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	utf16le_general_ci  shift 442
+	.  error
+
+
+state 442
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci.$$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$187: .    (187)
+
+	.  reduce 187 (src line 1175)
+
+	$$187  goto 443
+
+state 443
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187.utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci 
+
+	utf32_general_ci  shift 444
+	.  error
+
+
+state 444
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci.$$188 utf8_general_ci $$189 utf8mb4_general_ci 
+	$$188: .    (188)
+
+	.  reduce 188 (src line 1176)
+
+	$$188  goto 445
+
+state 445
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188.utf8_general_ci $$189 utf8mb4_general_ci 
+
+	utf8_general_ci  shift 446
+	.  error
+
+
+state 446
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci.$$189 utf8mb4_general_ci 
+	$$189: .    (189)
+
+	.  reduce 189 (src line 1177)
+
+	$$189  goto 447
+
+state 447
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189.utf8mb4_general_ci 
+
+	utf8mb4_general_ci  shift 448
+	.  error
+
+
+state 448
+	collation_name:  armscii8_general_ci $$150 ascii_general_ci $$151 big5_chinese_ci $$152 binary $$153 cp1250_general_ci $$154 cp1251_general_ci $$155 cp1256_general_ci $$156 cp1257_general_ci $$157 cp850_general_ci $$158 cp852_general_ci $$159 cp866_general_ci $$160 cp932_japanese_ci $$161 dec8_swedish_ci $$162 eucjpms_japanese_ci $$163 euckr_korean_ci $$164 gb18030_chinese_ci $$165 gb2312_chinese_ci $$166 gbk_chinese_ci $$167 geostd8_general_ci $$168 greek_general_ci $$169 hebrew_general_ci $$170 hp8_english_ci $$171 keybcs2_general_ci $$172 koi8r_general_ci $$173 koi8u_general_ci $$174 latin1_swedish_ci $$175 latin2_general_ci $$176 latin5_turkish_ci $$177 latin7_general_ci $$178 macce_general_ci $$179 macroman_general_ci $$180 sjis_japanese_ci $$181 swe7_swedish_ci $$182 tis620_thai_ci $$183 ucs2_general_ci $$184 ujis_japanese_ci $$185 utf16_general_ci $$186 utf16le_general_ci $$187 utf32_general_ci $$188 utf8_general_ci $$189 utf8mb4_general_ci.    (190)
+
+	.  reduce 190 (src line 1178)
+
+
+175 terminals, 114 nonterminals
+267 grammar rules, 449/8000 states
+0 shift/reduce, 0 reduce/reduce conflicts reported
+163 working sets used
+memory: parser 1621/120000
+639 extra closures
+1973 shift entries, 20 exceptions
+260 goto entries
+774 entries saved by goto default
+Optimizer space used: output 1026/120000
+1026 table entries, 193 zero
+maximum spread: 175, maximum offset: 373
