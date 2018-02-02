@@ -287,9 +287,9 @@ func (token *Tokener) ScanUnderline() (int, string) {
 		ident := strings.ToLower(buffer.String())
 		if _, ok := Keywords[ident]; ok {
 			return Keywords[ident], strings.ToUpper(ident)
-		} else if _, ok := Character[ident]; ok{
+		} else if _, ok := Character[ident]; ok {
 			return Character[ident], ident
-		}else{
+		} else {
 			return IDENT, ident
 		}
 	}
@@ -375,9 +375,9 @@ func (token *Tokener) ScanIdent() (int, string) {
 		ident := strings.ToLower(buffer.String())
 		if _, ok := Keywords[ident]; ok {
 			return Keywords[ident], strings.ToUpper(ident)
-		} else if _, ok := Character[ident]; ok{
+		} else if _, ok := Character[ident]; ok {
 			return Character[ident], ident
-		}else {
+		} else {
 			return IDENT, ident
 		}
 	}
@@ -493,9 +493,9 @@ func (token *Tokener) ScanHexAndBit() (int, string) {
 		ident := strings.ToLower(token.Buf.String())
 		if _, ok := Keywords[ident]; ok {
 			return Keywords[ident], strings.ToUpper(ident)
-		} else if _, ok := Character[ident]; ok{
+		} else if _, ok := Character[ident]; ok {
 			return Character[ident], ident
-		}else {
+		} else {
 			return IDENT, ident
 		}
 	}

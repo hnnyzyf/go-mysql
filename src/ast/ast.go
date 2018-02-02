@@ -5,9 +5,19 @@ type Node interface {
 	//每一个Node都需要能接受一个Visitor进行访问
 	//返回的Node是由Vistor来定义的
 	//bool表示是否要继续访问下一个节点
-	Accept(v Visitor) (Node,bool)
-}
+	Accept(v Visitor) (Node, bool)
 
+	//node实现:设置类型
+	SetTag(a AstOption)
+	//node实现:设置collate
+	SetCollate(s string)
+	//node实现，设置text
+	SetText(s string)
+	//node实现，设置别名
+	SetAlias(s string)
+	//node实现，设置顺序
+	SetAsc(s string)
+}
 
 //实现walk为vistor，该vistor对当前的Node进行处理，给出我们想要的操作
 type Visitor interface {
@@ -16,9 +26,8 @@ type Visitor interface {
 	Notify(Node) bool
 	//处理节点
 	//返回处理后的新的节点以及是否继续往下运行
-	Visit(Node) (Node,bool)
+	Visit(Node) (Node, bool)
 }
-
 
 //定义节点的array
 type List []Node
@@ -96,12 +105,14 @@ const (
 	AST_VALUE_HEX_NUMBER
 	AST_VALUE_SINGLE_QUOTA_STRING
 	AST_VALUE_DOUBLE_QUOTA_STRING
+	AST_VALUE_TRUE
+	AST_VALUE_FALSE
 
 	AST_CLAUSE_DISTINCT
 	AST_CLAUSE_DISTINCTROW
 
 	AST_RELATION
-	
+
 	AST_JOIN
 	AST_INNER_JOIN
 	AST_STRAIGHT_JOIN
@@ -132,9 +143,4 @@ const (
 	AST_EXPR_SUM_DISTINCTROW
 	AST_EXPR_SUM_ALL
 	AST_EXPR_COUNT_STAR
-
-
-
-
-
 )

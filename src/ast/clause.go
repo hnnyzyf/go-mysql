@@ -2,7 +2,7 @@ package ast
 
 //实现clause 定义
 
-type DistinctClause struct{
+type DistinctClause struct {
 	node
 }
 

@@ -689,14 +689,7 @@ simple_expr:
   				}
   			| simple_expr COLLATE collation_name %prec OP
   				{
-  					switch node:=$1.(type){
-  						case *ast.ValExpr:
-                node.SetCollate($3)
-              case *ast.ColumnExpr:
-                node.SetCollate($3)
-              case *ast.Expr:
-  							node.SetCollate($3)
-  					}
+            $1.SetCollate($3)
   					$$ = $1
   				}
   			| marker
@@ -1057,21 +1050,8 @@ target_list:
 target_el:
             expr opt_alias 			
             	{ 
-            		switch node:=$1.(type){
-            			case *ast.Expr:
-                    node.SetAlias($2)
-                  case *ast.SubqueryExpr:
-                    node.SetAlias($2)
-                  case *ast.CaseExpr:
-                    node.SetAlias($2)
-                  case *ast.FuncExpr:
-                    node.SetAlias($2)
-                  case *ast.ValExpr:
-                    node.SetAlias($2)
-                  case *ast.ColumnExpr:
-            				node.SetAlias($2)
-            		}
-            		$$ = $1
+            		$1.SetAlias($2)
+                $$ = $1
             	}
             |'*' 									
             	{ 
@@ -1308,14 +1288,7 @@ table_ref:
 table_factor:
 			relation opt_alias       
 				{
-					switch node:=$1.(type){
-						case *ast.RelationExpr:
-							node.SetAlias($2)
-						case *ast.JoinExpr:
-							node.SetAlias($2)
-						case *ast.RelationListExpr:
-							node.SetAlias($2)
-					}
+          $1.SetAlias($2)
 					$$ = $1
 				}
 			|select_with_parens alias        
@@ -1639,7 +1612,7 @@ for_locking_clause:
 				}
 			|LOCK IN SHARE MODE	%prec UMINUS
 				{ 	
-					$$ = &ast.LockClause{Lock:"IN SHARE MODE"}
+					$$ = &ast.LockClause{Lock:"LOCK IN SHARE MODE"}
 				}
 
 

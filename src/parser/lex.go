@@ -12,11 +12,11 @@ func (token *Tokener) Lex(lval *yySymType) int {
 	}
 	//判断正确的类型
 	switch tok {
-	case DOUBLE_AT_IDENT,IDENT,SINGLE_AT_IDENT:
+	case DOUBLE_AT_IDENT, IDENT, SINGLE_AT_IDENT:
 		lval.ident = val
-	case PARAM_MARKER,DOUBLE_QUOTA_STRING,SINGLE_QUOTA_STRING,STRING:
+	case PARAM_MARKER, DOUBLE_QUOTA_STRING, SINGLE_QUOTA_STRING, STRING:
 		lval.str = val
-	case BIT_NUMBER,HEX_NUMBER,NUMBER :
+	case BIT_NUMBER, HEX_NUMBER, NUMBER:
 		lval.val = val
 	}
 	return tok

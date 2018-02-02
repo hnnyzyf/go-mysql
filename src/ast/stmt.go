@@ -15,7 +15,7 @@ type SelectStmt struct {
 	Having   *HavingClause
 
 	//左右子树，只在SelectStmt类型为非Simple时使用
-	All 	string
+	All   string
 	Left  *SelectStmt
 	Right *SelectStmt
 

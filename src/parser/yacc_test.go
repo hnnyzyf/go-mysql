@@ -42,7 +42,8 @@ func Test_parse(t *testing.T) {
 	//	INNER JOIN (
 	//		SELECT userIp FROM loginfo_login 
 	//	WHERE source_from = 'CRM' AND subsource_from = 'LOGIN' AND (user_type = 'MemberLogin' OR user_type = 'MemberLoginMask')) as f`
-	sql:="select 1 from test where true and false"
+	//sql:="select 1 from test where true and false"
+	sql:=`SELECT CASE WHEN EXISTS(SELECT * FROM TMP WHERE TMP.id = SRC.id) THEN 1 ELSE 2 END FROM SRC`
 	stmt := SqlParse(sql)
 	t.Log(stmt)
 
