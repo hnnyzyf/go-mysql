@@ -67,6 +67,23 @@ func (token *Tokener) doubleRune(ch rune) bool {
 	}
 }
 
+func checkIdent(s string) (int, string) {
+	ident := strings.ToLower(s)
+	if _, ok := Keywords[ident]; ok {
+		return Keywords[ident], strings.ToUpper(ident)
+	} else if _, ok := Character[ident]; ok {
+		return Character[ident], ident
+	} else if _, ok := TimeUnit[ident]; ok {
+		return TimeUnit[ident], strings.ToUpper(ident)
+	} else if _, ok := FuncTimeAdd[ident]; ok {
+		return FuncTimeAdd[ident], strings.ToUpper(ident)
+	} else if _, ok := FuncTimeSub[ident]; ok {
+		return FuncTimeSub[ident], strings.ToUpper(ident)
+	} else {
+		return IDENT, ident
+	}
+}
+
 //scan函数，每次scan获得一个类型，返回类型和字符串
 func (token *Tokener) Scan() (int, string) {
 	if token.Position == 0 {
@@ -126,8 +143,6 @@ func (token *Tokener) Scan() (int, string) {
 		return token.ScanLogicalOp()
 	case IsComment(ch):
 		return token.scanComment()
-	case IsAt(ch):
-		return token.ScanAt()
 	case IsQuestion(ch):
 		return token.ScanQuestion()
 	default:
@@ -284,14 +299,7 @@ func (token *Tokener) ScanUnderline() (int, string) {
 
 	if state == -2 {
 		//判断是否是关键字
-		ident := strings.ToLower(buffer.String())
-		if _, ok := Keywords[ident]; ok {
-			return Keywords[ident], strings.ToUpper(ident)
-		} else if _, ok := Character[ident]; ok {
-			return Character[ident], ident
-		} else {
-			return IDENT, ident
-		}
+		return checkIdent(buffer.String())
 	}
 
 	return -1, ""
@@ -372,14 +380,7 @@ func (token *Tokener) ScanIdent() (int, string) {
 
 	if state == -1 || state == -2 {
 		//判断是否是关键字
-		ident := strings.ToLower(buffer.String())
-		if _, ok := Keywords[ident]; ok {
-			return Keywords[ident], strings.ToUpper(ident)
-		} else if _, ok := Character[ident]; ok {
-			return Character[ident], ident
-		} else {
-			return IDENT, ident
-		}
+		return checkIdent(buffer.String())
 	}
 	return -1, ""
 }
@@ -490,14 +491,7 @@ func (token *Tokener) ScanHexAndBit() (int, string) {
 	}
 
 	if state == -1 {
-		ident := strings.ToLower(token.Buf.String())
-		if _, ok := Keywords[ident]; ok {
-			return Keywords[ident], strings.ToUpper(ident)
-		} else if _, ok := Character[ident]; ok {
-			return Character[ident], ident
-		} else {
-			return IDENT, ident
-		}
+		return checkIdent(token.Buf.String())
 	}
 
 	//遇到的是IDENT 继续遍历
@@ -966,44 +960,6 @@ func (token *Tokener) scanComment() (int, string) {
 	}
 	return -1, ""
 
-}
-
-func (token *Tokener) ScanAt() (int, string) {
-	buffer := token.Buf
-	tok := token.doubleRune('@')
-	state := 0
-	if token.EOF == true {
-		state = -1
-	}
-	for state != -1 {
-		switch state {
-		case 0:
-			if IsIdentLetter(token.Lastchar) {
-				buffer.WriteRune(token.Lastchar)
-				token.next()
-				state = 1
-			} else {
-				state = -1
-			}
-		case 1:
-			if token.EOF == true {
-				state = -1
-			} else {
-				state = 0
-			}
-		}
-	}
-
-	if state == -1 {
-		switch tok {
-		case true:
-			return DOUBLE_AT_IDENT, buffer.String()
-		case false:
-			return SINGLE_AT_IDENT, buffer.String()
-		}
-	}
-
-	return -1, ""
 }
 
 func (token *Tokener) ScanQuestion() (int, string) {

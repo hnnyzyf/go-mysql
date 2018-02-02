@@ -19,208 +19,158 @@ import "ast"
 
 //token定义
 %token <ident> 
-			DOUBLE_AT_IDENT
-			IDENT
-			SINGLE_AT_IDENT
+      IDENT
+      BuiltinCharacterIdent
+      BuiltinFucTimeAddIdent
+      BuiltinFucTimeSubIdent
+      BuiltinTimeUnitIdent
 
 %token <str>
-			PARAM_MARKER
-			DOUBLE_QUOTA_STRING
-			SINGLE_QUOTA_STRING
-			STRING
+      DOUBLE_QUOTA_STRING
+      PARAM_MARKER
+      SINGLE_QUOTA_STRING
+      STRING
 
 %token <val> 
-			BIT_NUMBER 
-			HEX_NUMBER
-			NUMBER 
+      BIT_NUMBER 
+      HEX_NUMBER
+      NUMBER 
 			
 
 
 
 
 %token <ident> 
-			AS
-			ASC
-			ALL
-			ANY
-			AVG
-			BY
-			COMMENT
-			COUNT
-			CHARACTER
-			DISTINCT
-			DISTINCTROW
-			DESC
-			DAY
-			DAY_HOUR
-			DAY_MICROSECOND
-			DAY_MINUTE
-			DAY_SECOND
-			FROM
-			FOR
-			FALSE
-			GROUP
-			HAVING
-			HOUR
-			HOUR_MICROSECOND
-			HOUR_MINUTE
-			HOUR_SECOND
-			INTO
-			IF
-			LIMIT
-			LOCK
-			MAX
-			MIN
-			MINUTE
-			MINUTE_SECOND
-			MODE
-			MONTH
-			MICROSECOND
-			MINUTE_MICROSECOND
-			NULL
-			ORDER
-			OFFSET
-			QUARTER
-			SELECT
-			SOME
-			SUM
-			SHARE
-			SOUNDS
-			SECOND
-			SECOND_MICROSECOND
-			SET
-			TO
-			TRUE
-			UPDATE
-			WHERE
-			WEEK
-			YEAR
-			YEAR_MONTH
+      ALL
+      ANY
+      AS
+      ASC
+      AVG
+      BY
+      CHARACTER
+      COMMENT
+      COUNT
+      DESC
+      DISTINCT
+      DISTINCTROW
+      FALSE
+      FOR
+      FROM
+      GROUP
+      HAVING
+      IF
+      INTO
+      LIMIT
+      LOCK
+      MAX
+      MIN
+      MODE
+      NULL
+      OFFSET
+      ORDER
+      QUARTER
+      SELECT
+      SET
+      SHARE
+      SOME
+      SOUNDS
+      SUM
+      TO
+      TRUE
+      UPDATE
+      WHERE
+      CAST
+      CONVERT
 
-
-%token <ident>
-			armscii8_general_ci
-			ascii_general_ci   
-			big5_chinese_ci    
-			binary             
-			cp1250_general_ci  
-			cp1251_general_ci  
-			cp1256_general_ci  
-			cp1257_general_ci  
-			cp850_general_ci   
-			cp852_general_ci   
-			cp866_general_ci   
-			cp932_japanese_ci  
-			dec8_swedish_ci    
-			eucjpms_japanese_ci
-			euckr_korean_ci    
-			gb18030_chinese_ci 
-			gb2312_chinese_ci  
-			gbk_chinese_ci     
-			geostd8_general_ci 
-			greek_general_ci   
-			hebrew_general_ci  
-			hp8_english_ci     
-			keybcs2_general_ci 
-			koi8r_general_ci   
-			koi8u_general_ci   
-			latin1_swedish_ci  
-			latin2_general_ci  
-			latin5_turkish_ci  
-			latin7_general_ci  
-			macce_general_ci   
-			macroman_general_ci
-			sjis_japanese_ci   
-			swe7_swedish_ci    
-			tis620_thai_ci     
-			ucs2_general_ci    
-			ujis_japanese_ci   
-			utf16_general_ci   
-			utf16le_general_ci 
-			utf32_general_ci   
-			utf8_general_ci    
-			utf8mb4_general_ci 
 
 //类型定义
 %type <node>
-			distinct_clause
-			for_locking_clause
-			from_clause
-			group_clause
-			having_clause
-			into_clause
-			opt_for_locking_clause
-			opt_select_limit
-			opt_sort_clause
-			select_clause
-			select_limit
-			select_no_parens
-			select_stmt
-			select_with_parens
-			simple_select
-			sort_clause
-			where_clause
+      distinct_clause
+      for_locking_clause
+      from_clause
+      group_clause
+      having_clause
+      into_clause
+      opt_for_locking_clause
+      opt_select_limit
+      opt_sort_clause
+      select_clause
+      select_limit
+      select_no_parens
+      select_stmt
+      select_with_parens
+      simple_select
+      sort_clause
+      where_clause
 
 %type <val>
-			alias
-			alias_name
-			all_or_distinct
-			asc_or_desc
-			collation_name
-			comparison_operator
-			db_name
-			identifier
-			inner
-			is_or_not
-			join_type
-			opt_alias
-			opt_distinct
-			opt_not
-			outer_opt
-			subquery_type
-			table_name
-			time_unit
-			true_or_false
+      alias
+      alias_name
+      all_or_distinct
+      asc_or_desc
+      collation_name
+      comparison_operator
+      db_name
+      identifier
+      inner
+      is_or_not
+      join_type
+      opt_alias
+      opt_distinct
+      opt_not
+      outer_opt
+      subquery_type
+      table_name
+      time_unit
+      true_or_false
+      cast_type
+      double_at_ident
+      func_name
+      func_name_time_add
+      func_name_time_sub
+      identifier_or_star
+      keyword_as_func
+      single_at_ident
 
-%type <expr>
-			agg_expr
-			bit_expr
-			boolean_primary
-			case_arg
-			case_expr
-			column_ref
-			else_arg
-			expr
-			func_expr
-			group_by_item
-			join_qual
-			joined_table
-			literal
-			marker
-			offset_expr
-			predicate
-			relation
-			simple_expr
-			sortby
-			table_factor
-			table_ref
-			target_el
-			variable
-			when_arg
-      		rows_offset
-      		agg_expr
+%type <expr>  
+      agg_expr
+      bit_expr
+      boolean_primary
+      case_arg
+      case_expr
+      column_ref
+      else_arg
+      expr
+      func_expr
+      group_by_item
+      join_qual
+      joined_table
+      literal
+      marker
+      offset_expr
+      predicate
+      relation
+      rows_offset
+      simple_expr
+      sortby
+      table_factor
+      table_ref
+      target_el
+      time_expr
+      variable
+      when_arg
 
 %type <list>
-			expr_list
-			from_list
-			group_by_list
-			opt_target_list
-			relation_list
-			sortby_list
-			table_refs
-			target_list
-			when_list
-			rows
+      expr_list
+      from_list
+      group_by_list
+      opt_target_list
+      relation_list
+      rows
+      sortby_list
+      table_refs
+      target_list
+      when_list
       limit_list
 			
 
@@ -653,12 +603,14 @@ bit_expr:
   				{
   					expr:= &ast.Expr{Operator:"+",Left:$1,Right:$4}
   			  		expr.SetTag(ast.AST_TIME_INTERVAL)
+              expr.SetAlias($5)
   			  		$$ = expr
   				}
   			| bit_expr '-' INTERVAL expr time_unit %prec '-'
   				{
   			  		expr:= &ast.Expr{Operator:"-",Left:$1,Right:$4}
   			  		expr.SetTag(ast.AST_TIME_INTERVAL)
+              expr.SetAlias($5)
   			  		$$ = expr
   			  	}
   			| simple_expr %prec LOW
@@ -796,6 +748,18 @@ literal:
 
             $$ = expr
         }
+      |NULL
+        {
+            expr :=&ast.ValExpr{Symbol:0,Sval:"NULL"}
+            switch $1{
+              case "TRUE":
+                 expr.SetTag(ast.AST_VALUE_NULL)
+              case "FALSE":
+                 expr.SetTag(ast.AST_VALUE_NULL)
+            }
+
+            $$ = expr
+        }
 
 identifier:
         	IDENT
@@ -803,42 +767,53 @@ identifier:
         	  	  	$$ = $1
         	  	}
 
+identifier_or_star:
+          identifier
+              {
+                  $$ = $1
+              }
+          |'*'
+              {
+                  $$ = "*"
+              }
       
 variable:
-    		SINGLE_AT_IDENT
+    		single_at_ident
       			{
       			    expr :=&ast.ColumnExpr{Column:$1}
-      			    expr.SetTag(ast.AST_EXPR_COLUMN)
+      			    expr.SetTag(ast.AST_EXPR_SINGLE_AT_COLUMN)
   			  		$$ = expr
       			}
-    		|DOUBLE_AT_IDENT
+    		|double_at_ident
       			{
         			expr :=&ast.ColumnExpr{Column:$1}
-        			expr.SetTag(ast.AST_EXPR_COLUMN)
+        			expr.SetTag(ast.AST_EXPR_DOUBLE_AT_COLUMN)
   			  		$$ = expr
       			}
-      		|DOUBLE_AT_IDENT '.' identifier
+      		|double_at_ident '.' identifier
       			{
       				expr :=&ast.ColumnExpr{Column:$1}
-      				expr.SetTag(ast.AST_EXPR_COLUMN)
+      				expr.SetTag(ast.AST_EXPR_DOUBLE_AT_COLUMN)
   			  		$$ = expr
       			}
+
+
 
 
 column_ref:
-      		identifier
+      		identifier_or_star
       			{
        	 			expr :=&ast.ColumnExpr{Column:$1}
        	 			expr.SetTag(ast.AST_EXPR_COLUMN)
   				 	$$ = expr
       			}
-      		|identifier '.' identifier
+      		|identifier '.' identifier_or_star
       			{
 					expr :=&ast.ColumnExpr{Table:$1,Column:$2}
 					expr.SetTag(ast.AST_EXPR_COLUMN)
   				 	$$ = expr
       			}
-      		|identifier '.' identifier '.' identifier
+      		|identifier '.' identifier '.' identifier_or_star
       			{
       				expr := &ast.ColumnExpr{DB:$1,Table:$2,Column:$3}
       				expr.SetTag(ast.AST_EXPR_COLUMN)
@@ -847,7 +822,13 @@ column_ref:
 
 
 func_expr:
-			identifier '(' expr_list ')'
+      func_name '(' ')'
+        {
+          expr := &ast.FuncExpr{Name:$1}
+          expr.SetTag(ast.AST_EXPR_FUNC)
+              $$ = expr
+        }
+			|func_name '(' expr_list ')'
 				{
 					expr := &ast.FuncExpr{Name:$1,Arg:$3}
 					expr.SetTag(ast.AST_EXPR_FUNC)
@@ -857,6 +838,31 @@ func_expr:
 				{
 					$$ = $1
 				}
+      |time_expr
+        {
+          $$ = $1
+        }
+      |CAST '(' expr AS cast_type ')'
+        {
+          expr := &ast.FuncExpr{Name:"CAST",Arg:ast.List{$3}}
+          expr.SetTag(ast.AST_EXPR_CAST)
+          expr.SetCollate($5)
+              $$ = expr
+        }
+      |CONVERT '(' expr ',' cast_type ')'
+        {
+            expr := &ast.FuncExpr{Name:"CONVERT",Arg:ast.List{$3}}
+            expr.SetTag(ast.AST_EXPR_CONVERT_TYPE)
+            expr.SetCollate($5)
+              $$ = expr
+        }
+      |CONVERT '(' expr USING alias_name ')'
+        {
+            expr := &ast.FuncExpr{Name:"CONVERT",Arg:ast.List{$3}}
+            expr.SetTag(ast.AST_EXPR_CONVERT_ALIAS)
+            expr.SetAlias($5)
+              $$ = expr
+        }
 
 agg_expr:
 			AVG '(' all_or_distinct expr ')'
@@ -948,6 +954,24 @@ agg_expr:
 					}
   			  		$$ = expr
 				}
+
+time_expr:
+        func_name_time_add '(' expr ',' INTERVAL expr time_unit ')'
+          {
+
+              expr:= &ast.Expr{Operator:"+",Left:$3,Right:$6}
+              expr.SetTag(ast.AST_TIME_INTERVAL)
+              expr.SetAlias($7)
+              $$ = &ast.FuncExpr{Name:$1,Arg:ast.List{expr}}
+          }
+        |func_name_time_sub '(' expr ',' INTERVAL expr time_unit ')'
+          {
+
+              expr:= &ast.Expr{Operator:"-",Left:$3,Right:$6}
+              expr.SetTag(ast.AST_TIME_INTERVAL)
+              expr.SetAlias($7)
+              $$ = &ast.FuncExpr{Name:$1,Arg:ast.List{expr}}
+          }
 
 
 expr_list:
@@ -1053,13 +1077,27 @@ target_el:
             		$1.SetAlias($2)
                 $$ = $1
             	}
-            |'*' 									
-            	{ 
-            		expr := &ast.ColumnExpr{Column:"*"}
-            		expr.SetTag(ast.AST_EXPR_COLUMN_STAR)
-            		$$ = expr
-            	}
 
+single_at_ident:
+            '@' identifier
+              {
+                  $$ = $2
+              }
+double_at_ident:
+            '@' '@' identifier
+              {
+                  $$ = $3
+              }
+
+func_name:
+      identifier
+        {
+          $$ = $1
+        }
+      |keyword_as_func
+        {
+          $$ = $1
+        }
 
 opt_alias:
 			alias 						{ $$ = $1 }
@@ -1079,6 +1117,7 @@ alias_name:
 true_or_false:
 			TRUE 						{ $$ = "TRUE" }
 			|FALSE 						{ $$ = "FALSE"}
+
 
 
 subquery_type:
@@ -1105,70 +1144,26 @@ opt_not:
 			|/*EMPTY*/ 					{ $$ = "" }
 
 time_unit:
-			DAY 						{ $$ = $1 }							
- 			|DAY_HOUR					{ $$ = $1 }		
- 			|DAY_MICROSECOND 			{ $$ = $1 }			
- 			|DAY_MINUTE 				{ $$ = $1 }			
- 			|DAY_SECOND 				{ $$ = $1 }			
- 			|HOUR 						{ $$ = $1 }	
-			|HOUR_MICROSECOND 			{ $$ = $1 }				
-			|HOUR_MINUTE 				{ $$ = $1 }			
-			|HOUR_SECOND 				{ $$ = $1 }			
-			|MINUTE 					{ $$ = $1 }	
-			|MINUTE_SECOND 				{ $$ = $1 }	
-			|MONTH 						{ $$ = $1 }	
-			|MICROSECOND 				{ $$ = $1 }	
-			|MINUTE_MICROSECOND 		{ $$ = $1 }	
-			|SECOND 					{ $$ = $1 }
-			|SECOND_MICROSECOND 		{ $$ = $1 }	
-			|WEEK 						{ $$ = $1 }	
-			|YEAR 						{ $$ = $1 }			
-			|YEAR_MONTH 				{ $$ = $1 }	
+			BuiltinTimeUnitIdent { $$ = $1 }
 						
 
 collation_name:
-			armscii8_general_ci			{ $$ = $1 }
-			ascii_general_ci   			{ $$ = $1 }
-			big5_chinese_ci    			{ $$ = $1 }
-			binary             			{ $$ = $1 }
-			cp1250_general_ci  			{ $$ = $1 }
-			cp1251_general_ci  			{ $$ = $1 }
-			cp1256_general_ci  			{ $$ = $1 }
-			cp1257_general_ci  			{ $$ = $1 }
-			cp850_general_ci   			{ $$ = $1 }
-			cp852_general_ci   			{ $$ = $1 }
-			cp866_general_ci   			{ $$ = $1 }
-			cp932_japanese_ci  			{ $$ = $1 }
-			dec8_swedish_ci    			{ $$ = $1 }
-			eucjpms_japanese_ci			{ $$ = $1 }
-			euckr_korean_ci    			{ $$ = $1 }
-			gb18030_chinese_ci 			{ $$ = $1 }
-			gb2312_chinese_ci  			{ $$ = $1 }
-			gbk_chinese_ci     			{ $$ = $1 }
-			geostd8_general_ci 			{ $$ = $1 }
-			greek_general_ci   			{ $$ = $1 }
-			hebrew_general_ci  			{ $$ = $1 }
-			hp8_english_ci     			{ $$ = $1 }
-			keybcs2_general_ci 			{ $$ = $1 }
-			koi8r_general_ci   			{ $$ = $1 }
-			koi8u_general_ci   			{ $$ = $1 }
-			latin1_swedish_ci  			{ $$ = $1 }
-			latin2_general_ci  			{ $$ = $1 }
-			latin5_turkish_ci  			{ $$ = $1 }
-			latin7_general_ci  			{ $$ = $1 }
-			macce_general_ci   			{ $$ = $1 }
-			macroman_general_ci			{ $$ = $1 }
-			sjis_japanese_ci   			{ $$ = $1 }
-			swe7_swedish_ci    			{ $$ = $1 }
-			tis620_thai_ci     			{ $$ = $1 }
-			ucs2_general_ci    			{ $$ = $1 }
-			ujis_japanese_ci   			{ $$ = $1 }
-			utf16_general_ci   			{ $$ = $1 }
-			utf16le_general_ci 			{ $$ = $1 }
-			utf32_general_ci   			{ $$ = $1 }
-			utf8_general_ci    			{ $$ = $1 }
-			utf8mb4_general_ci 			{ $$ = $1 }
+      BuiltinCharacterIdent   { $$ = $1 }
+			
 
+keyword_as_func:
+      LEFT                    { $$ = "LEFT" }
+      |IN                     { $$ = "IN" }
+      |IS                     { $$ = "IS" }
+
+cast_type:
+      identifier               { $$ = $1 }
+
+func_name_time_add:
+      BuiltinFucTimeAddIdent   { $$ = $1 }   
+
+func_name_time_sub:                       
+      BuiltinFucTimeSubIdent   { $$ = $1}        
 
 
 /*****************************************************************************
