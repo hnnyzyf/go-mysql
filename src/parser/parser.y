@@ -736,30 +736,30 @@ literal:
   		    		expr.SetTag(ast.AST_VALUE_DOUBLE_QUOTA_STRING)
 			   		$$ = expr
 				}
-      |true_or_false
-        {
-            expr :=&ast.ValExpr{Symbol:0,Sval:$1}
-            switch $1{
-              case "TRUE":
-                 expr.SetTag(ast.AST_VALUE_TRUE)
-              case "FALSE":
-                 expr.SetTag(ast.AST_VALUE_FALSE)
-            }
-
-            $$ = expr
-        }
-      |NULL
-        {
-            expr :=&ast.ValExpr{Symbol:0,Sval:"NULL"}
-            switch $1{
-              case "TRUE":
-                 expr.SetTag(ast.AST_VALUE_NULL)
-              case "FALSE":
-                 expr.SetTag(ast.AST_VALUE_NULL)
-            }
-
-            $$ = expr
-        }
+      		|true_or_false
+      		  	{
+      		  	    expr :=&ast.ValExpr{Symbol:0,Sval:$1}
+      		  	    switch $1{
+      		  	      case "TRUE":
+      		  	         expr.SetTag(ast.AST_VALUE_TRUE)
+      		  	      case "FALSE":
+      		  	         expr.SetTag(ast.AST_VALUE_FALSE)
+      		  	    }
+			
+      		  	    $$ = expr
+      		  	}
+      		|NULL
+      		  	{
+      		  	    expr :=&ast.ValExpr{Symbol:0,Sval:"NULL"}
+      		  	    switch $1{
+      		  	      case "TRUE":
+      		  	         expr.SetTag(ast.AST_VALUE_NULL)
+      		  	      case "FALSE":
+      		  	         expr.SetTag(ast.AST_VALUE_NULL)
+      		  	    }
+			
+      		  	    $$ = expr
+      		  	}
 
 identifier:
         	IDENT
@@ -768,14 +768,14 @@ identifier:
         	  	}
 
 identifier_or_star:
-          identifier
-              {
-                  $$ = $1
-              }
-          |'*'
-              {
-                  $$ = "*"
-              }
+          	identifier
+          	    {
+          	        $$ = $1
+          	    }
+          	|'*'
+              	{
+              	    $$ = "*"
+              	}
       
 variable:
     		single_at_ident
@@ -822,12 +822,12 @@ column_ref:
 
 
 func_expr:
-      func_name '(' ')'
-        {
-          expr := &ast.FuncExpr{Name:$1}
-          expr.SetTag(ast.AST_EXPR_FUNC)
-              $$ = expr
-        }
+      		unc_name '(' ')'
+      		 	{
+      		 	  expr := &ast.FuncExpr{Name:$1}
+      		 	  expr.SetTag(ast.AST_EXPR_FUNC)
+      		 	      $$ = expr
+      		 	}
 			|func_name '(' expr_list ')'
 				{
 					expr := &ast.FuncExpr{Name:$1,Arg:$3}
@@ -838,31 +838,31 @@ func_expr:
 				{
 					$$ = $1
 				}
-      |time_expr
-        {
-          $$ = $1
-        }
-      |CAST '(' expr AS cast_type ')'
-        {
-          expr := &ast.FuncExpr{Name:"CAST",Arg:ast.List{$3}}
-          expr.SetTag(ast.AST_EXPR_CAST)
-          expr.SetCollate($5)
-              $$ = expr
-        }
-      |CONVERT '(' expr ',' cast_type ')'
-        {
-            expr := &ast.FuncExpr{Name:"CONVERT",Arg:ast.List{$3}}
-            expr.SetTag(ast.AST_EXPR_CONVERT_TYPE)
-            expr.SetCollate($5)
-              $$ = expr
-        }
-      |CONVERT '(' expr USING alias_name ')'
-        {
-            expr := &ast.FuncExpr{Name:"CONVERT",Arg:ast.List{$3}}
-            expr.SetTag(ast.AST_EXPR_CONVERT_ALIAS)
-            expr.SetAlias($5)
-              $$ = expr
-        }
+      		time_expr
+      		 	{
+      		 	  $$ = $1
+      		 	}
+      		CAST '(' expr AS cast_type ')'
+      		 	{
+      		 	  expr := &ast.FuncExpr{Name:"CAST",Arg:ast.List{$3}}
+      		 	  expr.SetTag(ast.AST_EXPR_CAST)
+      		 	  expr.SetCollate($5)
+      		 	      $$ = expr
+      		 	}
+      		CONVERT '(' expr ',' cast_type ')'
+      		 	{
+      		 	    expr := &ast.FuncExpr{Name:"CONVERT",Arg:ast.List{$3}}
+      		 	    expr.SetTag(ast.AST_EXPR_CONVERT_TYPE)
+      		 	    expr.SetCollate($5)
+      		 	      $$ = expr
+      		 	}
+      		CONVERT '(' expr USING alias_name ')'
+      		 	{
+      		 	    expr := &ast.FuncExpr{Name:"CONVERT",Arg:ast.List{$3}}
+      		 	    expr.SetTag(ast.AST_EXPR_CONVERT_ALIAS)
+      		 	    expr.SetAlias($5)
+      		 	      $$ = expr
+      		 	}
 
 agg_expr:
 			AVG '(' all_or_distinct expr ')'
@@ -956,22 +956,22 @@ agg_expr:
 				}
 
 time_expr:
-        func_name_time_add '(' expr ',' INTERVAL expr time_unit ')'
-          {
-
-              expr:= &ast.Expr{Operator:"+",Left:$3,Right:$6}
-              expr.SetTag(ast.AST_TIME_INTERVAL)
-              expr.SetAlias($7)
-              $$ = &ast.FuncExpr{Name:$1,Arg:ast.List{expr}}
-          }
-        |func_name_time_sub '(' expr ',' INTERVAL expr time_unit ')'
-          {
-
-              expr:= &ast.Expr{Operator:"-",Left:$3,Right:$6}
-              expr.SetTag(ast.AST_TIME_INTERVAL)
-              expr.SetAlias($7)
-              $$ = &ast.FuncExpr{Name:$1,Arg:ast.List{expr}}
-          }
+        	func_name_time_add '(' expr ',' INTERVAL expr time_unit ')'
+        	  	{
+		
+        	  	    expr:= &ast.Expr{Operator:"+",Left:$3,Right:$6}
+        	  	    expr.SetTag(ast.AST_TIME_INTERVAL)
+        	  	    expr.SetAlias($7)
+        	  	    $$ = &ast.FuncExpr{Name:$1,Arg:ast.List{expr}}
+        	  	}
+        	|func_name_time_sub '(' expr ',' INTERVAL expr time_unit ')'
+        	  	{
+		
+        	  	    expr:= &ast.Expr{Operator:"-",Left:$3,Right:$6}
+        	  	    expr.SetTag(ast.AST_TIME_INTERVAL)
+        	  	    expr.SetAlias($7)
+        	  	    $$ = &ast.FuncExpr{Name:$1,Arg:ast.List{expr}}
+        	  	}
 
 
 expr_list:
@@ -1080,24 +1080,24 @@ target_el:
 
 single_at_ident:
             '@' identifier
-              {
-                  $$ = $2
-              }
+              	{
+              	    $$ = $2
+              	}
 double_at_ident:
             '@' '@' identifier
-              {
-                  $$ = $3
-              }
+            	{
+            	    $$ = $3
+            	}
 
 func_name:
-      identifier
-        {
-          $$ = $1
-        }
-      |keyword_as_func
-        {
-          $$ = $1
-        }
+      		identifier
+      		  	{
+      		  	  $$ = $1
+      		  	}
+      		|keyword_as_func
+        		{
+        		  $$ = $1
+        		}
 
 opt_alias:
 			alias 						{ $$ = $1 }
@@ -1144,26 +1144,26 @@ opt_not:
 			|/*EMPTY*/ 					{ $$ = "" }
 
 time_unit:
-			BuiltinTimeUnitIdent { $$ = $1 }
+			BuiltinTimeUnitIdent 		{ $$ = $1 }
 						
 
 collation_name:
-      BuiltinCharacterIdent   { $$ = $1 }
+      		BuiltinCharacterIdent   	{ $$ = $1 }
 			
 
 keyword_as_func:
-      LEFT                    { $$ = "LEFT" }
-      |IN                     { $$ = "IN" }
-      |IS                     { $$ = "IS" }
+     		LEFT                    	{ $$ = "LEFT" }
+     		|IN                     	{ $$ = "IN" }
+     		|IS                     	{ $$ = "IS" }
 
 cast_type:
-      identifier               { $$ = $1 }
-
-func_name_time_add:
-      BuiltinFucTimeAddIdent   { $$ = $1 }   
-
-func_name_time_sub:                       
-      BuiltinFucTimeSubIdent   { $$ = $1}        
+      		identifier               	{ $$ = $1 }
+	
+func_name_time_add:	
+      		BuiltinFucTimeAddIdent   	{ $$ = $1 }   
+	
+func_name_time_sub:                  	     
+     		BuiltinFucTimeSubIdent   	{ $$ = $1}        
 
 
 /*****************************************************************************
@@ -1283,7 +1283,7 @@ table_ref:
 table_factor:
 			relation opt_alias       
 				{
-          $1.SetAlias($2)
+          			$1.SetAlias($2)
 					$$ = $1
 				}
 			|select_with_parens alias        
@@ -1324,14 +1324,14 @@ db_name:
 
 
 table_refs:
-		table_ref
-			{
-				$$ = ast.List{$1}
-			}
-		|table_refs ',' table_ref
-			{
-				$$ = append($1,$3)
-			}
+			table_ref
+				{
+					$$ = ast.List{$1}
+				}
+			|table_refs ',' table_ref
+				{
+					$$ = append($1,$3)
+				}
 
 
 
