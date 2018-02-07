@@ -7,16 +7,6 @@ type Node interface {
 	//bool表示是否要继续访问下一个节点
 	Accept(v Visitor) (Node, bool)
 
-	//node实现:设置类型
-	SetTag(a AstOption)
-	//node实现:设置collate
-	SetCollate(s string)
-	//node实现，设置text
-	SetText(s string)
-	//node实现，设置别名
-	SetAlias(s string)
-	//node实现，设置顺序
-	SetAsc(s string)
 }
 
 //实现walk为vistor，该vistor对当前的Node进行处理，给出我们想要的操作
@@ -27,6 +17,22 @@ type Visitor interface {
 	//处理节点
 	//返回处理后的新的节点以及是否继续往下运行
 	Visit(Node) (Node, bool)
+}
+
+//定义Node节点的一系列Set方法
+type Set interface{
+	//node实现:设置类型
+	SetTag(a AstOption)
+	//node实现:设置collate
+	SetCollate(s string)
+	//node实现，设置text
+	SetText(s string)
+	//node实现，设置别名
+	SetAlias(s string)
+	//node实现，设置顺序
+	SetAsc(s string)
+	//node实现，获得类型
+	GetTag() AstOption
 }
 
 //定义节点的array
@@ -100,13 +106,13 @@ const (
 	AST_TIME_INTERVAL
 
 	AST_VALUE_STRING
+	AST_VALUE_DOUBLE_QUOTA_STRING
 	AST_VALUE_IDENT
 	AST_VALUE_NUMBER
 	AST_VALUE_MARKER
 	AST_VALUE_BIT_NUMBER
 	AST_VALUE_HEX_NUMBER
 	AST_VALUE_SINGLE_QUOTA_STRING
-	AST_VALUE_DOUBLE_QUOTA_STRING
 	AST_VALUE_TRUE
 	AST_VALUE_FALSE
 	AST_VALUE_NULL
@@ -125,6 +131,10 @@ const (
 	AST_NATURAL_RIGHT_JOIN
 
 	AST_EXPR_FUNC
+	AST_EXPR_CAST
+	AST_EXPR_CONVERT_TYPE
+	AST_EXPR_CONVERT_ALIAS
+	
 	AST_EXPR_AVG
 	AST_EXPR_AVG_DISTINCT
 	AST_EXPR_AVG_DISTINCTROW
@@ -146,7 +156,7 @@ const (
 	AST_EXPR_SUM_DISTINCTROW
 	AST_EXPR_SUM_ALL
 	AST_EXPR_COUNT_STAR
-	AST_EXPR_CAST
-	AST_EXPR_CONVERT_TYPE
-	AST_EXPR_CONVERT_ALIAS
+
+
+	AST_ITEM_DOUBLE_QUOTA_STRING
 )

@@ -201,8 +201,6 @@ func (token *Tokener) ScanString(ch rune) (int, string) {
 			return SINGLE_QUOTA_STRING, buffer.String()
 		case '"':
 			return DOUBLE_QUOTA_STRING, buffer.String()
-		default:
-			return STRING, buffer.String()
 		}
 	}
 	return -1, ""

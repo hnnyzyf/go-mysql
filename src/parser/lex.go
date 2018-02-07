@@ -14,7 +14,7 @@ func (token *Tokener) Lex(lval *yySymType) int {
 	switch tok {
 	case IDENT:
 		lval.ident = val
-	case PARAM_MARKER, DOUBLE_QUOTA_STRING, SINGLE_QUOTA_STRING, STRING:
+	case PARAM_MARKER, DOUBLE_QUOTA_STRING, SINGLE_QUOTA_STRING:
 		lval.str = val
 	case BIT_NUMBER, HEX_NUMBER, NUMBER:
 		lval.val = val

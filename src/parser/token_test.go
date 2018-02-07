@@ -287,7 +287,7 @@ func Test_ident(t *testing.T) {
 		"N",
 		"__asda234@#$%^sdad ",
 		"  `asdadasd`dadas ",
-		"   c ", 
+		"   c ",
 		" X'12xyz' ",
 		" b ",
 		"0x ",
@@ -298,7 +298,6 @@ func Test_ident(t *testing.T) {
 		"  `asda dasd ` dadas ",
 		"BY abc",
 		"XY abc",
-
 	}
 	res := []string{
 		"N",
@@ -328,8 +327,6 @@ func Test_ident(t *testing.T) {
 			t.Error("编号:", i, " IDENT测试失败,返回:", s, "实际:", res[i])
 		}
 	}
-
-
 
 	sql2 := []string{
 		" @@ab1234?? ",
@@ -449,23 +446,22 @@ func Test_symbol(t *testing.T) {
 			t.Error("编号:", i, " SYMBOL:", string(v), "测试失败,返回:", s, "实际:", res[i])
 		}
 	}
-	sql2:=".asdasd"
-	res2:="."
+	sql2 := ".asdasd"
+	res2 := "."
 	mtoken := NewTokener(sql2)
 	tp, s := mtoken.Scan()
 	if tp == int('.') && s == res2 {
-			t.Log("编号: SYMBOL:", string('.'), "测试通过")
-		} else {
-			t.Error("编号: SYMBOL:", string('.'), "测试失败,返回:", s, "实际:", res2)
-		}
+		t.Log("编号: SYMBOL:", string('.'), "测试通过")
+	} else {
+		t.Error("编号: SYMBOL:", string('.'), "测试失败,返回:", s, "实际:", res2)
+	}
 }
 
-
 func Test_op(t *testing.T) {
-	sql:=[]string{
+	sql := []string{
 		" !=0 ",
 	}
-	res:=[]int{
+	res := []int{
 		LNE,
 	}
 
@@ -479,7 +475,6 @@ func Test_op(t *testing.T) {
 		}
 	}
 }
-
 
 func Test_Scansql(t *testing.T) {
 	//sql := "SELECT -1.234,classno,classname,avg(score) as `avg_score 12321` From sc,(SELECT *.a FROM class WHERE class.gno='%grade one%') as sub WHERE sc.sno in (SELECT cno FROM student WHERE student.classno=sub.classno) and sc.sno in (SELECT course.cno FROM course WHERE  course.cname='computer') GROUP BY classno,classname HAVING avg(score)>60 ORDER BY avg_score"

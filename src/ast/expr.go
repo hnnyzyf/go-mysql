@@ -264,9 +264,8 @@ func (e *ValExpr) Accept(v Visitor) (Node, bool) {
 type ColumnExpr struct {
 	node
 
-	DB     string
-	Table  string
-	Column string
+	Relation ExprNode
+	Column   string
 }
 
 func (e *ColumnExpr) IsExpr() {}
@@ -280,6 +279,11 @@ func (e *ColumnExpr) Accept(v Visitor) (Node, bool) {
 		return v.Visit(e)
 	}
 
+	node, ok := e.Relation.Accept(v)
+	if !ok {
+		return e, false
+	}
+	e.Relation = node.(ExprNode)
 	return v.Visit(e)
 }
 
@@ -374,5 +378,36 @@ func (e *JoinExpr) Accept(v Visitor) (Node, bool) {
 	}
 	e.Jqual = node.(ExprNode)
 
+	return v.Visit(e)
+}
+
+
+type UsingExpr struct{
+	node 
+
+	Column List
+}
+
+func (e *UsingExpr) IsExpr() {}
+
+func (e *UsingExpr) Accept(v Visitor) (Node, bool) {
+
+	if v == nil {
+		return e, false
+	}
+
+	if !v.Notify(e) {
+		return v.Visit(e)
+	}
+
+	for index, target := range e.Column {
+		node, ok := target.Accept(v)
+		if !ok {
+			return e, false
+		}
+		e.Column[index] = node
+
+	}
+	
 	return v.Visit(e)
 }

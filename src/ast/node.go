@@ -30,11 +30,17 @@ func (n node) SetAsc(a string) {
 	n.Asc = a
 }
 
+func (n node) GetTag() AstOption{
+	return n.Tag
+}
+
+
 //定义stmt
 //所有的Stmt均要实现如下的方法
 type StmtNode interface {
 	IsStmt()
 	Node
+	Set
 }
 
 //定义expr
@@ -43,20 +49,6 @@ type StmtNode interface {
 type ExprNode interface {
 	IsExpr()
 	Node
+	Set
 }
 
-//定义expr
-//所有的表达式均实现如下的方法
-
-type FuncNode interface {
-	IsFuncExpr()
-	ExprNode
-}
-
-//定义Arg
-//所有的值类型均实现如下方法
-
-type ArgNode interface {
-	IsArgExpr()
-	ExprNode
-}

@@ -55,8 +55,9 @@ func Test_parse(t *testing.T) {
 	//   tbinventory.ProductID = product_baseinfo.productID where product_baseinfo.ProductStatus = 4 and product_baseinfo.ProductType =
 	//    0 and product_baseinfo.ProductionLineID = 1 and product_sellcount.SellPoint > 0 and product_sellcount.SellPoint < 1044 and 
 	//    product_baseinfo.IsVirtual = 0 order by SellPoint, ProductID desc limit 12 offset 0`
-	//sql:="select CASE WHEN HOST LIKE ? THEN LEFT ( HOST , POSITION ( a in b ) - ? ) ELSE LEFT ( HOST , POSITION ( ) - ? ) END"
-	sql:="SELECT something FROM tbl_name WHERE DATE_SUB(CURDATE(),INTERVAL 30 DAY) <= date_col"
+	//sql:="select CASE WHEN HOST LIKE ? THEN LEFT ( HOST , POSITION ( a in b ) - ? ) ELSE LEFT ( HOST , POSITION ( ) - ? ) END "
+	//sql:="SELECT something FROM tbl_name WHERE DATE_SUB(CURDATE(),INTERVAL 30 DAY) <= date_col"
+	sql:="select a.b,a.* from b.c join a.c using (a,bc,d)"
 	stmt := SqlParse(sql)
 	t.Log(stmt)
 
