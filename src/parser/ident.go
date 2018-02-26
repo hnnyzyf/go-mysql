@@ -53,6 +53,7 @@ var Keywords = map[string]int{
 	"or":            OR,
 	"order":         ORDER,
 	"outer":         OUTER,
+	"position": 	 POSITION,
 	"quarter":       QUARTER,
 	"regexp":        REGEXP,
 	"right":         RIGHT,

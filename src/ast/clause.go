@@ -2,6 +2,13 @@ package ast
 
 //实现clause 定义
 
+const (
+	AST_EMPTY = iota
+	AST_ALL
+	AST_DISTINCT
+	AST_DISTINCTROW
+)
+
 type DistinctClause struct {
 	node
 }
@@ -11,12 +18,16 @@ func (e *DistinctClause) Accept(v Visitor) (Node, bool) {
 		return e, false
 	}
 
+	if !v.Notify(e) {
+		return v.Visit(e)
+	}
+
 	return v.Visit(e)
 }
 
 type TargetClause struct {
 	node
-	Target_ref List
+	Target_ref []ExprNode
 }
 
 func (e *TargetClause) Accept(v Visitor) (Node, bool) {
@@ -33,7 +44,7 @@ func (e *TargetClause) Accept(v Visitor) (Node, bool) {
 		if !ok {
 			return e, false
 		}
-		e.Target_ref[index] = node
+		e.Target_ref[index] = node.(ExprNode)
 
 	}
 
@@ -42,7 +53,7 @@ func (e *TargetClause) Accept(v Visitor) (Node, bool) {
 
 type IntoClause struct {
 	node
-	Table string
+	Relation ExprNode
 }
 
 func (e *IntoClause) Accept(v Visitor) (Node, bool) {
@@ -50,12 +61,22 @@ func (e *IntoClause) Accept(v Visitor) (Node, bool) {
 		return e, false
 	}
 
+	if !v.Notify(e) {
+		return v.Visit(e)
+	}
+
+	node, ok := e.Relation.Accept(v)
+	if !ok {
+		return e, false
+	}
+	e.Relation = node.(ExprNode)
+
 	return v.Visit(e)
 }
 
 type FromClause struct {
 	node
-	Table_ref List
+	Table_ref []ExprNode
 }
 
 func (e *FromClause) Accept(v Visitor) (Node, bool) {
@@ -72,7 +93,7 @@ func (e *FromClause) Accept(v Visitor) (Node, bool) {
 		if !ok {
 			return e, false
 		}
-		e.Table_ref[index] = node
+		e.Table_ref[index] = node.(ExprNode)
 
 	}
 
@@ -103,7 +124,7 @@ func (e *WhereClause) Accept(v Visitor) (Node, bool) {
 
 type GroupClause struct {
 	node
-	Target_ref List
+	Target_ref []ExprNode
 }
 
 func (e *GroupClause) Accept(v Visitor) (Node, bool) {
@@ -120,7 +141,7 @@ func (e *GroupClause) Accept(v Visitor) (Node, bool) {
 		if !ok {
 			return e, false
 		}
-		e.Target_ref[index] = node
+		e.Target_ref[index] = node.(ExprNode)
 
 	}
 
@@ -151,7 +172,7 @@ func (e *HavingClause) Accept(v Visitor) (Node, bool) {
 
 type SortClause struct {
 	node
-	Target_ref List
+	Target_ref []ExprNode
 }
 
 func (e *SortClause) Accept(v Visitor) (Node, bool) {
@@ -168,21 +189,29 @@ func (e *SortClause) Accept(v Visitor) (Node, bool) {
 		if !ok {
 			return e, false
 		}
-		e.Target_ref[index] = node
+		e.Target_ref[index] = node.(ExprNode)
 
 	}
 
 	return v.Visit(e)
 }
 
+const (
+	Lock_update = iota
+	Lock_share
+)
+
 type LockClause struct {
 	node
-	Lock string
 }
 
 func (e *LockClause) Accept(v Visitor) (Node, bool) {
 	if v == nil {
 		return e, false
+	}
+
+	if !v.Notify(e) {
+		return v.Visit(e)
 	}
 
 	return v.Visit(e)
@@ -191,7 +220,7 @@ func (e *LockClause) Accept(v Visitor) (Node, bool) {
 //定义Limitclause
 type LimitClause struct {
 	node
-	Limit  List
+	Limit  []ExprNode
 	Offset ExprNode
 }
 
@@ -209,7 +238,7 @@ func (e *LimitClause) Accept(v Visitor) (Node, bool) {
 		if !ok {
 			return e, false
 		}
-		e.Limit[index] = node
+		e.Limit[index] = node.(ExprNode)
 
 	}
 

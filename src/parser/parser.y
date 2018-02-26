@@ -833,25 +833,25 @@ func_expr:
 				{
 					$$ = $1
 				}
-      		time_expr
+      |time_expr
       		 	{
       		 	  $$ = $1
       		 	}
-      		CAST '(' expr AS cast_type ')'
+      		|CAST '(' expr AS cast_type ')'
       		 	{
       		 	  expr := &ast.FuncExpr{Name:"CAST",Arg:ast.List{$3}}
       		 	  expr.SetTag(ast.AST_EXPR_CAST)
       		 	  expr.SetCollate($5)
       		 	      $$ = expr
       		 	}
-      		CONVERT '(' expr ',' cast_type ')'
+      		|CONVERT '(' expr ',' cast_type ')'
       		 	{
       		 	    expr := &ast.FuncExpr{Name:"CONVERT",Arg:ast.List{$3}}
       		 	    expr.SetTag(ast.AST_EXPR_CONVERT_TYPE)
       		 	    expr.SetCollate($5)
       		 	      $$ = expr
       		 	}
-      		CONVERT '(' expr USING alias_name ')'
+      		|CONVERT '(' expr USING alias_name ')'
       		 	{
       		 	    expr := &ast.FuncExpr{Name:"CONVERT",Arg:ast.List{$3}}
       		 	    expr.SetTag(ast.AST_EXPR_CONVERT_ALIAS)
