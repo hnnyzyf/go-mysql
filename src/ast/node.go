@@ -5,7 +5,12 @@ package ast
 //所有的节点都有类型信息
 //实现所有Node实现的基础信息
 type node struct {
-	tag int //节点的类型
+	tag  int //节点的类型
+	text string
+}
+
+func Newnode(t int) node {
+	return node{tag: t}
 }
 
 //实现Set接口
@@ -16,4 +21,9 @@ func (n *node) SetTag(tag int) {
 //实现Get接口
 func (n *node) GetTag() int {
 	return n.tag
+}
+
+//实现Set接口
+func (n *node) Text(tag int) string {
+	return n.text
 }

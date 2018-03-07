@@ -4,6 +4,7 @@ import "testing"
 import "ast"
 import "log"
 import "errors"
+import "bytes"
 
 func SqlParse(sql string) ast.Node {
 	mtoken := NewTokener(sql)
@@ -14,52 +15,185 @@ func SqlParse(sql string) ast.Node {
 }
 
 func Test_print(t *testing.T) {
-	sql := `SELECT a.userIp as userIp FROM (
-		SELECT userIp FROM loginfo_login 
-		WHERE source_from = 'CRM' AND subsource_from = 'LOGIN' AND (user_type = 'MemberLogin' OR user_type = 'MemberLoginMask') AND field5 = 'P' AND userip IS NOT NULL AND userip !=0 AND userip != 2130706433 AND ip_range_1 != 0x0A000000 AND user_agent_md5 IS NOT NULL AND request_time >= '2018-01-23 04:55:01' AND request_time < '2018-01-23 16:55:01' 
-		GROUP BY userIp 
-		HAVING COUNT(userIp) >= 30 AND sum(respond_type = 'T') >= COUNT(Respond_Type) * 0.7 AND COUNT(DISTINCT user_agent_md5) = 1 AND COUNT(DISTINCT uid) >= COUNT(uid) * 0.5 ) AS a  
-		INNER JOIN (
-			SELECT userIp FROM loginfo_login 
-		WHERE source_from = 'CRM' AND subsource_from = 'LOGIN' AND (user_type = 'MemberLogin' OR user_type = 'MemberLoginMask')) as f`
-
-	mtoken := NewTokener(sql)
-	i := 0
-
-	for mtoken.EOF == false {
-		id, str := mtoken.Scan()
-		t.Log(i, id, str)
-		i = i + 1
+	sqls := []string{`select product_baseinfo.* , product_sellcount.showprice, product_sellcount.SellCount,
+	 product_sellcount.SellPoint, product_sellcount.ShowPriceStrage, product_sellcount.ShowPriceStrageValue, 
+	 product_presell.IsPresell, IFNULL(product_presell.PresellEndTime,null) as presellEndTime, 
+	 product_exclusiveinfo.ExclusiveType, IFNULL(product_exclusiveinfo.Status,0) as exclusiveStatus,
+	  IFNULL(product_presell.Status,0) as presellStatus, '' as brandName, '' as cateName, 0 as SaleCount 
+	  from product_baseinfo inner join mktypproductdb.product_sellcount on product_baseinfo.productID = 
+	  product_sellcount.productID left join product_exclusiveinfo on product_baseinfo.productID = product_exclusiveinfo.ProductID and product_exclusiveinfo.status = 1 left join product_presell on product_presell.productID = product_baseinfo.ProductID and product_presell.status = 1 inner join (SELECT distinct(product_inventory.ProductID) FROM mktypproductdb.product_inventory inner join mktypproductdb.product_sku on product_inventory.SKUID = product_sku.SKUID and product_inventory.ProductID = product_sku.ProductID where product_sku.SKUStatus = 1 and CurrentCount > 0 ) as tbinventory on
+	   tbinventory.ProductID = product_baseinfo.productID where product_baseinfo.ProductStatus = 4 and product_baseinfo.ProductType =
+	    0 and product_baseinfo.ProductionLineID = 1 and product_sellcount.SellPoint > 0 and product_sellcount.SellPoint < 1044 and 
+	    product_baseinfo.IsVirtual = 0 order by SellPoint, ProductID desc limit 12 offset 0`,
+		"select CASE WHEN HOST LIKE ? THEN LEFT ( HOST , POSITION ( a in b ) - ? ) ELSE LEFT ( HOST , POSITION ( a in b) - ? ) END ",
+		"SELECT something FROM tbl_name WHERE DATE_SUB(CURDATE(),INTERVAL 30 DAY) <= date_col",
+		"select a.b,a.* from b.c left join a.c using (a,bc,d)",
+		`select 1 as a from a left join (a,b,c,d,e) on a=b where a='abcde' `,
+		"select case when 1 then 1 else 1 end",
+		"select 1 from (a left join (c,d,e) on a=b ) right join (b right join (a,b,c,e) on c =d) on a=d",
+		"select 1 from a where e>t || (a>e or c<d)",
 	}
+	for index, sql := range sqls {
+		t.Log(index, sql)
+		mtoken := NewTokener(sql)
+		i := 0
+		for mtoken.EOF == false {
+			id, str := mtoken.Scan()
+			i = i + 1
+			t.Log(i, id, str)
+		}
+	}
+
 }
 
 func Test_parse(t *testing.T) {
-	//sql := `SELECT a.userIp as userIp FROM (
-	//	SELECT userIp FROM loginfo_login 
-	//	WHERE source_from = 'CRM' AND subsource_from = 'LOGIN' AND (user_type = 'MemberLogin' OR user_type = 'MemberLoginMask') AND field5 = 'P' AND userip IS NOT NULL AND userip !=0 AND userip != 2130706433 AND ip_range_1 != 0x0A000000 AND user_agent_md5 IS NOT NULL AND request_time >= '2018-01-23 04:55:01' AND request_time < '2018-01-23 16:55:01' 
-	//	GROUP BY userIp 
-	//	HAVING COUNT(userIp) >= 30 AND sum(respond_type = 'T') >= COUNT(Respond_Type) * 0.7 AND COUNT(DISTINCT user_agent_md5) = 1 AND COUNT(DISTINCT uid) >= COUNT(uid) * 0.5 ) AS a  
-	//	INNER JOIN (
-	//		SELECT userIp FROM loginfo_login 
-	//	WHERE source_from = 'CRM' AND subsource_from = 'LOGIN' AND (user_type = 'MemberLogin' OR user_type = 'MemberLoginMask')) as f`
-	//sql:="select 1 from test where true and false"
-	//sql:=`SELECT CASE WHEN EXISTS(SELECT * FROM TMP WHERE TMP.id = SRC.id) THEN 1 ELSE 2 END FROM SRC`
-	//sql:="select a.*"
-	//sql:=`select product_baseinfo.* , product_sellcount.showprice, product_sellcount.SellCount,
-	// product_sellcount.SellPoint, product_sellcount.ShowPriceStrage, product_sellcount.ShowPriceStrageValue, 
-	// product_presell.IsPresell, IFNULL(product_presell.PresellEndTime,null) as presellEndTime, 
-	// product_exclusiveinfo.ExclusiveType, IFNULL(product_exclusiveinfo.Status,0) as exclusiveStatus,
-	//  IFNULL(product_presell.Status,0) as presellStatus, '' as brandName, '' as cateName, 0 as SaleCount 
-	//  from product_baseinfo inner join mktypproductdb.product_sellcount on product_baseinfo.productID = 
-	//  product_sellcount.productID left join product_exclusiveinfo on product_baseinfo.productID = product_exclusiveinfo.ProductID and product_exclusiveinfo.status = 1 left join product_presell on product_presell.productID = product_baseinfo.ProductID and product_presell.status = 1 inner join (SELECT distinct(product_inventory.ProductID) FROM mktypproductdb.product_inventory inner join mktypproductdb.product_sku on product_inventory.SKUID = product_sku.SKUID and product_inventory.ProductID = product_sku.ProductID where product_sku.SKUStatus = 1 and CurrentCount > 0 ) as tbinventory on
-	//   tbinventory.ProductID = product_baseinfo.productID where product_baseinfo.ProductStatus = 4 and product_baseinfo.ProductType =
-	//    0 and product_baseinfo.ProductionLineID = 1 and product_sellcount.SellPoint > 0 and product_sellcount.SellPoint < 1044 and 
-	//    product_baseinfo.IsVirtual = 0 order by SellPoint, ProductID desc limit 12 offset 0`
-	//sql:="select CASE WHEN HOST LIKE ? THEN LEFT ( HOST , POSITION ( a in b ) - ? ) ELSE LEFT ( HOST , POSITION ( a in b) - ? ) END "
-	//sql:="SELECT something FROM tbl_name WHERE DATE_SUB(CURDATE(),INTERVAL 30 DAY) <= date_col"
-	//sql:="select a.b,a.* from b.c join a.c using (a,bc,d)"
-	sql:=`select 1 as a from a join (a,b,c,d,e),e where a='abcde' `
-	stmt := SqlParse(sql)
-	t.Log(stmt)
+	sqls := []string{`select product_baseinfo.* , product_sellcount.showprice, product_sellcount.SellCount,
+	 product_sellcount.SellPoint, product_sellcount.ShowPriceStrage, product_sellcount.ShowPriceStrageValue, 
+	 product_presell.IsPresell, IFNULL(product_presell.PresellEndTime,null) as presellEndTime, 
+	 product_exclusiveinfo.ExclusiveType, IFNULL(product_exclusiveinfo.Status,0) as exclusiveStatus,
+	  IFNULL(product_presell.Status,0) as presellStatus, '' as brandName, '' as cateName, 0 as SaleCount 
+	  from product_baseinfo inner join mktypproductdb.product_sellcount on product_baseinfo.productID = 
+	  product_sellcount.productID left join product_exclusiveinfo on product_baseinfo.productID = product_exclusiveinfo.ProductID and product_exclusiveinfo.status = 1 left join product_presell on product_presell.productID = product_baseinfo.ProductID and product_presell.status = 1 inner join (SELECT distinct(product_inventory.ProductID) FROM mktypproductdb.product_inventory inner join mktypproductdb.product_sku on product_inventory.SKUID = product_sku.SKUID and product_inventory.ProductID = product_sku.ProductID where product_sku.SKUStatus = 1 and CurrentCount > 0 ) as tbinventory on
+	   tbinventory.ProductID = product_baseinfo.productID where product_baseinfo.ProductStatus = 4 and product_baseinfo.ProductType =
+	    0 and product_baseinfo.ProductionLineID = 1 and product_sellcount.SellPoint > 0 and product_sellcount.SellPoint < 1044 and 
+	    product_baseinfo.IsVirtual = 0 order by SellPoint, ProductID desc limit 12 offset 0`,
+		"select CASE WHEN HOST LIKE ? THEN LEFT ( HOST , POSITION ( a in b ) - ? ) ELSE LEFT ( HOST , POSITION ( a in b) - ? ) END ",
+		"SELECT something FROM tbl_name WHERE DATE_SUB(CURDATE(),INTERVAL 30 DAY) <= date_col",
+		"select a.b,a.* from b.c left join a.c using (a,bc,d)",
+		`select 1 as a from a left join (a,b,c,d,e) on a=b where a='abcde' `,
+		"select case when 1 then 1 else 1 end",
+		"select 1 from (a left join (c,d,e) on a=b ) right join (b right join (a,b,c,e) on c =d) on a=d",
+	}
+	for index, sql := range sqls {
+		s := SqlParse(sql)
+		t.Log(index, s)
+	}
+}
+
+func Test_format(t *testing.T) {
+	sqls := []string{`select product_baseinfo.* , product_sellcount.showprice, product_sellcount.SellCount,
+	 product_sellcount.SellPoint, product_sellcount.ShowPriceStrage, product_sellcount.ShowPriceStrageValue, 
+	 product_presell.IsPresell, IFNULL(product_presell.PresellEndTime,null) as presellEndTime, 
+	 product_exclusiveinfo.ExclusiveType, IFNULL(product_exclusiveinfo.Status,0) as exclusiveStatus,
+	  IFNULL(product_presell.Status,0) as presellStatus, '' as brandName, '' as cateName, 0 as SaleCount 
+	  from product_baseinfo inner join mktypproductdb.product_sellcount on product_baseinfo.productID = 
+	  product_sellcount.productID left join product_exclusiveinfo on product_baseinfo.productID = product_exclusiveinfo.ProductID and product_exclusiveinfo.status = 1 left join product_presell on product_presell.productID = product_baseinfo.ProductID and product_presell.status = 1 inner join (SELECT distinct(product_inventory.ProductID) FROM mktypproductdb.product_inventory inner join mktypproductdb.product_sku on product_inventory.SKUID = product_sku.SKUID and product_inventory.ProductID = product_sku.ProductID where product_sku.SKUStatus = 1 and CurrentCount > 0 ) as tbinventory on
+	   tbinventory.ProductID = product_baseinfo.productID where product_baseinfo.ProductStatus = 4 and product_baseinfo.ProductType =
+	    0 and product_baseinfo.ProductionLineID = 1 and product_sellcount.SellPoint > 0 and product_sellcount.SellPoint < 1044 and 
+	    product_baseinfo.IsVirtual = 0 order by SellPoint, ProductID desc limit 12 offset 0`,
+		"select CASE WHEN HOST LIKE ? THEN LEFT ( HOST , POSITION ( a in b ) - ? ) ELSE LEFT ( HOST , POSITION ( a in b) - ? ) END ",
+		"SELECT something FROM tbl_name WHERE DATE_SUB(CURDATE(),INTERVAL 30 DAY) <= date_col",
+		"select a.b,a.* from b.c left join a.c using (a,bc,d)",
+		`select 1 as a from a left join (a,b,c,d,e) on a=b where a='abcde' `,
+		"select case when 1 then 1 else 1 end",
+		"select 1 from (a left join (c,d,e) on a=b ) right join (b right join (a,b,c,e) on c =d) on a=d",
+		"select 1 from a where (a>b and c<d and e>t or (a>b or c<d)) or (a<d and c>1) and a in (b)",
+	}
+	for index, sql := range sqls {
+		s := SqlParse(sql)
+		w := bytes.NewBuffer([]byte{})
+		s.Format(w)
+		t.Log(index)
+		t.Log(w.String())
+	}
 
 }
+
+type TestVistor struct {
+	Name int
+}
+
+func (t *TestVistor) Notify(n ast.Node) bool {
+	if n == nil {
+		return false
+	}
+
+	switch n.(type) {
+	case *ast.SimpleSelectStmt:
+		return true
+	default:
+		return true
+	}
+	return true
+}
+
+func (t *TestVistor) Visit(n ast.Node) (ast.Node, bool) {
+	if n == nil {
+		return n, true
+	}
+
+	switch node := n.(type) {
+	case *ast.SimpleSelectStmt:
+		return node, true
+	default:
+		return node, true
+	}
+	return n, true
+}
+
+func Test_simple(t *testing.T) {
+	sqls := []string{`select product_baseinfo.* , product_sellcount.showprice, product_sellcount.SellCount,
+	 product_sellcount.SellPoint, product_sellcount.ShowPriceStrage, product_sellcount.ShowPriceStrageValue, 
+	 product_presell.IsPresell, IFNULL(product_presell.PresellEndTime,null) as presellEndTime, 
+	 product_exclusiveinfo.ExclusiveType, IFNULL(product_exclusiveinfo.Status,0) as exclusiveStatus,
+	  IFNULL(product_presell.Status,0) as presellStatus, '' as brandName, '' as cateName, 0 as SaleCount 
+	  from product_baseinfo inner join mktypproductdb.product_sellcount on product_baseinfo.productID = 
+	  product_sellcount.productID left join product_exclusiveinfo on product_baseinfo.productID = product_exclusiveinfo.ProductID and product_exclusiveinfo.status = 1 left join product_presell on product_presell.productID = product_baseinfo.ProductID and product_presell.status = 1 inner join (SELECT distinct(product_inventory.ProductID) FROM mktypproductdb.product_inventory inner join mktypproductdb.product_sku on product_inventory.SKUID = product_sku.SKUID and product_inventory.ProductID = product_sku.ProductID where product_sku.SKUStatus = 1 and CurrentCount > 0 ) as tbinventory on
+	   tbinventory.ProductID = product_baseinfo.productID where product_baseinfo.ProductStatus = 4 and product_baseinfo.ProductType =
+	    0 and product_baseinfo.ProductionLineID = 1 and product_sellcount.SellPoint > 0 and product_sellcount.SellPoint < 1044 and 
+	    product_baseinfo.IsVirtual = 0 order by SellPoint, ProductID desc limit 12 offset 0`,
+		"select CASE WHEN HOST LIKE ? THEN LEFT ( HOST , POSITION ( a in b ) - ? ) ELSE LEFT ( HOST , POSITION ( a in b) - ? ) END ",
+		"SELECT something FROM tbl_name WHERE DATE_SUB(CURDATE(),INTERVAL 30 DAY) <= date_col",
+		"select a.b,a.* from b.c join a.c using (a,bc,d)",
+		`select 1 as a from a join (a,b,c,d,e) where a='abcde' `,
+		"select case when 1 then 1 else 1 end",
+	}
+	for index, sql := range sqls {
+		s := SqlParse(sql)
+		v := &TestVistor{Name: 1}
+		t.Log(index)
+		t.Log(s.Accept(v))
+	}
+}
+
+func dfs(n ast.ExprNode) []ast.ExprNode {
+	switch node := n.(type) {
+	case *ast.Expr:
+		switch node.GetTag() {
+		case ast.Expr_And, ast.Expr_Or:
+			l:=dfs(node.Left)
+			for _,e:=range dfs(node.Right){
+				l=append(l,e)
+			}
+			return l
+		default:
+			return []ast.ExprNode{node}
+		}
+	default:
+		return []ast.ExprNode{node}
+	}
+}
+
+func Test_expr(t *testing.T) {
+	//sql := "select 1 from test where ((a>b && a<b and a>b )|| (a>b or a<b)) or (a<b and a>b) and a in (1)"
+	sql := "select 1 from test where 1 or (a>b && !a<b or ~a>b || (-1>b or +a<null)) or (a<b or a>b) or a in (1)"
+	s := SqlParse(sql)
+	w := bytes.NewBuffer([]byte{})
+	s.Format(w)
+	t.Log(w.String())
+
+	c := s.(*ast.SimpleSelectStmt).Where.Where
+
+	res := dfs(c)
+	for _,e :=range res{
+		log.Println(e.GetTag())
+		t.Log(e)
+		w := bytes.NewBuffer([]byte{})
+		e.Format(w)
+		t.Log(w.String())
+	}
+
+	t.Log(c)
+
+}
+

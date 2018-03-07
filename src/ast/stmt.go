@@ -1,5 +1,8 @@
 package ast
 
+import "io"
+import "fmt"
+
 //实现StmtNode接口定义
 type SimpleSelectStmt struct {
 	//包含node和文本定义
@@ -22,38 +25,24 @@ type SimpleSelectStmt struct {
 
 //实现Accept接口
 func (s *SimpleSelectStmt) Accept(v Visitor) (Node, bool) {
-	if v == nil {
-		return s, false
-	}
 
 	//允许访问子节点的话,返回
 	if !v.Notify(s) {
 		return v.Visit(s)
 	}
 
-	node, ok := s.Distinct.Accept(v)
+	//优先处理From的信息
+	node, ok := s.From.Accept(v)
 	if !ok {
 		return s, false
 	}
-	s.Distinct = node.(*DistinctClause)
+	s.From = node.(*FromClause)
 
 	node, ok = s.Target.Accept(v)
 	if !ok {
 		return s, false
 	}
 	s.Target = node.(*TargetClause)
-
-	node, ok = s.Into.Accept(v)
-	if !ok {
-		return s, false
-	}
-	s.Into = node.(*IntoClause)
-
-	node, ok = s.From.Accept(v)
-	if !ok {
-		return s, false
-	}
-	s.From = node.(*FromClause)
 
 	node, ok = s.Where.Accept(v)
 	if !ok {
@@ -67,27 +56,69 @@ func (s *SimpleSelectStmt) Accept(v Visitor) (Node, bool) {
 	}
 	s.Group = node.(*GroupClause)
 
-	node, ok = s.Sort.Accept(v)
+	if s.Sort != nil {
+		node, ok = s.Sort.Accept(v)
+		if !ok {
+			return s, false
+		}
+		s.Sort = node.(*SortClause)
+	}
+
+	if s.Lock != nil {
+		node, ok = s.Lock.Accept(v)
+		if !ok {
+			return s, false
+		}
+		s.Lock = node.(*LockClause)
+	}
+
+	if s.Limit != nil {
+		node, ok = s.Limit.Accept(v)
+		if !ok {
+			return s, false
+		}
+		s.Limit = node.(*LimitClause)
+	}
+
+	if s.Distinct != nil {
+		node, ok = s.Distinct.Accept(v)
+		if !ok {
+			return s, false
+		}
+		s.Distinct = node.(*DistinctClause)
+	}
+	node, ok = s.Into.Accept(v)
 	if !ok {
 		return s, false
 	}
-	s.Sort = node.(*SortClause)
-
-	node, ok = s.Lock.Accept(v)
-	if !ok {
-		return s, false
-	}
-	s.Lock = node.(*LockClause)
-
-	node, ok = s.Limit.Accept(v)
-	if !ok {
-		return s, false
-	}
-	s.Limit = node.(*LimitClause)
-
+	s.Into = node.(*IntoClause)
 	//正常处理完后，返回处理完的结果
 	return v.Visit(s)
 
+}
+
+func (s *SimpleSelectStmt) Format(w io.Writer) {
+	fmt.Fprint(w, "( SELECT ")
+	if s.Distinct != nil {
+		s.Distinct.Format(w)
+	}
+	s.Target.Format(w)
+	s.Into.Format(w)
+	s.From.Format(w)
+	s.Where.Format(w)
+	s.Group.Format(w)
+	s.Having.Format(w)
+
+	if s.Sort != nil {
+		s.Sort.Format(w)
+	}
+	if s.Lock != nil {
+		s.Lock.Format(w)
+	}
+	if s.Limit != nil {
+		s.Limit.Format(w)
+	}
+	fmt.Fprint(w, ")")
 }
 
 const (
@@ -97,7 +128,7 @@ const (
 )
 
 //实现SelectStmt接口定义
-type SelectStmt struct {
+type UnionStmt struct {
 	//包含node和文本定义
 	node
 
@@ -113,10 +144,7 @@ type SelectStmt struct {
 	Limit *LimitClause
 }
 
-func (s *SelectStmt) Accept(v Visitor) (Node, bool) {
-	if v == nil {
-		return s, false
-	}
+func (s *UnionStmt) Accept(v Visitor) (Node, bool) {
 
 	//允许访问子节点的话,返回
 	if !v.Notify(s) {
@@ -134,24 +162,52 @@ func (s *SelectStmt) Accept(v Visitor) (Node, bool) {
 		return s, false
 	}
 	s.Right = node
-	node, ok = s.Sort.Accept(v)
-	if !ok {
-		return s, false
-	}
-	s.Sort = node.(*SortClause)
 
-	node, ok = s.Lock.Accept(v)
-	if !ok {
-		return s, false
+	if s.Sort != nil {
+		node, ok = s.Sort.Accept(v)
+		if !ok {
+			return s, false
+		}
+		s.Sort = node.(*SortClause)
 	}
-	s.Lock = node.(*LockClause)
 
-	node, ok = s.Limit.Accept(v)
-	if !ok {
-		return s, false
+	if s.Lock != nil {
+		node, ok = s.Lock.Accept(v)
+		if !ok {
+			return s, false
+		}
+		s.Lock = node.(*LockClause)
 	}
-	s.Limit = node.(*LimitClause)
+
+	if s.Limit != nil {
+		node, ok = s.Limit.Accept(v)
+		if !ok {
+			return s, false
+		}
+		s.Limit = node.(*LimitClause)
+	}
 
 	//正常处理完后，返回处理完的结果
 	return v.Visit(s)
+}
+
+func (s *UnionStmt) Format(w io.Writer) {
+	fmt.Fprint(w, "(")
+	s.Left.(ExprNode).Format(w)
+	fmt.Fprint(w, " UNION ")
+	fmt.Fprint(w, Distinct[s.DistinctType])
+	fmt.Fprint(w, " ")
+
+	if s.Sort != nil {
+		s.Sort.Format(w)
+	}
+	if s.Lock != nil {
+		s.Lock.Format(w)
+	}
+	if s.Limit != nil {
+		s.Limit.Format(w)
+	}
+
+	s.Right.(ExprNode).Format(w)
+	fmt.Fprint(w, ")")
 }

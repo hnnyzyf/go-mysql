@@ -12,7 +12,7 @@ func (token *Tokener) Lex(lval *yySymType) int {
 	}
 	//判断正确的类型
 	switch tok {
-	case IDENT:
+	case IDENT, BuiltinCharacterIdent,BuiltinFucTimeAddIdent,BuiltinFucTimeSubIdent,BuiltinTimeUnitIdent:
 		lval.ident = val
 	case PARAM_MARKER, DOUBLE_QUOTA_STRING, SINGLE_QUOTA_STRING:
 		lval.str = val

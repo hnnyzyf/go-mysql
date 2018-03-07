@@ -142,13 +142,10 @@ var TimeUnit = map[string]int{
 	"day_second":         BuiltinTimeUnitIdent,
 }
 
-var FuncTimeAdd = map[string]int{
+var FuncTime = map[string]int{
 	"adddate":      BuiltinFucTimeAddIdent,
 	"date_add":     BuiltinFucTimeAddIdent,
 	"timestampadd": BuiltinFucTimeAddIdent,
-}
-
-var FuncTimeSub = map[string]int{
 	"subdate":      BuiltinFucTimeSubIdent,
 	"date_sub":     BuiltinFucTimeSubIdent,
 	"timestampsub": BuiltinFucTimeSubIdent,

@@ -75,10 +75,8 @@ func checkIdent(s string) (int, string) {
 		return Character[ident], ident
 	} else if _, ok := TimeUnit[ident]; ok {
 		return TimeUnit[ident], strings.ToUpper(ident)
-	} else if _, ok := FuncTimeAdd[ident]; ok {
-		return FuncTimeAdd[ident], strings.ToUpper(ident)
-	} else if _, ok := FuncTimeSub[ident]; ok {
-		return FuncTimeSub[ident], strings.ToUpper(ident)
+	} else if _, ok := FuncTime[ident]; ok {
+		return FuncTime[ident], strings.ToUpper(ident)
 	} else {
 		return IDENT, ident
 	}
