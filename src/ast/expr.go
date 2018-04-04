@@ -25,11 +25,6 @@ import "fmt"
 //所有一元二元表达式均可使用
 //形如a+b a-b a*b这种形式
 
-const (
-	Expr_And = iota + 1
-	Expr_Or
-)
-
 type Expr struct {
 	node
 
@@ -84,8 +79,172 @@ func (e *Expr) Format(w io.Writer) {
 	if e.IsEnclosed {
 		fmt.Fprint(w, ")")
 	}
+}
+
+func (e *Expr) Type() int {
+	return Ast_expr
+}
+
+func (e *Expr) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+	other := src.(*Expr)
+	if e.Operator != other.Operator {
+		return false
+	}
+
+	if e.Left != nil && other.Left != nil {
+		if !e.Left.IsSameAs(other.Left, v) {
+			return false
+		}
+	}
+	if (e.Left != nil && other.Left == nil) || (e.Left == nil && other.Left != nil) {
+		return false
+	}
+
+	if e.Right != nil && other.Right != nil {
+		if !e.Right.IsSameAs(other.Right, v) {
+			return false
+		}
+	}
+	if (e.Right != nil && other.Right == nil) || (e.Right == nil && other.Right != nil) {
+		return false
+	}
+
+	return true
+}
+
+const (
+	Expr_And = iota + 1
+	Expr_Or
+	Expr_Single
+)
+
+//用于Preprocess过程中的替换
+type And0OrExpr struct {
+	node
+
+	Operator string
+	Expr     []ExprNode
+
+	IsEnclosed bool
+}
+
+func (e *And0OrExpr) Accept(v Visitor) (Node, bool) {
+
+	if !v.Notify(e) {
+		return v.Visit(e)
+	}
+
+	for index, target := range e.Expr {
+		node, ok := target.Accept(v)
+		if !ok {
+			return e, false
+		}
+		e.Expr[index] = node.(ExprNode)
+
+	}
+
+	return v.Visit(e)
+}
+
+func (e *And0OrExpr) Format(w io.Writer) {
+	if e.IsEnclosed {
+		fmt.Fprint(w, "(")
+	}
+	length := len(e.Expr)
+	for index, target := range e.Expr {
+		target.Format(w)
+
+		if index != length-1 {
+			fmt.Fprint(w, " ")
+			fmt.Fprint(w, e.Operator)
+			fmt.Fprint(w, " ")
+		} else {
+			fmt.Fprint(w, " ")
+		}
+	}
+	if e.IsEnclosed {
+		fmt.Fprint(w, ")")
+	}
+}
+
+func (e *And0OrExpr) Type() int {
+	return Ast_and0orexpr
+}
+
+func (e *And0OrExpr) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*And0OrExpr)
+
+	if e.Operator != other.Operator {
+		return false
+	}
+
+	if len(e.Expr) != len(other.Expr) {
+		return false
+	}
+	for _, expr := range e.Expr {
+		hasSame := false
+		for _, otherexpr := range other.Expr {
+			if expr.IsSameAs(otherexpr, v) {
+				hasSame = true
+				break
+			}
+		}
+		if !hasSame {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (e *And0OrExpr) Combine(l ExprNode, r ExprNode) {
+	switch node := l.(type) {
+	case *And0OrExpr:
+		if node.GetTag() == e.GetTag() {
+			for idx, _ := range node.Expr {
+				e.Expr = append(e.Expr, node.Expr[idx])
+			}
+		} else {
+			e.Expr = append(e.Expr, l)
+		}
+	default:
+		e.Expr = append(e.Expr, l)
+	}
+
+	switch node := r.(type) {
+	case *And0OrExpr:
+		if node.GetTag() == e.GetTag() {
+			for idx, _ := range node.Expr {
+				e.Expr = append(e.Expr, node.Expr[idx])
+			}
+		} else {
+			e.Expr = append(e.Expr, r)
+		}
+	default:
+		e.Expr = append(e.Expr, r)
+	}
 
 }
+
+const (
+	Unary_Constant = iota + 1
+	Unary_Other
+)
 
 type UnaryExpr struct {
 	node
@@ -120,6 +279,28 @@ func (e *UnaryExpr) Format(w io.Writer) {
 
 }
 
+func (e *UnaryExpr) Type() int {
+	return Ast_unaryexpr
+}
+
+func (e *UnaryExpr) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*UnaryExpr)
+
+	if e.Operator != other.Operator {
+		return false
+	}
+
+	return e.Expr.IsSameAs(other.Expr, v)
+}
+
 type NotExpr struct {
 	node
 
@@ -146,12 +327,30 @@ func (e *NotExpr) Format(w io.Writer) {
 	e.Expr.Format(w)
 }
 
+func (e *NotExpr) Type() int {
+	return Ast_notexpr
+}
+
+func (e *NotExpr) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*NotExpr)
+
+	return e.Expr.IsSameAs(other.Expr, v)
+}
+
 type IsTrueExpr struct {
 	node
 
 	HasNot bool
-	Left   ExprNode
-	Right  ExprNode
+	IsTrue bool
+	Expr   ExprNode
 }
 
 func (e *IsTrueExpr) Accept(v Visitor) (Node, bool) {
@@ -160,24 +359,54 @@ func (e *IsTrueExpr) Accept(v Visitor) (Node, bool) {
 		return v.Visit(e)
 	}
 
-	node, ok := e.Left.Accept(v)
+	node, ok := e.Expr.Accept(v)
 	if !ok {
 		return e, false
 	}
-	e.Left = node.(ExprNode)
+	e.Expr = node.(ExprNode)
 
 	return v.Visit(e)
 }
 
 func (e *IsTrueExpr) Format(w io.Writer) {
 
-	e.Left.Format(w)
+	e.Expr.Format(w)
 	if e.HasNot == true {
 		fmt.Fprint(w, " IS NOT ")
 	} else {
 		fmt.Fprint(w, " IS ")
 	}
-	e.Right.Format(w)
+	if e.IsTrue {
+		fmt.Fprint(w, "TRUE ")
+	} else {
+		fmt.Fprint(w, "FALSE ")
+	}
+}
+
+func (e *IsTrueExpr) Type() int {
+	return Ast_istrueexpr
+}
+
+func (e *IsTrueExpr) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*IsTrueExpr)
+
+	if e.HasNot != other.HasNot {
+		return false
+	}
+
+	if e.IsTrue != other.IsTrue {
+		return false
+	}
+
+	return e.Expr.IsSameAs(other.Expr, v)
 }
 
 type IsNullExpr struct {
@@ -210,6 +439,28 @@ func (e *IsNullExpr) Format(w io.Writer) {
 	} else {
 		fmt.Fprint(w, " IS NULL ")
 	}
+}
+
+func (e *IsNullExpr) Type() int {
+	return Ast_isnullexpr
+}
+
+func (e *IsNullExpr) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*IsNullExpr)
+
+	if e.HasNot != other.HasNot {
+		return false
+	}
+
+	return e.Left.IsSameAs(other.Left, v)
 }
 
 const (
@@ -253,13 +504,17 @@ func (e *SubqueryExpr) Accept(v Visitor) (Node, bool) {
 	if !v.Notify(e) {
 		return v.Visit(e)
 	}
-	node, ok := e.Left.Accept(v)
-	if !ok {
-		return e, false
-	}
-	e.Left = node.(ExprNode)
 
-	node, ok = e.Select.Accept(v)
+	if e.Left != nil {
+		node, ok := e.Left.Accept(v)
+		if !ok {
+			return e, false
+		}
+		e.Left = node.(ExprNode)
+	}
+
+	node, ok := e.Select.Accept(v)
+
 	if !ok {
 		return e, false
 	}
@@ -277,12 +532,64 @@ func (e *SubqueryExpr) Format(w io.Writer) {
 		e.Select.(ExprNode).Format(w)
 	case Subquery_In:
 		e.Left.Format(w)
-		fmt.Fprint(w, " IN ")
+		if e.HasNot {
+			fmt.Fprint(w, " NOT IN ")
+		} else {
+			fmt.Fprint(w, " IN ")
+		}
 		e.Select.(ExprNode).Format(w)
 	case Subquery_Exists:
-		fmt.Fprint(w, " EXISTS ")
+		if e.HasNot {
+			fmt.Fprint(w, " NOT EXISTS ")
+		} else {
+			fmt.Fprint(w, " EXISTS ")
+		}
 		e.Select.(ExprNode).Format(w)
 	}
+}
+
+func (e *SubqueryExpr) Type() int {
+	return Ast_subqueryexpr
+}
+
+func (e *SubqueryExpr) IsSameAs(src ExprNode, v Visitor) bool {
+	if src == nil {
+		return false
+	}
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*SubqueryExpr)
+
+	if e.Operator != other.Operator {
+		return false
+	}
+
+	if e.Subtype != other.Subtype {
+		return false
+	}
+
+	if e.HasNot != other.HasNot {
+		return false
+	}
+
+	if e.Left != nil {
+		if !e.Left.IsSameAs(other.Left, v) {
+			return false
+		}
+
+	}
+
+	if !e.Select.(ExprNode).IsSameAs(other.Select.(ExprNode), v) {
+		return false
+	}
+
+	return true
 }
 
 //形如 between类型的比较
@@ -334,6 +641,39 @@ func (e *BetweenExpr) Format(w io.Writer) {
 	e.Right.Format(w)
 }
 
+func (e *BetweenExpr) Type() int {
+	return Ast_betweenexpr
+}
+
+func (e *BetweenExpr) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*BetweenExpr)
+
+	if e.HasNot != other.HasNot {
+		return false
+	}
+	if !e.Expr.IsSameAs(other.Expr, v) {
+		return false
+	}
+
+	if !e.Left.IsSameAs(other.Left, v) {
+		return false
+	}
+
+	if !e.Right.IsSameAs(other.Right, v) {
+		return false
+	}
+
+	return true
+}
+
 type LikeExpr struct {
 	node
 
@@ -373,6 +713,36 @@ func (e *LikeExpr) Format(w io.Writer) {
 	e.Right.Format(w)
 }
 
+func (e *LikeExpr) Type() int {
+	return Ast_likeexpr
+}
+
+func (e *LikeExpr) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*LikeExpr)
+
+	if e.HasNot != other.HasNot {
+		return false
+	}
+
+	if !e.Left.IsSameAs(other.Left, v) {
+		return false
+	}
+
+	if !e.Right.IsSameAs(other.Right, v) {
+		return false
+	}
+
+	return true
+}
+
 type RegexpExpr struct {
 	node
 
@@ -410,6 +780,36 @@ func (e *RegexpExpr) Format(w io.Writer) {
 		fmt.Fprint(w, " REGEXP ")
 	}
 	e.Right.Format(w)
+}
+
+func (e *RegexpExpr) Type() int {
+	return Ast_regexpexpr
+}
+
+func (e *RegexpExpr) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*RegexpExpr)
+
+	if e.HasNot != other.HasNot {
+		return false
+	}
+
+	if !e.Left.IsSameAs(other.Left, v) {
+		return false
+	}
+
+	if !e.Right.IsSameAs(other.Right, v) {
+		return false
+	}
+
+	return true
 }
 
 var TimeUnit = map[string]int{
@@ -524,6 +924,39 @@ func (e *IntervalExpr) Format(w io.Writer) {
 
 	fmt.Fprint(w, ReTimeUnit[e.TimeUnit])
 
+}
+
+func (e *IntervalExpr) Type() int {
+	return Ast_intervalexpr
+}
+
+func (e *IntervalExpr) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*IntervalExpr)
+
+	if e.Operator != other.Operator {
+		return false
+	}
+
+	if e.TimeUnit != other.TimeUnit {
+		return false
+	}
+	if !e.Left.IsSameAs(other.Left, v) {
+		return false
+	}
+
+	if !e.Right.IsSameAs(other.Right, v) {
+		return false
+	}
+
+	return true
 }
 
 const (
@@ -688,6 +1121,32 @@ func (e *CollateExpr) Format(w io.Writer) {
 
 }
 
+func (e *CollateExpr) Type() int {
+	return Ast_collateexpr
+}
+
+func (e *CollateExpr) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*CollateExpr)
+
+	if e.Collate != other.Collate {
+		return false
+	}
+
+	if !e.Expr.IsSameAs(other.Expr, v) {
+		return false
+	}
+
+	return true
+}
+
 type CaseExpr struct {
 	node
 
@@ -750,6 +1209,58 @@ func (e *CaseExpr) Format(w io.Writer) {
 	fmt.Fprint(w, " END")
 }
 
+func (e *CaseExpr) Type() int {
+	return Ast_caseexpr
+}
+
+func (e *CaseExpr) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*CaseExpr)
+
+	if e.Case != nil && other.Case != nil {
+		if !e.Case.IsSameAs(other.Case, v) {
+			return false
+		}
+	}
+	if (e.Case != nil && other.Case == nil) || (e.Case == nil && other.Case != nil) {
+		return false
+	}
+
+	if e.Else != nil && other.Else != nil {
+		if !e.Else.IsSameAs(other.Else, v) {
+			return false
+		}
+	}
+	if (e.Else != nil && other.Else == nil) || (e.Else == nil && other.Else != nil) {
+		return false
+	}
+
+	if len(e.When) != len(other.When) {
+		return false
+	}
+	for _, expr := range e.When {
+		hasSame := false
+		for _, otherexpr := range other.When {
+			if expr.IsSameAs(otherexpr, v) {
+				hasSame = true
+				break
+			}
+		}
+		if !hasSame {
+			return false
+		}
+	}
+
+	return true
+}
+
 type InExpr struct {
 	node
 
@@ -801,4 +1312,46 @@ func (e *InExpr) Format(w io.Writer) {
 
 	fmt.Fprint(w, ")")
 
+}
+
+func (e *InExpr) Type() int {
+	return Ast_inexpr
+}
+
+func (e *InExpr) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*InExpr)
+
+	if e.HasNot != other.HasNot {
+		return false
+	}
+
+	if !e.Left.IsSameAs(other.Left, v) {
+		return false
+	}
+
+	if len(e.Right) != len(other.Right) {
+		return false
+	}
+	for _, expr := range e.Right {
+		hasSame := false
+		for _, otherexpr := range other.Right {
+			if expr.IsSameAs(otherexpr, v) {
+				hasSame = true
+				break
+			}
+		}
+		if !hasSame {
+			return false
+		}
+	}
+
+	return true
 }

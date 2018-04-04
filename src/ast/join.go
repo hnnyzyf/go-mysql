@@ -93,6 +93,51 @@ func (e *Join) Format(w io.Writer) {
 	}
 }
 
+func (e *Join) Type() int {
+	return Ast_join
+}
+
+func (e *Join) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*Join)
+
+	if e.HasNatural != other.HasNatural {
+		return false
+	}
+
+	if e.HasOuter != other.HasOuter {
+		return false
+	}
+
+	if !e.Left.IsSameAs(other.Left, v) {
+		return false
+	}
+
+	if !e.Right.IsSameAs(other.Right, v) {
+		return false
+	}
+
+	if e.Condition != nil && other.Condition != nil {
+		if !e.Condition.IsSameAs(other.Condition, v) {
+			return false
+		}
+	}
+
+	if (e.Condition == nil && other.Condition != nil) || (e.Condition != nil && other.Condition == nil) {
+		return false
+
+	}
+
+	return true
+}
+
 type Using struct {
 	node
 
@@ -129,4 +174,39 @@ func (e *Using) Format(w io.Writer) {
 			fmt.Fprint(w, ")")
 		}
 	}
+}
+
+func (e *Using) Type() int {
+	return Ast_using
+}
+
+func (e *Using) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*Using)
+
+	if len(e.Column) != len(other.Column) {
+		return false
+	}
+
+	for _, expr := range e.Column {
+		hasSame := false
+		for _, otherexpr := range other.Column {
+			if expr.IsSameAs(otherexpr, v) {
+				hasSame = true
+				break
+			}
+		}
+		if !hasSame {
+			return false
+		}
+	}
+
+	return true
 }

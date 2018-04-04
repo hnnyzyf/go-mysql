@@ -87,6 +87,7 @@ func (s *SimpleSelectStmt) Accept(v Visitor) (Node, bool) {
 		}
 		s.Distinct = node.(*DistinctClause)
 	}
+
 	node, ok = s.Into.Accept(v)
 	if !ok {
 		return s, false
@@ -119,6 +120,82 @@ func (s *SimpleSelectStmt) Format(w io.Writer) {
 		s.Limit.Format(w)
 	}
 	fmt.Fprint(w, ")")
+}
+
+func (e *SimpleSelectStmt) Type() int {
+	return Ast_simpleselectstmt
+}
+
+func (e *SimpleSelectStmt) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*SimpleSelectStmt)
+
+	if e.Distinct != nil && other.Distinct != nil {
+		if !e.Distinct.IsSameAs(other.Distinct, v) {
+			return false
+		}
+	}
+
+	if (e.Distinct != nil && other.Distinct == nil) || (e.Distinct == nil && other.Distinct != nil) {
+		return false
+	}
+
+	if !e.Target.IsSameAs(other.Target, v) {
+		return false
+	}
+	if !e.Into.IsSameAs(other.Into, v) {
+		return false
+	}
+	if !e.From.IsSameAs(other.From, v) {
+		return false
+	}
+	if !e.Where.IsSameAs(other.Where, v) {
+		return false
+	}
+	if !e.Group.IsSameAs(other.Group, v) {
+		return false
+	}
+	if !e.Having.IsSameAs(other.Having, v) {
+		return false
+	}
+
+	if e.Sort != nil && other.Sort != nil {
+		if !e.Sort.IsSameAs(other.Sort, v) {
+			return false
+		}
+	}
+
+	if (e.Sort != nil && other.Sort == nil) || (e.Sort == nil && other.Sort != nil) {
+		return false
+	}
+
+	if e.Lock != nil && other.Lock != nil {
+		if !e.Lock.IsSameAs(other.Lock, v) {
+			return false
+		}
+	}
+	if (e.Lock != nil && other.Lock == nil) || (e.Lock == nil && other.Lock != nil) {
+		return false
+	}
+
+	if e.Limit != nil && other.Limit != nil {
+		if !e.Limit.IsSameAs(other.Limit, v) {
+			return false
+		}
+	}
+
+	if (e.Limit != nil && other.Limit == nil) || (e.Limit == nil && other.Limit != nil) {
+		return false
+	}
+
+	return true
 }
 
 const (
@@ -210,4 +287,62 @@ func (s *UnionStmt) Format(w io.Writer) {
 
 	s.Right.(ExprNode).Format(w)
 	fmt.Fprint(w, ")")
+}
+
+func (e *UnionStmt) Type() int {
+	return Ast_unionstmt
+}
+
+func (e *UnionStmt) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*UnionStmt)
+
+	if e.DistinctType != other.DistinctType {
+		return false
+	}
+
+	if !e.Left.(ExprNode).IsSameAs(other.Left.(ExprNode), v) {
+		return false
+	}
+	if !e.Right.(ExprNode).IsSameAs(other.Right.(ExprNode), v) {
+		return false
+	}
+
+	if e.Sort != nil && other.Sort != nil {
+		if !e.Sort.IsSameAs(other.Sort, v) {
+			return false
+		}
+	}
+
+	if (e.Sort != nil && other.Sort == nil) || (e.Sort == nil && other.Sort != nil) {
+		return false
+	}
+
+	if e.Lock != nil && other.Lock != nil {
+		if !e.Lock.IsSameAs(other.Lock, v) {
+			return false
+		}
+	}
+	if (e.Lock != nil && other.Lock == nil) || (e.Lock == nil && other.Lock != nil) {
+		return false
+	}
+
+	if e.Limit != nil && other.Limit != nil {
+		if !e.Limit.IsSameAs(other.Limit, v) {
+			return false
+		}
+	}
+
+	if (e.Limit != nil && other.Limit == nil) || (e.Limit == nil && other.Limit != nil) {
+		return false
+	}
+
+	return true
 }

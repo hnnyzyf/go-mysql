@@ -52,12 +52,28 @@ func (e *DistinctClause) Accept(v Visitor) (Node, bool) {
 func (e *DistinctClause) Format(w io.Writer) {
 	switch e.GetTag() {
 	case AST_DISTINCT:
-		fmt.Fprint(w, "DISTINCT")
+		fmt.Fprint(w, "DISTINCT ")
 	case AST_DISTINCTROW:
-		fmt.Fprint(w, "DISTINCTROW")
+		fmt.Fprint(w, "DISTINCTROW ")
 	}
 
 	fmt.Fprint(w, " ")
+}
+
+func (e *DistinctClause) Type() int {
+	return Ast_distinctclause
+}
+
+func (e *DistinctClause) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	return true
 }
 
 type TargetClause struct {
@@ -95,6 +111,40 @@ func (e *TargetClause) Format(w io.Writer) {
 	}
 }
 
+func (e *TargetClause) Type() int {
+	return Ast_targetclause
+}
+
+func (e *TargetClause) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*TargetClause)
+	if len(e.Target_ref) != len(other.Target_ref) {
+		return false
+	}
+
+	for _, expr := range e.Target_ref {
+		hasSame := false
+		for _, otherexpr := range other.Target_ref {
+			if expr.IsSameAs(otherexpr, v) {
+				hasSame = true
+				break
+			}
+		}
+		if !hasSame {
+			return false
+		}
+	}
+
+	return true
+}
+
 type IntoClause struct {
 	node
 	Relation ExprNode
@@ -121,6 +171,34 @@ func (e *IntoClause) Format(w io.Writer) {
 		e.Relation.Format(w)
 	}
 
+}
+
+func (e *IntoClause) Type() int {
+	return Ast_intoclause
+}
+
+func (e *IntoClause) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*IntoClause)
+
+	if e.Relation != nil && other.Relation != nil {
+		if !e.Relation.IsSameAs(other.Relation, v) {
+			return false
+		}
+	}
+
+	if (e.Relation != nil && other.Relation == nil) || (e.Relation == nil && other.Relation != nil) {
+		return false
+	}
+
+	return true
 }
 
 type FromClause struct {
@@ -161,6 +239,40 @@ func (e *FromClause) Format(w io.Writer) {
 	}
 }
 
+func (e *FromClause) Type() int {
+	return Ast_fromclause
+}
+
+func (e *FromClause) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*FromClause)
+
+	if len(e.Table_ref) != len(other.Table_ref) {
+		return false
+	}
+
+	for _, expr := range e.Table_ref {
+		hasSame := false
+		for _, otherexpr := range other.Table_ref {
+			if expr.IsSameAs(otherexpr, v) {
+				hasSame = true
+				break
+			}
+		}
+		if !hasSame {
+			return false
+		}
+	}
+	return true
+}
+
 type WhereClause struct {
 	node
 	Where ExprNode
@@ -186,6 +298,35 @@ func (e *WhereClause) Format(w io.Writer) {
 		fmt.Fprint(w, " WHERE ")
 		e.Where.Format(w)
 	}
+}
+
+func (e *WhereClause) Type() int {
+	return Ast_whereclause
+}
+
+func (e *WhereClause) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*WhereClause)
+
+	if e.Where != nil && other.Where != nil {
+		if !e.Where.IsSameAs(other.Where, v) {
+			return false
+		}
+	}
+
+	if (e.Where != nil && other.Where == nil) || (e.Where == nil && other.Where != nil) {
+		return false
+	}
+
+	return true
+
 }
 
 type GroupClause struct {
@@ -226,6 +367,41 @@ func (e *GroupClause) Format(w io.Writer) {
 	}
 }
 
+func (e *GroupClause) Type() int {
+	return Ast_groupclause
+}
+
+func (e *GroupClause) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*GroupClause)
+	if len(e.Target_ref) != len(other.Target_ref) {
+		return false
+	}
+
+	for _, expr := range e.Target_ref {
+		hasSame := false
+		for _, otherexpr := range other.Target_ref {
+			if expr.IsSameAs(otherexpr, v) {
+				hasSame = true
+				break
+			}
+		}
+		if !hasSame {
+			return false
+		}
+	}
+
+	return true
+
+}
+
 type HavingClause struct {
 	node
 	Having ExprNode
@@ -250,6 +426,33 @@ func (e *HavingClause) Format(w io.Writer) {
 		fmt.Fprint(w, " HAVING ")
 		e.Having.Format(w)
 	}
+}
+
+func (e *HavingClause) Type() int {
+	return Ast_havingclause
+}
+
+func (e *HavingClause) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*HavingClause)
+
+	if e.Having != nil && other.Having != nil {
+		if !e.Having.IsSameAs(other.Having, v) {
+			return false
+		}
+	}
+
+	if (e.Having != nil && other.Having == nil) || (e.Having == nil && other.Having != nil) {
+		return false
+	}
+	return true
 }
 
 type SortClause struct {
@@ -288,6 +491,41 @@ func (e *SortClause) Format(w io.Writer) {
 	}
 }
 
+func (e *SortClause) Type() int {
+	return Ast_sortclause
+}
+
+func (e *SortClause) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*SortClause)
+	if len(e.Target_ref) != len(other.Target_ref) {
+		return false
+	}
+
+	for _, expr := range e.Target_ref {
+		hasSame := false
+		for _, otherexpr := range other.Target_ref {
+			if expr.IsSameAs(otherexpr, v) {
+				hasSame = true
+				break
+			}
+		}
+		if !hasSame {
+			return false
+		}
+	}
+
+	return true
+
+}
+
 const (
 	Lock_update = iota + 2
 	Lock_share
@@ -313,6 +551,23 @@ func (e *LockClause) Format(w io.Writer) {
 	case Lock_share:
 		fmt.Fprint(w, " FOR IN SHARE MODE ")
 	}
+}
+
+func (e *LockClause) Type() int {
+	return Ast_lockclause
+}
+
+func (e *LockClause) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	return true
+
 }
 
 //定义Limitclause
@@ -368,4 +623,49 @@ func (e *LimitClause) Format(w io.Writer) {
 			e.Offset.Format(w)
 		}
 	}
+}
+
+func (e *LimitClause) Type() int {
+	return Ast_limitclause
+}
+
+func (e *LimitClause) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*LimitClause)
+	if len(e.Limit) != len(other.Limit) {
+		return false
+	}
+
+	for _, expr := range e.Limit {
+		hasSame := false
+		for _, otherexpr := range other.Limit {
+			if expr.IsSameAs(otherexpr, v) {
+				hasSame = true
+				break
+			}
+		}
+		if !hasSame {
+			return false
+		}
+	}
+
+	if e.Offset != nil && other.Offset != nil {
+		if !e.Offset.IsSameAs(other.Offset, v) {
+			return false
+		}
+	}
+
+	if (e.Offset != nil && other.Offset == nil) || (e.Offset == nil && other.Offset != nil) {
+		return false
+	}
+
+	return true
+
 }

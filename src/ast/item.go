@@ -3,6 +3,9 @@ package ast
 import "io"
 import "fmt"
 import "bytes"
+import comp "util/compare"
+import "strings"
+import conv "util/convert"
 
 /***********************************
 *
@@ -20,14 +23,14 @@ import "bytes"
 *  	Marker
 *  	Sortby
 *
-************************************/
+********************************I****/
 
 /******************
 *	Relation Item
 *******************/
 
 const (
-	Relation_Table = iota
+	Relation_Table = iota + 1
 	Relation_Subquery
 )
 
@@ -41,12 +44,6 @@ type Relation struct {
 	Select Node
 	//关系指向的别名
 	Alias string
-
-	//preprocess过程结果
-	//投影中出现*
-	HasStar bool
-	//投影中涉及的Column信息
-	Projection []*Column
 }
 
 func (e *Relation) Accept(v Visitor) (Node, bool) {
@@ -84,14 +81,58 @@ func (e *Relation) Format(w io.Writer) {
 	fmt.Fprint(w, e.Alias)
 }
 
+func (e *Relation) Type() int {
+	return Ast_relation
+}
+
+func (e *Relation) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*Relation)
+	switch e.GetTag() {
+	case Relation_Table:
+		if e.GetDB() != other.GetDB() {
+			return false
+		}
+
+		if e.GetTable() != other.GetTable() {
+			return false
+		}
+	case Relation_Subquery:
+		if !e.Select.(ExprNode).IsSameAs(other.Select.(ExprNode), v) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (e *Relation) GetDB() string {
+	return conv.Removebacktick(e.DB)
+}
+
+func (e *Relation) GetTable() string {
+	return conv.Removebacktick(e.Table)
+}
+
 func (e *Relation) GetAlias() string {
 	if e.Alias != "" {
-		return e.Alias
+		return strings.ToLower(conv.Removebacktick(e.Alias))
 	} else {
-		buf := bytes.NewBuffer([]byte{})
-		e.Format(buf)
-		e.Alias = buf.String()
-		return e.Alias
+		switch e.GetTag() {
+		case Relation_Table:
+			return strings.ToLower(e.GetTable())
+		default:
+			buf := bytes.NewBuffer([]byte{})
+			e.Format(buf)
+			return buf.String()
+		}
 	}
 }
 
@@ -100,11 +141,13 @@ func (e *Relation) GetAlias() string {
 *******************/
 
 const (
-	Tuple_expr = iota
+	Tuple_expr = iota + 1
 	Tuple_column
-	Tuple_subquery
 	Tuple_funcall
 	Tuple_agg
+	Tuple_star
+	Tuple_SimpleSubquery
+	Tuple_UnionSubquery
 )
 
 type Tuple struct {
@@ -114,9 +157,6 @@ type Tuple struct {
 	//关系指向的别名
 
 	Alias string
-
-	//Tuple在Field中的位置
-	Location int
 }
 
 func (e *Tuple) Accept(v Visitor) (Node, bool) {
@@ -138,18 +178,44 @@ func (e *Tuple) Format(w io.Writer) {
 	e.Ref.Format(w)
 	if e.Alias != "" {
 		fmt.Fprint(w, " AS ")
+		fmt.Fprint(w, e.Alias)
 	}
-	fmt.Fprint(w, e.Alias)
+}
+
+func (e *Tuple) Type() int {
+	return Ast_tuple
+}
+
+func (e *Tuple) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*Tuple)
+
+	if !e.Ref.IsSameAs(other.Ref, v) {
+		return false
+	}
+
+	return true
 }
 
 func (e *Tuple) GetAlias() string {
 	if e.Alias != "" {
-		return e.Alias
+		return strings.ToLower(e.Alias)
 	} else {
-		buf := bytes.NewBuffer([]byte{})
-		e.Format(buf)
-		e.Alias = buf.String()
-		return e.Alias
+		switch e.GetTag() {
+		case Tuple_column:
+			return strings.ToLower(e.Ref.(*Column).Column)
+		default:
+			buf := bytes.NewBuffer([]byte{})
+			e.Format(buf)
+			return buf.String()
+		}
 	}
 }
 
@@ -160,10 +226,12 @@ func (e *Tuple) GetAlias() string {
 type Column struct {
 	node
 
-	IsStar bool
 	DB     string
 	Table  string
 	Column string
+
+	//column所属的Relation
+	Relation *Relation
 }
 
 func (e *Column) Accept(v Visitor) (Node, bool) {
@@ -187,23 +255,159 @@ func (e *Column) Format(w io.Writer) {
 	fmt.Fprint(w, e.Column)
 }
 
+func (e *Column) Type() int {
+	return Ast_column
+}
+
+func (e *Column) GetDB() string {
+	return conv.Removebacktick(e.DB)
+}
+
+func (e *Column) GetTable() string {
+	return conv.Removebacktick(e.Table)
+}
+
+func (e *Column) GetColumn() string {
+	return conv.Removebacktick(e.Column)
+}
+
+func (e *Column) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*Column)
+	if e.GetDB() != other.GetDB() {
+		return false
+	}
+
+	if e.GetTable() != other.GetTable() {
+		return false
+	}
+
+	if e.GetColumn() != other.GetColumn() {
+		return false
+	}
+
+	if e.Relation != other.Relation {
+		return false
+	}
+
+	return true
+}
+
+type Star struct {
+	node
+
+	DB    string
+	Table string
+
+	Column []*Column
+}
+
+func (e *Star) Accept(v Visitor) (Node, bool) {
+
+	if !v.Notify(e) {
+		return v.Visit(e)
+	}
+
+	if e.Column != nil {
+		for index, table := range e.Column {
+			node, ok := table.Accept(v)
+			if !ok {
+				return e, false
+			}
+			e.Column[index] = node.(*Column)
+
+		}
+	}
+
+	return v.Visit(e)
+}
+
+func (e *Star) Format(w io.Writer) {
+	if e.DB != "" {
+		fmt.Fprint(w, e.DB)
+		fmt.Fprint(w, ".")
+	}
+	if e.Table != "" {
+		fmt.Fprint(w, e.Table)
+		fmt.Fprint(w, ".")
+	}
+	fmt.Fprint(w, "*")
+}
+
+func (e *Star) Type() int {
+	return Ast_star
+}
+
+func (e *Star) GetDB() string {
+	return conv.Removebacktick(e.DB)
+}
+
+func (e *Star) GetTable() string {
+	return conv.Removebacktick(e.Table)
+}
+
+func (e *Star) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*Star)
+	if e.GetDB() != other.GetDB() {
+		return false
+	}
+
+	if e.GetTable() != other.GetTable() {
+		return false
+	}
+
+	if len(e.Column) != len(other.Column) {
+		return false
+	}
+
+	for _, expr := range e.Column {
+		hasSame := false
+		for _, otherexpr := range other.Column {
+			if expr.IsSameAs(otherexpr, v) {
+				hasSame = true
+				break
+			}
+		}
+		if !hasSame {
+			return false
+		}
+	}
+
+	return true
+}
+
 const (
-	Bit = iota
+	Bit = iota + 1
 	Hex
-	Digit
+	Int
 )
 
 /******************
 *	Number Item
 *******************/
 
-type Number struct {
+type Integer struct {
 	node
-	Symbol bool
-	Val    string
+	Operator []string
+	Val      string
 }
 
-func (e *Number) Accept(v Visitor) (Node, bool) {
+func (e *Integer) Accept(v Visitor) (Node, bool) {
 
 	if !v.Notify(e) {
 		return v.Visit(e)
@@ -212,20 +416,106 @@ func (e *Number) Accept(v Visitor) (Node, bool) {
 	return v.Visit(e)
 }
 
-func (e *Number) Format(w io.Writer) {
-	if !e.Symbol {
-		fmt.Fprint(w, "-")
+func (e *Integer) Format(w io.Writer) {
+	for index := len(e.Operator) - 1; index >= 0; index-- {
+		fmt.Fprint(w, e.Operator[index])
 	}
 	fmt.Fprint(w, e.Val)
+}
+
+func (e *Integer) Type() int {
+	return Ast_integer
+}
+
+func (e *Integer) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*Integer)
+
+	buf := bytes.NewBuffer([]byte{})
+	e.Format(buf)
+	buf.WriteString(" = ")
+	other.Format(buf)
+
+	if !comp.Compare(buf.String(), v.Session()) {
+		return false
+	}
+
+	return true
+}
+
+type Float struct {
+	node
+	Operator []string
+	Integer  string
+	Decimal  string
+}
+
+func (e *Float) Accept(v Visitor) (Node, bool) {
+
+	if !v.Notify(e) {
+		return v.Visit(e)
+	}
+
+	return v.Visit(e)
+}
+
+func (e *Float) Format(w io.Writer) {
+	for index := len(e.Operator) - 1; index >= 0; index-- {
+		fmt.Fprint(w, e.Operator[index])
+	}
+
+	fmt.Fprint(w, e.Integer)
+	fmt.Fprint(w, ".")
+	fmt.Fprint(w, e.Decimal)
+}
+
+func (e *Float) Type() int {
+	return Ast_float
+}
+
+func (e *Float) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*Float)
+
+	buf := bytes.NewBuffer([]byte{})
+	e.Format(buf)
+	buf.WriteString(" = ")
+	other.Format(buf)
+
+	if !comp.Compare(buf.String(), v.Session()) {
+		return false
+	}
+
+	return true
 }
 
 /******************
 *	String Item
 *******************/
+const (
+	String_single = iota + 1
+	String_double
+	String_math
+)
 
 type String struct {
 	node
-	Str string
+	Operator []string
+	Str      string
 }
 
 func (e *String) Accept(v Visitor) (Node, bool) {
@@ -238,7 +528,56 @@ func (e *String) Accept(v Visitor) (Node, bool) {
 }
 
 func (e *String) Format(w io.Writer) {
+	for index := len(e.Operator) - 1; index >= 0; index-- {
+		fmt.Fprint(w, e.Operator[index])
+	}
+
+	switch e.GetTag() {
+	case String_single:
+		fmt.Fprint(w, "'")
+	case String_double:
+		fmt.Fprint(w, "\"")
+	default:
+		//fmt.Fprint(w, "(")
+
+	}
+
 	fmt.Fprint(w, e.Str)
+	switch e.GetTag() {
+	case String_single:
+		fmt.Fprint(w, "'")
+	case String_double:
+		fmt.Fprint(w, "\"")
+	default:
+		//fmt.Fprint(w, ")")
+
+	}
+}
+
+func (e *String) Type() int {
+	return Ast_string
+}
+
+func (e *String) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*String)
+	buf := bytes.NewBuffer([]byte{})
+	e.Format(buf)
+	buf.WriteString(" = ")
+	other.Format(buf)
+
+	if !comp.Compare(buf.String(), v.Session()) {
+		return false
+	}
+
+	return true
 }
 
 /******************
@@ -267,6 +606,28 @@ func (e *True) Format(w io.Writer) {
 	}
 }
 
+func (e *True) Type() int {
+	return Ast_true
+}
+
+func (e *True) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*True)
+
+	if e.IsTrue != other.IsTrue {
+		return false
+	}
+
+	return true
+}
+
 /******************
 *	Null Item
 *******************/
@@ -286,6 +647,22 @@ func (e *Null) Accept(v Visitor) (Node, bool) {
 
 func (e *Null) Format(w io.Writer) {
 	fmt.Fprint(w, " NULL ")
+}
+
+func (e *Null) Type() int {
+	return Ast_null
+}
+
+func (e *Null) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	return true
 }
 
 /******************
@@ -315,6 +692,31 @@ func (e *SystemVariable) Format(w io.Writer) {
 	}
 }
 
+func (e *SystemVariable) Type() int {
+	return Ast_systemvariable
+}
+
+func (e *SystemVariable) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*SystemVariable)
+	if e.Schema != other.Schema {
+		return false
+	}
+
+	if e.Parameter != other.Parameter {
+		return false
+	}
+
+	return true
+}
+
 /******************
 *	UserVariable Item
 *******************/
@@ -336,6 +738,28 @@ func (e *UserVariable) Accept(v Visitor) (Node, bool) {
 
 func (e *UserVariable) Format(w io.Writer) {
 	fmt.Fprint(w, e.Variable)
+}
+
+func (e *UserVariable) Type() int {
+	return Ast_uservariable
+}
+
+func (e *UserVariable) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*UserVariable)
+
+	if e.Variable != other.Variable {
+		return false
+	}
+
+	return true
 }
 
 /******************
@@ -361,12 +785,28 @@ func (e *Marker) Format(w io.Writer) {
 	fmt.Fprint(w, e.Str)
 }
 
+func (e *Marker) Type() int {
+	return Ast_marker
+}
+
+func (e *Marker) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	return true
+}
+
 /******************
 *	Sort Item
 *******************/
 
 const (
-	Sort_Asc = iota
+	Sort_Asc = iota + 1
 	Sort_Desc
 	Sort_Empty
 )
@@ -403,4 +843,29 @@ func (e *Sortby) Format(w io.Writer) {
 	e.Expr.Format(w)
 	fmt.Fprint(w, " ")
 	fmt.Fprint(w, ReAsc[e.AscType])
+}
+
+func (e *Sortby) Type() int {
+	return Ast_sortby
+}
+
+func (e *Sortby) IsSameAs(src ExprNode, v Visitor) bool {
+	if src.Type() != e.Type() {
+		return false
+	}
+
+	if e.GetTag() != src.GetTag() {
+		return false
+	}
+
+	other := src.(*Sortby)
+
+	if e.AscType != other.AscType {
+		return false
+	}
+
+	if !e.Expr.IsSameAs(other.Expr, v) {
+		return false
+	}
+	return true
 }
