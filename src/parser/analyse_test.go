@@ -1,3 +1,0 @@
-package parser
-
-import "testings"
