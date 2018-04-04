@@ -156,41 +156,20 @@ func Test_simple(t *testing.T) {
 	}
 }
 
-func dfs(n ast.ExprNode) []ast.ExprNode {
-	switch node := n.(type) {
-	case *ast.Expr:
-		switch node.GetTag() {
-		case ast.Expr_And, ast.Expr_Or:
-			l:=dfs(node.Left)
-			for _,e:=range dfs(node.Right){
-				l=append(l,e)
-			}
-			return l
-		default:
-			return []ast.ExprNode{node}
-		}
-	default:
-		return []ast.ExprNode{node}
-	}
-}
+
 
 func Test_expr(t *testing.T) {
 	//sql := "select 1 from test where ((a>b && a<b and a>b )|| (a>b or a<b)) or (a<b and a>b) and a in (1)"
-	sql := "select 1 from test where 1 or (a>b && !a<b or ~a>b || (-1>b or +a<null)) or (a<b or a>b) or a in (1)"
+	sql := "select 1 from test where 1 or (a>b && (!a<b or ~a>b || (!\"a\">b or +a<null))) or (a<b or a>b) or a in (1)"
 	s := SqlParse(sql)
 	w := bytes.NewBuffer([]byte{})
 	s.Format(w)
 	t.Log(w.String())
 
-	c := s.(*ast.SimpleSelectStmt).Where.Where
+	c := s.(*ast.SimpleSelectStmt).Where.Where.(*ast.And0OrExpr)
 
-	res := dfs(c)
-	for _,e :=range res{
-		log.Println(e.GetTag())
-		t.Log(e)
-		w := bytes.NewBuffer([]byte{})
-		e.Format(w)
-		t.Log(w.String())
+	for _,x:=range c.Expr{
+		t.Log(x)
 	}
 
 	t.Log(c)

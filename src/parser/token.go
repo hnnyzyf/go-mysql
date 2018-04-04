@@ -3,6 +3,7 @@ package parser
 import "strings"
 import "bytes"
 import "ast"
+import convert "util/convert"
 
 //实现mysql的此法解析器
 //定义关键子
@@ -21,7 +22,12 @@ type Tokener struct {
 type stepFunc func(token *Tokener, ch rune) (int, string)
 
 func NewTokener(sql string) *Tokener {
-	return &Tokener{Scanner: strings.NewReader(sql), Buf: bytes.NewBuffer([]byte{}), Comment: []string{}}
+	return &Tokener{
+		Scanner: strings.NewReader(sql), 
+		Buf: bytes.NewBuffer([]byte{}), 
+		Comment: []string{},
+		ParseStmt:nil,
+	}
 }
 
 func (token *Tokener) Stmt() ast.Node {
@@ -78,7 +84,7 @@ func checkIdent(s string) (int, string) {
 	} else if _, ok := FuncTime[ident]; ok {
 		return FuncTime[ident], strings.ToUpper(ident)
 	} else {
-		return IDENT, ident
+		return IDENT, s
 	}
 }
 
@@ -196,9 +202,9 @@ func (token *Tokener) ScanString(ch rune) (int, string) {
 	if state == -2 {
 		switch ch {
 		case '\'':
-			return SINGLE_QUOTA_STRING, buffer.String()
+			return SINGLE_QUOTA_STRING, convert.RemoveQuote(buffer.String())
 		case '"':
-			return DOUBLE_QUOTA_STRING, buffer.String()
+			return DOUBLE_QUOTA_STRING,  convert.RemoveQuote(buffer.String())
 		}
 	}
 	return -1, ""
@@ -442,6 +448,8 @@ func (token *Tokener) ScanHexAndBit() (int, string) {
 			}
 		case 3:
 			if token.Lastchar == '\'' {
+				buffer.WriteRune(token.Lastchar)
+				token.next()
 				state = -4
 			} else {
 				state = 5
@@ -522,12 +530,12 @@ func (token *Tokener) ScanHexOrBit() (int, string) {
 	buffer := token.Buf
 	buffer.WriteRune(token.Lastchar)
 	token.next()
-	//分两种两筐
 	state := 0
 	if token.EOF == true {
 		state = -1
 	}
-	for state != -1 && state != -2 && state != -3 && state != -4 && state != -5 && state != -6 {
+
+	for state != -1 && state != -2 && state != -3 && state != -4 && state != -5 && state != -6 && state != -7 {
 		switch state {
 		case 0:
 			if token.Lastchar == 'x' {
@@ -575,7 +583,7 @@ func (token *Tokener) ScanHexOrBit() (int, string) {
 				state = 5
 			}
 		case 5:
-			if IsHexLetter(token.Lastchar) {
+			if IsBitLetter(token.Lastchar) {
 				buffer.WriteRune(token.Lastchar)
 				token.next()
 				state = 6
@@ -591,14 +599,14 @@ func (token *Tokener) ScanHexOrBit() (int, string) {
 				state = 5
 			}
 		case 7:
-			if IsIdentLetter(token.Lastchar) {
-				state = -4
-			} else if IsDigit(token.Lastchar) {
+			if IsDigit(token.Lastchar) {
 				buffer.WriteRune(token.Lastchar)
 				token.next()
 				state = 8
 			} else if IsDot(token.Lastchar) {
 				state = 10
+			} else if IsIdentLetter(token.Lastchar) {
+				state = -4
 			} else {
 				state = -1
 			}
@@ -613,6 +621,8 @@ func (token *Tokener) ScanHexOrBit() (int, string) {
 				buffer.WriteRune(token.Lastchar)
 				token.next()
 				state = 8
+			} else if IsDot(token.Lastchar) {
+				state = 10
 			} else if IsIdentLetter(token.Lastchar) {
 				state = -4
 			} else {
@@ -633,7 +643,7 @@ func (token *Tokener) ScanHexOrBit() (int, string) {
 			}
 		case 11:
 			if token.EOF == true {
-				state = -6
+				state = -7
 			} else {
 				state = 12
 			}
@@ -643,14 +653,14 @@ func (token *Tokener) ScanHexOrBit() (int, string) {
 				token.next()
 				state = 11
 			} else {
-				state = -6
+				state = -7
 			}
 		}
 	}
 
 	switch state {
 	case -1:
-		return NUMBER, "0"
+		return INTEGER, "0"
 	case -2:
 		return IDENT, buffer.String()
 	case -3:
@@ -660,7 +670,10 @@ func (token *Tokener) ScanHexOrBit() (int, string) {
 	case -5:
 		return BIT_NUMBER, buffer.String()
 	case -6:
-		return NUMBER, buffer.String()
+
+		return INTEGER, buffer.String()
+	case -7:
+		return FLOAT, buffer.String()
 	}
 
 	return -1, ""
@@ -677,7 +690,7 @@ func (token *Tokener) ScanNumber() (int, string) {
 	if token.EOF == true {
 		state = -1
 	}
-	for state != -1 && state != -2 {
+	for state != -1 && state != -2 && state != -3 {
 		switch state {
 		case 0:
 			if IsDigit(token.Lastchar) {
@@ -718,7 +731,7 @@ func (token *Tokener) ScanNumber() (int, string) {
 			}
 		case 5:
 			if token.EOF == true {
-				state = -1
+				state = -3
 			} else {
 				state = 6
 			}
@@ -728,7 +741,7 @@ func (token *Tokener) ScanNumber() (int, string) {
 				token.next()
 				state = 5
 			} else {
-				state = -1
+				state = -3
 			}
 		case 7:
 			if IsIdentLetter(token.Lastchar) {
@@ -741,9 +754,11 @@ func (token *Tokener) ScanNumber() (int, string) {
 
 	switch state {
 	case -1:
-		return NUMBER, buffer.String()
+		return INTEGER, buffer.String()
 	case -2:
 		return token.ScanIdent()
+	case -3:
+		return FLOAT, buffer.String()
 	}
 
 	return -1, ""
@@ -810,11 +825,11 @@ func (token *Tokener) ScanDot() (int, string) {
 	}
 
 	if state == -2 {
-		return STRING, buffer.String()
+		return STRING,  buffer.String()
 	}
 
 	if state == -3 {
-		return NUMBER, buffer.String()
+		return FLOAT, buffer.String()
 	}
 
 	return -1, ""
@@ -989,3 +1004,4 @@ func (token *Tokener) ScanQuestion() (int, string) {
 
 	return -1, ""
 }
+

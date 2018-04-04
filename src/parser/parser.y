@@ -3,7 +3,7 @@
 package parser
 
 import "ast"
-
+import "strings"
 %}
 
 
@@ -35,11 +35,11 @@ import "ast"
 %token <str>		SINGLE_QUOTA_STRING
 %token <str>		STRING
 
-%token <val> 
 %token <val>     	BIT_NUMBER 
 %token <val>      	HEX_NUMBER
-%token <val>      	NUMBER 
-	 
+%token <val>      	INTEGER 
+%token <val> 		FLOAT
+
 %token <ident>		ALL
 %token <ident>		ANY
 %token <ident>		AS
@@ -358,34 +358,39 @@ simple_select:
 expr:
   			expr OR expr %prec OR				
   				{ 
-        			expr:= &ast.Expr{Operator:"OR",Left:$1,Right:$3} 
-        			expr.SetTag(ast.Expr_Or)
-        			$$ = expr
+            		expr:=&ast.And0OrExpr{Operator:"OR",Expr:[]ast.ExprNode{}}
+            		expr.SetTag(ast.Expr_Or)
+            		expr.Combine($1,$3)
+            		$$ = expr
+
         		}
         	| expr OO expr        
           		{ 
-          		    expr:= &ast.Expr{Operator:"OR",Left:$1,Right:$3} 
+          		    expr:=&ast.And0OrExpr{Operator:"OR",Expr:[]ast.ExprNode{}}
           		    expr.SetTag(ast.Expr_Or)
-          		    $$ = expr
+            		expr.Combine($1,$3)
+            		$$ = expr
           		}
   			| expr XOR expr				{ $$ = &ast.Expr{Operator:"XOR",Left:$1,Right:$3}}
   			| expr AND expr				
   			  	{
-        			expr:= &ast.Expr{Operator:"AND",Left:$1,Right:$3} 
+        			expr:=&ast.And0OrExpr{Operator:"AND",Expr:[]ast.ExprNode{}}
         			expr.SetTag(ast.Expr_And)
-        			$$ = expr
+            		expr.Combine($1,$3)
+            		$$ = expr
   				}
   			| expr AA expr 				
   				{
-        			expr:= &ast.Expr{Operator:"AND",Left:$1,Right:$3} 
+        			expr:=&ast.And0OrExpr{Operator:"AND",Expr:[]ast.ExprNode{}}
         			expr.SetTag(ast.Expr_And)
-        			$$ = expr
+            		expr.Combine($1,$3)
+            		$$ = expr
   				}
   			| NOT expr 					{ $$ = &ast.NotExpr{Expr:$2} }
   			| boolean_primary			{  $$ = $1  }
   			| boolean_primary is_or_not true_or_false 
   				{
-  					$$ = &ast.IsTrueExpr{HasNot:$2,Left:$1,Right:&ast.True{IsTrue:$3}}
+  					$$ = &ast.IsTrueExpr{HasNot:$2,IsTrue:$3,Expr:$1}
   				}
 
 boolean_primary:
@@ -395,7 +400,7 @@ boolean_primary:
   				}
   			| boolean_primary LEG predicate
   				{
-  					$$ = &ast.Expr{Operator:"<=>",Left:$1,Right:$3}
+  					$$ = &ast.Expr{Operator:"=",Left:$1,Right:$3}
   				}
   			| boolean_primary comparison_operator predicate
   				{
@@ -484,11 +489,11 @@ simple_expr:
   				}
   			| '+' simple_expr	%prec OP
   				{
-  					$$ = $2
+  					$$ = &ast.UnaryExpr{Operator:"+",Expr:$2}
   				}
   			| '-' simple_expr	%prec OP
   				{
-            $$ = &ast.UnaryExpr{Operator:"-",Expr:$2}
+  					$$ = &ast.UnaryExpr{Operator:"-",Expr:$2}	
   				}
   			| '~' simple_expr	%prec OP
   				{
@@ -501,7 +506,9 @@ simple_expr:
   			| '(' expr ')'
   				{
             		switch node:=$2.(type){
-              			case *ast.Expr:
+              		case *ast.Expr:
+                		node.IsEnclosed=true
+                	case *ast.And0OrExpr:
                 		node.IsEnclosed=true
             		}
   					$$ = $2
@@ -509,9 +516,7 @@ simple_expr:
   			//降低规约优先级
   			| select_with_parens  		%prec UMINUS
   				{
-  					expr:= &ast.Tuple{Ref:$1.(ast.ExprNode)}
-  					expr.SetTag(ast.Tuple_subquery)
-  					$$ = expr
+  					$$ = $1.(ast.ExprNode)
   				}
   			| EXISTS select_with_parens
   				{
@@ -527,25 +532,42 @@ simple_expr:
 literal:
 		    BIT_NUMBER
 			   	{
-					Expr := &ast.Number{Symbol:true,Val:$1}
+					Expr := &ast.Integer{Operator:[]string{},Val:$1}
 					Expr.SetTag(ast.Bit)
 					$$ = Expr
 			   	}
 		    |HEX_NUMBER
 			   	{
-			   		Expr := &ast.Number{Symbol:true,Val:$1}
+			   		Expr := &ast.Integer{Operator:[]string{},Val:$1}
 					Expr.SetTag(ast.Hex)
 					$$ = Expr
 			   }
-		    |NUMBER
+		    |INTEGER
 			   	{
-			   		Expr := &ast.Number{Symbol:true,Val:$1}
-					Expr.SetTag(ast.Digit)
-					$$ = Expr
+			   		$$ = &ast.Integer{Operator:[]string{},Val:$1}
 			   	}
-			|STRING 					{ $$ =&ast.String{Str:$1} }
-			|SINGLE_QUOTA_STRING 		{ $$ =&ast.String{Str:$1} }
-			|DOUBLE_QUOTA_STRING 		{ $$ =&ast.String{Str:$1} }
+			|FLOAT
+				{
+					val:=strings.Split($1,".")
+					$$ = &ast.Float{
+            Operator:[]string{},
+						Integer:val[0],
+						Decimal:val[1],
+					}
+				}
+			|STRING 					{ $$ =&ast.Marker{Str:$1} }
+			|SINGLE_QUOTA_STRING 		
+        { 
+          str:=&ast.String{Operator:[]string{},Str:$1} 
+          str.SetTag(ast.String_single)
+          $$ = str
+        }
+			|DOUBLE_QUOTA_STRING 		
+        { 
+          str:=&ast.String{Operator:[]string{},Str:$1} 
+          str.SetTag(ast.String_double)
+          $$ = str
+        }
 			|true_or_false 				{ $$ =&ast.True{IsTrue:$1} }
       		|NULL 						{ $$ =&ast.Null{} }
 
@@ -575,7 +597,7 @@ column_ref:
       		identifier_or_star
       			{
        	 			if $1=="*"{
-       	 				$$ = &ast.Column{IsStar:true,Column:"*"}
+       	 				$$ = &ast.Star{Column:[]*ast.Column{}}
        	 			}else{
        	 				$$ = &ast.Column{Column:$1}
        	 			}
@@ -583,7 +605,7 @@ column_ref:
       		|identifier '.' identifier_or_star
       			{
       				if $3=="*"{
-       	 				$$ = &ast.Column{IsStar:true,Table:$1,Column:"*"}
+       	 				$$ = &ast.Star{Table:$1,Column:[]*ast.Column{}}
        	 			}else{
        	 				$$ = &ast.Column{Table:$1,Column:$3}
        	 			}
@@ -591,7 +613,7 @@ column_ref:
       		|identifier '.' identifier '.' identifier_or_star
       			{
       				if $5=="*"{
-       	 				$$ = &ast.Column{IsStar:true,DB:$1,Table:$3,Column:"*"}
+       	 				$$ = &ast.Star{DB:$1,Table:$3,Column:[]*ast.Column{}}
        	 			}else{
        	 				$$ = &ast.Column{DB:$1,Table:$3,Column:$5}
        	 			}
@@ -651,7 +673,7 @@ agg_expr:
 				}
 			|COUNT '(' '*' ')'
 				{
-					expr := &ast.AggregationFuncCall{DistinctType:ast.AST_EMPTY,Arg:[]ast.ExprNode{&ast.Column{IsStar:true,Column:"*"}}}
+					expr := &ast.AggregationFuncCall{DistinctType:ast.AST_EMPTY,Arg:[]ast.ExprNode{&ast.Column{Column:"*"}}}
 					expr.SetTag(ast.Aggregation_Count)
   			  		$$ = expr
 				}
@@ -746,7 +768,7 @@ target_list:
 
 target_el:
             expr opt_alias 				
-            	{ 
+            	{    
               		tb:= &ast.Tuple{Ref:$1,Alias:$2} 
               		switch $1.(type){
               		case *ast.AggregationFuncCall:
@@ -755,6 +777,12 @@ target_el:
               		  tb.SetTag(ast.Tuple_funcall)
               		case *ast.Column:
               		  tb.SetTag(ast.Tuple_column)
+                  case *ast.Star:
+                    tb.SetTag(ast.Tuple_star)
+                  case *ast.SimpleSelectStmt:
+                    tb.SetTag(ast.Tuple_SimpleSubquery)
+                  case *ast.UnionStmt:
+                    tb.SetTag(ast.Tuple_UnionSubquery)
               		default:
               		  tb.SetTag(ast.Tuple_expr)
               		}
@@ -1030,7 +1058,19 @@ join_qual:
  *****************************************************************************/
 
 where_clause:
-			WHERE expr					{ $$ = &ast.WhereClause{Where:$2} }
+			WHERE expr					
+				{ 
+					clause:=&ast.WhereClause{} 
+					switch $2.(type){
+					case *ast.And0OrExpr:
+						clause.Where=$2
+					default:
+						clause.Where=&ast.And0OrExpr{Operator:"And",Expr:[]ast.ExprNode{$2}}
+						clause.Where.SetTag(ast.Expr_And)
+					}
+					$$ = clause
+					
+				}
 			| /*EMPTY*/								 	
 				{ 
  					clause:=&ast.WhereClause{}

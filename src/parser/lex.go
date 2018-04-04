@@ -1,7 +1,5 @@
 package parser
 
-import "fmt"
-
 //返回Lex
 func (token *Tokener) Lex(lval *yySymType) int {
 	tok, val := token.Scan()
@@ -12,11 +10,11 @@ func (token *Tokener) Lex(lval *yySymType) int {
 	}
 	//判断正确的类型
 	switch tok {
-	case IDENT, BuiltinCharacterIdent,BuiltinFucTimeAddIdent,BuiltinFucTimeSubIdent,BuiltinTimeUnitIdent:
+	case IDENT, BuiltinCharacterIdent, BuiltinFucTimeAddIdent, BuiltinFucTimeSubIdent, BuiltinTimeUnitIdent:
 		lval.ident = val
 	case PARAM_MARKER, DOUBLE_QUOTA_STRING, SINGLE_QUOTA_STRING:
 		lval.str = val
-	case BIT_NUMBER, HEX_NUMBER, NUMBER:
+	case BIT_NUMBER, HEX_NUMBER, INTEGER, FLOAT:
 		lval.val = val
 	}
 	return tok
@@ -25,6 +23,4 @@ func (token *Tokener) Lex(lval *yySymType) int {
 //返回错误信息
 func (token *Tokener) Error(err string) {
 	token.LastError = err
-	fmt.Println("ERROR:", err)
-	fmt.Println("ERROR:", string(token.Lastchar), token.Position)
 }

@@ -1,5 +1,6 @@
 package parser
 
+
 //判断是否是String类型的前缀
 func IsStringPrefix(ch rune) bool {
 	if IsQuota(ch) || IsNationalSet(ch) || IsUnderLine(ch) {
