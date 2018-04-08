@@ -13,7 +13,7 @@
 
 ## Function
 * 支持Mysql的Select语法
-* 基于NFA实现的SQL词法分析  （已完成）
+* 手写的SQL词法分析  （已完成）
 * 基于Goyacc实现的SQL语法分析 （已完成）
 * 基于Visitor模式的AST （已完成）
 * SQL的预处理,包括合法性验证,获取元数据 (已完成)
