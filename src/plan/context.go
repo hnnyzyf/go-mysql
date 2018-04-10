@@ -88,7 +88,7 @@ func (ctx *Context) GetTable(alias string) string {
 	if !ok {
 		return ""
 	}
-	return relation.Table
+	return relation.GetTable()
 }
 
 func (ctx *Context) GetRelation(alias string) *ast.Relation {
@@ -98,6 +98,7 @@ func (ctx *Context) GetRelation(alias string) *ast.Relation {
 func (ctx *Context) GetSqlType(alias string, column string) (meta.SqlType, bool) {
 
 	relation, ok := ctx.Table[alias]
+
 	if !ok {
 		return meta.Type_unknown, false
 	}
@@ -251,21 +252,23 @@ func (ctx *Context) HasUsing(column string) bool {
 	return false
 }
 
-func (ctx *Context) GetIndexMeta(alias string) (*meta.Index, bool, *Context) {
+func (ctx *Context) GetIndexMeta(alias string) (*meta.Index, *Context) {
 	meta, ok := ctx.IndexMeta[alias]
 	if ok {
-		return meta, true, ctx
+		return meta, ctx
 	}
 
 	if ctx.Pctx == nil {
-		return nil, false, ctx
+		panic("无法获得指定表的索引元数据信息")
+		return nil, ctx
 	}
 
 	meta, ok = ctx.Pctx.IndexMeta[alias]
 
 	if ok {
-		return meta, true, ctx.Pctx
+		return meta, ctx.Pctx
 	}
 
-	return nil, false, ctx.Pctx
+	panic("无法获得指定表的索引元数据信息")
+	return nil, ctx.Pctx
 }

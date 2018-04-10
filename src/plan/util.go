@@ -200,6 +200,57 @@ func generateQuery(org ast.ExprNode, res ast.ExprNode, op string) string {
 	return buf.String()
 }
 
+//select count(1) from (select field from table force index(best_index) order by cl.. desc limit rand_rows) where field_print
+func generateCardinality(row int, table *ast.Relation, bestIndexName string, Bestindex []string, index []string, condition []ast.ExprNode) string {
+	buf := bytes.NewBuffer([]byte{})
+
+	fmt.Fprint(buf, "SELECT COUNT(1) FROM (SELECT ")
+
+	for idx, col := range index {
+		if idx != len(index)-1 {
+			fmt.Fprint(buf, col)
+			fmt.Fprint(buf, ",")
+		} else {
+			fmt.Fprint(buf, col)
+		}
+	}
+	fmt.Fprint(buf, " FROM ")
+	fmt.Fprint(buf, table.GetTable())
+	if bestIndexName != "" {
+		fmt.Fprint(buf, " FORCE INDEX(")
+		fmt.Fprint(buf, bestIndexName)
+		fmt.Fprint(buf, ") ORDER BY ")
+
+		for idx, col := range Bestindex {
+			if idx != len(Bestindex)-1 {
+				fmt.Fprint(buf, col)
+				fmt.Fprint(buf, " DESC ,")
+			} else {
+				fmt.Fprint(buf, col)
+				fmt.Fprint(buf, " DESC ")
+			}
+		}
+	}
+
+	fmt.Fprint(buf, "LIMIT ")
+	fmt.Fprint(buf, row)
+	fmt.Fprint(buf, ") AS ")
+	fmt.Fprint(buf, table.GetAlias())
+	fmt.Fprint(buf, " WHERE ")
+
+	for idx, expr := range condition {
+		expr.Format(buf)
+		if idx != len(condition)-1 {
+			fmt.Fprint(buf, " AND ")
+		} else {
+			fmt.Fprint(buf, " ")
+		}
+	}
+
+	return buf.String()
+
+}
+
 //select count(1) from (select count(1) from Table Force INDEX(PRIMARY) group by index1,index2) as temp
 func generateSelectivityQuery(row int, table string, index []string) string {
 	buf := bytes.NewBuffer([]byte{})
@@ -271,6 +322,10 @@ func generateIndex(table string, idx []string) string {
 
 //只检测string
 func haveSameType(tp meta.SqlType, n ast.ExprNode) bool {
+	if tp == meta.Type_unknown {
+		return true
+	}
+
 	if n.Type() == ast.Ast_marker {
 		return true
 	}

@@ -173,10 +173,7 @@ func (pre *IndexVisitor) FindEqualConditionInAnd0OrExpr(node *ast.And0OrExpr) {
 
 		for alias, columns := range indexMap {
 			if len(columns) != 0 {
-				currentIndex, ok, currentCtx := ctx.GetIndexMeta(alias)
-				if !ok {
-					continue
-				}
+				currentIndex, currentCtx := ctx.GetIndexMeta(alias)
 				indexs := [][]string{}
 				for id := 1; id <= len(columns); id++ {
 					indexs = append(indexs, combination(columns, id)...)
@@ -197,6 +194,7 @@ func (pre *IndexVisitor) FindEqualConditionInAnd0OrExpr(node *ast.And0OrExpr) {
 						}
 					}
 					if flag == 0 {
+						pre.addInfo(fmt.Sprintln("	[Join条件索引校验]表", alias, "不存在索引条件:", columns, ",需要添加索引"))
 						table := currentCtx.Table[alias].GetTable()
 						indexQuery := generateIndex(table, columns)
 						if _, ok := pre.indexs["Join条件索引"]; ok {
