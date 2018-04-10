@@ -3,14 +3,30 @@ package main
 import "flag"
 import "parser"
 import server "util/server"
-import "bytes"
 import p "plan"
 import "fmt"
+import "bytes"
+
+
+func printSlice(information []string){
+	for _,info:=range information{
+		fmt.Println(info)
+	}
+}
+
+
+func printMap(information map[string][]string){
+	for name,info:=range information{
+		fmt.Println("可以添加的",name,"类型索引如下所示:")
+		printSlice(info)
+	}
+}
+
 
 func main() {
 
-	username := flag.String("u", "", "User for login if not current user.")
-	password := flag.String("p", "", `Password to use when connecting to server. If password is not given it's asked from the tty.`)
+	username := flag.String("u", "", "User for login")
+	password := flag.String("p", "", "Password to use when connecting to server")	
 	port := flag.String("P", "3306", `Port number to use for connection or 0 for default to, in order of preference, my.cnf, $MYSQL_TCP_PORT,/etc/services, built-in default (3306).`)
 	database := flag.String("D", "Configdb", `Database to use`)
 	host := flag.String("h", "", `Connect to host`)
@@ -25,31 +41,65 @@ func main() {
 		return
 	}
 
-	astree,err:= parser.SqlParse(*sql)
-	if err!=nil{
-		fmt.Println("语句解析出现错误,错误信息为:",err)
-		return 
-	}
 
 	mysql := server.NewMysqlServer(*username, *password, *host, *port, *database)
 
-	plan := p.NewPlan(astree, mysql)
 
-	plan.PreProcessMeta()
-	plan.PreProcessColumn()
-	plan.ConstantFolding()
+	//解析数据库语句
+	ast, err := parser.SqlParse(*sql)
+
+	if err != nil {
+		fmt.Println(err)
+		return 
+	}
+
+	//语句预处理
+	plan := p.NewPlan(ast, mysql)
+
+	err = plan.PreProcessMeta()
+	if err != nil {
+		fmt.Println(err)
+		printSlice(plan.Error)
+		return 
+	}
+
+	//处理Column
+	err = plan.PreProcessColumn()
+	if err != nil {
+		fmt.Println(err)
+		printSlice(plan.Error)
+		return 
+	}
+
+	//处理constantfold
+	err = plan.ConstantFolding()
+
+	if err != nil {
+		fmt.Println(err)
+		return 
+	}
 
 	buf := bytes.NewBuffer([]byte{})
-	astree.Format(buf)
-	fmt.Println("格式化后的语句为", buf.String())
+	ast.Format(buf)
 
-	fmt.Println("检查可以添加的索引...")
-	plan.ProcessIndex()
+	fmt.Println("格式化后的语句如下所示:")
+	fmt.Println(buf.String())
 
-	if len(plan.Error) != 0 {
-		fmt.Println("出现的错误为:")
+	//输出索引数据
+	ok, info, index := plan.ProcessIndex()
+
+	if ok != nil {
+		fmt.Println(err)
+		return
 	}
-	for i, e := range plan.Error {
-		fmt.Println("第", i, "个错误是 ", e)
-	}
+
+	fmt.Println("执行如下过程校验索引......")
+	printSlice(info)
+	
+	fmt.Println("索引建议如下:")
+	printMap(index)
+
+	fmt.Println("警告信息如下:")
+	printSlice(plan.Error)
+
 }
