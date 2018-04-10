@@ -3,6 +3,8 @@ package parserhttp
 import "net/http"
 import "encoding/json"
 import "errors"
+import "runtime"
+import "fmt"
 
 //用户请求的格式
 type request struct {
@@ -14,9 +16,10 @@ type request struct {
 
 //返回的结果的格式
 type response struct {
-	Status  bool         `json:"status"`
-	Message string       `json:"message"`
-	Data    *parseResult `json:"data"`
+	Status     bool         `json:"status"`
+	Message    string       `json:"message"`
+	Data       *parseResult `json:"data"`
+	Stacktrace string       `json:"stacktrace"`
 }
 
 var errorResponse = &response{Status: false, Message: "", Data: nil}
@@ -37,6 +40,18 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 		jsonResponse(w, errorResponse)
 		return
 	}
+
+	// 定义recover方法，在后面程序出现异常的时候就会捕获
+	defer func() {
+		if r := recover(); r != nil {
+			// 这里可以对异常进行一些处理和捕获
+			errorResponse.Message = fmt.Sprintln(r)
+			errorResponse.Data = &parseResult{Sql: ask.Sql}
+			//记录当前goroutine的调用栈
+			errorResponse.Stacktrace = StackTrace(false)
+			jsonResponse(w, errorResponse)
+		}
+	}()
 
 	res, err := parseStmt(&ask)
 
@@ -61,4 +76,19 @@ func ServerHttp() {
 	mux := http.NewServeMux()
 	mux.Handle("/", http.HandlerFunc(HandleIndex))
 	http.ListenAndServe(":8000", mux)
+}
+
+func StackTrace(all bool) string {
+	 // Reserve 10K buffer at first
+    buf := make([]byte, 1024)
+    for {
+        size := runtime.Stack(buf, all)
+        // The size of the buffer may be not enough to hold the stacktrace,
+        // so double the buffer size
+        if size == len(buf) {
+            buf = make([]byte, len(buf)<<1)
+            continue
+        }
+        return string(buf[0:size])
+    }
 }

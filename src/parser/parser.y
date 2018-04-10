@@ -673,7 +673,7 @@ agg_expr:
 				}
 			|COUNT '(' '*' ')'
 				{
-					expr := &ast.AggregationFuncCall{DistinctType:ast.AST_EMPTY,Arg:[]ast.ExprNode{&ast.Column{Column:"*"}}}
+					expr := &ast.AggregationFuncCall{DistinctType:ast.AST_EMPTY,Arg:[]ast.ExprNode{&ast.Star{Column:[]*ast.Column{}}}}
 					expr.SetTag(ast.Aggregation_Count)
   			  		$$ = expr
 				}

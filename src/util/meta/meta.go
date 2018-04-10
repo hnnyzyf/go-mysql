@@ -63,5 +63,6 @@ func (m *Meta) GetSqlType(column string) SqlType{
 		}
 	}
 
+	panic("无法确定column的类型")
 	return Type_unknown
 }

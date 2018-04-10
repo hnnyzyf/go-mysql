@@ -493,35 +493,6 @@ func (pre *IndexVisitor) checkProjectionHasPrimaryAndOrderBy(alias string, sortb
 	return true
 }
 
-//计算指定索引列表的选择度
-func (pre *IndexVisitor) GetCardinality(row int, table string, idx []string) int {
-	ctx := pre.current
-	query := generateSelectivityQuery(row, generateString(ctx.Table[table]), idx)
-	pre.addInfo(fmt.Sprintln("	使用", query, "计算索引 ", idx, "的选择度"))
-	session := pre.MetaServer.CreateSession2DB("")
-	cardinality, err := pre.MetaServer.QueryCardinality(session, query)
-	if err != nil {
-		pre.HasError = true
-		pre.Error = append(pre.Error, err.Error())
-		return 1
-	}
-	return cardinality
-}
-
-//计算指定索引列表的选择度
-func (pre *IndexVisitor) GetFilter(table string, idx []string, expr []ast.ExprNode) int {
-	ctx := pre.current
-	query := generateRangeQuery(generateString(ctx.Table[table]), expr)
-	pre.addInfo(fmt.Sprintln("	使用", query, "计算,", idx, "的选择度"))
-	session := pre.MetaServer.CreateSession2DB("")
-	cardinality, err := pre.MetaServer.QueryCardinality(session, query)
-	if err != nil {
-		pre.HasError = true
-		pre.Error = append(pre.Error, err.Error())
-		return 1
-	}
-	return cardinality
-}
 
 //计算指定索引列表的选择度
 func (pre *IndexVisitor) GetFilterRow(table string, query string) int {

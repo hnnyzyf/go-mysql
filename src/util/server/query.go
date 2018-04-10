@@ -198,7 +198,7 @@ func (m *Mysql) QueryIndex(session string, table string) (*meta.Index, error) {
 		if Key_name == "PRIMARY" {
 			res.HasPrimary = true
 		}
-		res.AddIndex(Key_name, Column_name)
+		res.AddIndex(Key_name, Column_name,Cardinality)
 	}
 
 	//返回错误

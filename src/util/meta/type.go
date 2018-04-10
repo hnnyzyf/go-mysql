@@ -10,6 +10,7 @@ const (
 	Type_tinyint
 	Type_smallint
 	Type_mediumint
+	Type_bit
 	Type_int
 	Type_bigint
 	Type_float
@@ -44,6 +45,7 @@ var SqlDict = map[string]SqlType{
 	"tinyint":    Type_tinyint,
 	"smallint":   Type_smallint,
 	"mediumint":  Type_mediumint,
+	"bit": 		  Type_bit,
 	"int":        Type_int,
 	"bigint":     Type_bigint,
 	"float":      Type_float,
@@ -71,6 +73,7 @@ var ReSqlDict = map[SqlType]string{
 	Type_tinyint:    "tinyint",
 	Type_smallint:   "smallint",
 	Type_mediumint:  "mediumint",
+	Type_bit: 	     "bit",
 	Type_int:        "int",
 	Type_bigint:     "bigint",
 	Type_float:      "float",

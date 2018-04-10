@@ -251,49 +251,6 @@ func generateCardinality(row int, table *ast.Relation, bestIndexName string, Bes
 
 }
 
-//select count(1) from (select count(1) from Table Force INDEX(PRIMARY) group by index1,index2) as temp
-func generateSelectivityQuery(row int, table string, index []string) string {
-	buf := bytes.NewBuffer([]byte{})
-
-	fmt.Fprint(buf, "SELECT COUNT(1) FROM ")
-
-	fmt.Fprint(buf, " ( Select DISTINCT ")
-	for idx, column := range index {
-		fmt.Fprint(buf, column)
-		if idx != len(index)-1 {
-			fmt.Fprint(buf, ",")
-		} else {
-			fmt.Fprint(buf, " ")
-		}
-	}
-	fmt.Fprint(buf, " FROM ")
-	fmt.Fprint(buf, table)
-	fmt.Fprint(buf, " LIMIT 0, ")
-	fmt.Fprint(buf, row)
-	fmt.Fprint(buf, ") AS temp2 ")
-
-	return buf.String()
-}
-
-//select count(1) from (select count(1) from Table Force INDEX(PRIMARY) group by index1,index2) as temp
-func generateRangeQuery(table string, expr []ast.ExprNode) string {
-	buf := bytes.NewBuffer([]byte{})
-
-	fmt.Fprint(buf, "SELECT COUNT(1) FROM ")
-	fmt.Fprint(buf, table)
-	fmt.Fprint(buf, " WHERE  ")
-	for idx, e := range expr {
-		e.Format(buf)
-		if idx != len(expr)-1 {
-			fmt.Fprint(buf, " AND ")
-		} else {
-			fmt.Fprint(buf, " ")
-		}
-	}
-
-	return buf.String()
-}
-
 func generateIndex(table string, idx []string) string {
 	buf := bytes.NewBuffer([]byte{})
 	fmt.Fprint(buf, "ALTER TABLE ")

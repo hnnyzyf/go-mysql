@@ -1711,7 +1711,7 @@ yydefault:
 		yyDollar = yyS[yypt-4 : yypt+1]
 		//line parser.y:675
 		{
-			expr := &ast.AggregationFuncCall{DistinctType: ast.AST_EMPTY, Arg: []ast.ExprNode{&ast.Column{Column: "*"}}}
+			expr := &ast.AggregationFuncCall{DistinctType: ast.AST_EMPTY, Arg: []ast.ExprNode{&ast.Star{Column: []*ast.Column{}}}}
 			expr.SetTag(ast.Aggregation_Count)
 			yyVAL.expr = expr
 		}
