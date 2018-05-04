@@ -1,9 +1,9 @@
 package plan
 
-import "github.com/hnnyzyf/mysql-go/ast"
+import "github.com/hnnyzyf/mysql-go/advisor/ast"
 import "fmt"
-import "github.com/hnnyzyf/mysql-go/util/server"
-import "github.com/hnnyzyf/mysql-go/util/meta"
+import "github.com/hnnyzyf/mysql-go/advisor/util/server"
+import "github.com/hnnyzyf/mysql-go/advisor/util/meta"
 
 type PreProcessMetaVisitor struct {
 

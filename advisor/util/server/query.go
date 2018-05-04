@@ -1,7 +1,7 @@
 package server
 
 import "fmt"
-import "github.com/hnnyzyf/mysql-go/util/meta"
+import "github.com/hnnyzyf/mysql-go/advisor/util/meta"
 import "database/sql"
 import _ "github.com/go-sql-driver/mysql"
 

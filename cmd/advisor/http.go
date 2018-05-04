@@ -1,6 +1,6 @@
 package main
 
-import "github.com/hnnyzyf/mysql-go/parserhttp"
+import "github.com/hnnyzyf/mysql-go/advisor/parserhttp"
 import "flag"
 import "fmt"
 

@@ -1,10 +1,10 @@
 package plan
 
-import "github.com/hnnyzyf/mysql-go/ast"
+import "github.com/hnnyzyf/mysql-go/advisor/ast"
 import "bytes"
 import "strings"
 import "fmt"
-import "github.com/hnnyzyf/mysql-go/util/meta"
+import "github.com/hnnyzyf/mysql-go/advisor/util/meta"
 
 /*******************************
 

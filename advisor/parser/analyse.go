@@ -1,6 +1,6 @@
 package parser
 
-import "github.com/hnnyzyf/mysql-go/ast"
+import "github.com/hnnyzyf/mysql-go/advisor/ast"
 import "errors"
 
 func SqlParse(sql string) (ast.Node, error) {

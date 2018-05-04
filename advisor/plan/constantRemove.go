@@ -1,7 +1,7 @@
 package plan
 
-import "github.com/hnnyzyf/mysql-go/ast"
-import "github.com/hnnyzyf/mysql-go/util/comp"
+import "github.com/hnnyzyf/mysql-go/advisor/ast"
+import "github.com/hnnyzyf/mysql-go/advisor/util/comp"
 
 //将1=1 1="a" 2="23a" 1<2替换掉,忽略掉function
 func (pre *ConstantVisitor) RemoveExpr(node *ast.Expr) ast.Node {

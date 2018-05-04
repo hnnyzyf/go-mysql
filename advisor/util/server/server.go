@@ -1,6 +1,6 @@
 package server
 
-import "github.com/hnnyzyf/mysql-go/util/meta"
+import "github.com/hnnyzyf/mysql-go/advisor/util/meta"
 import "bytes"
 import "fmt"
 

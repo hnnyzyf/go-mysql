@@ -1,7 +1,7 @@
 package ast
 
 import "io"
-import "github.com/hnnyzyf/mysql-go/util/server"
+import "github.com/hnnyzyf/mysql-go/advisor/util/server"
 
 //定义一个Node，定义vistor访问方式，该Node可以接受vistor，vistor会遍历这个节点
 type Node interface {

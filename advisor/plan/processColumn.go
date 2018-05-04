@@ -1,8 +1,8 @@
 package plan
 
-import "github.com/hnnyzyf/mysql-go/ast"
+import "github.com/hnnyzyf/mysql-go/advisor/ast"
 import "fmt"
-import "github.com/hnnyzyf/mysql-go/util/server"
+import "github.com/hnnyzyf/mysql-go/advisor/util/server"
 
 /*******************************
 

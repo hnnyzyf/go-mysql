@@ -1,6 +1,6 @@
 package comp
 
-import "github.com/hnnyzyf/mysql-go/util/server"
+import "github.com/hnnyzyf/mysql-go/advisor/util/server"
 
 func Compare(query string, s server.Server) bool {
 	session := s.CreateSession2DB("")

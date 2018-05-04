@@ -1,7 +1,7 @@
 package plan
 
-import "github.com/hnnyzyf/mysql-go/ast"
-import "github.com/hnnyzyf/mysql-go/util/server"
+import "github.com/hnnyzyf/mysql-go/advisor/ast"
+import "github.com/hnnyzyf/mysql-go/advisor/util/server"
 import "fmt"
 import "sort"
 

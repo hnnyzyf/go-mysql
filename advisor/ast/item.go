@@ -4,8 +4,8 @@ import "io"
 import "fmt"
 import "bytes"
 import "strings"
-import "github.com/hnnyzyf/mysql-go/util/comp"
-import "github.com/hnnyzyf/mysql-go/util/conv"
+import "github.com/hnnyzyf/mysql-go/advisor/util/comp"
+import "github.com/hnnyzyf/mysql-go/advisor/util/conv"
 
 /***********************************
 *

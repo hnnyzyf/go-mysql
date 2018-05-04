@@ -2,8 +2,8 @@ package parser
 
 import "strings"
 import "bytes"
-import "github.com/hnnyzyf/mysql-go/ast"
-import "github.com/hnnyzyf/mysql-go/util/conv"
+import "github.com/hnnyzyf/mysql-go/advisor/ast"
+import "github.com/hnnyzyf/mysql-go/advisor/util/conv"
 
 //实现mysql的此法解析器
 //定义关键子

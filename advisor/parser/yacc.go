@@ -4,7 +4,7 @@ package parser
 import __yyfmt__ "fmt"
 
 //line parser.y:4
-import "github.com/hnnyzyf/mysql-go/ast"
+import "github.com/hnnyzyf/mysql-go/advisor/ast"
 import "strings"
 
 //line parser.y:11

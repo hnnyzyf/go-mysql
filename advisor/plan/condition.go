@@ -1,6 +1,6 @@
 package plan
 
-import "github.com/hnnyzyf/mysql-go/ast"
+import "github.com/hnnyzyf/mysql-go/advisor/ast"
 
 const (
 	a_equal = iota + 1

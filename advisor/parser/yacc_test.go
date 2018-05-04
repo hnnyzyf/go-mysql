@@ -1,7 +1,7 @@
 package parser
 
 import "testing"
-import "github.com/hnnyzyf/mysql-go/ast"
+import "github.com/hnnyzyf/mysql-go/advisor/ast"
 import "log"
 import "errors"
 import "bytes"

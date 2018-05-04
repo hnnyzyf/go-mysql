@@ -1,8 +1,8 @@
 package plan
 
-import "github.com/hnnyzyf/mysql-go/util/comp"
-import "github.com/hnnyzyf/mysql-go/ast"
-import "github.com/hnnyzyf/mysql-go/util/server"
+import "github.com/hnnyzyf/mysql-go/advisor/util/comp"
+import "github.com/hnnyzyf/mysql-go/advisor/ast"
+import "github.com/hnnyzyf/mysql-go/advisor/util/server"
 
 //一个属性的取值范围
 type ranger struct {

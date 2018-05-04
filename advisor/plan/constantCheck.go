@@ -1,7 +1,7 @@
 package plan
 
-import "github.com/hnnyzyf/mysql-go/ast"
-import "github.com/hnnyzyf/mysql-go/util/comp"
+import "github.com/hnnyzyf/mysql-go/advisor/ast"
+import "github.com/hnnyzyf/mysql-go/advisor/util/comp"
 
 //对于a=1 形式,进行constantfold
 func (pre *ConstantVisitor) CheckExpr(node *ast.Expr) bool {

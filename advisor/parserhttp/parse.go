@@ -1,8 +1,8 @@
 package parserhttp
 
-import p "github.com/hnnyzyf/mysql-go/plan"
-import "github.com/hnnyzyf/mysql-go/util/server"
-import "github.com/hnnyzyf/mysql-go/parser"
+import p "github.com/hnnyzyf/mysql-go/advisor/plan"
+import "github.com/hnnyzyf/mysql-go/advisor/util/server"
+import "github.com/hnnyzyf/mysql-go/advisor/parser"
 import "bytes"
 
 //经过sql解析获得的结果

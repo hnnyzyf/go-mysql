@@ -3,9 +3,9 @@ package main
 import "fmt"
 import "flag"
 import "bytes"
-import "github.com/hnnyzyf/mysql-go/util/server"
-import p "github.com/hnnyzyf/mysql-go/plan"
-import "github.com/hnnyzyf/mysql-go/parser"
+import "github.com/hnnyzyf/mysql-go/advisor/util/server"
+import p "github.com/hnnyzyf/mysql-go/advisor/plan"
+import "github.com/hnnyzyf/mysql-go/advisor/parser"
 
 func printSlice(information []string) {
 	for _, info := range information {
