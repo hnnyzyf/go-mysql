@@ -717,6 +717,8 @@ outer:
 	fmt.Fprintf(ftable, "}\n")
 
 	ftable.WriteRune('\n')
+	//add currentToken for debug
+	fmt.Fprintf(ftable, "var %sCurrentToken = \"\"\n", prefix)
 	fmt.Fprintf(ftable, "const %sEofCode = 1\n", prefix)
 	fmt.Fprintf(ftable, "const %sErrCode = 2\n", prefix)
 	fmt.Fprintf(ftable, "const %sInitialStackSize = %v\n", prefix, initialstacksize)
@@ -3262,7 +3264,7 @@ var yaccpartext = `
 
 var (
 	$$Debug        = 0
-	$$ErrorVerbose = false
+	$$ErrorVerbose = true
 )
 
 type $$Lexer interface {
@@ -3322,7 +3324,7 @@ func $$ErrorMessage(state, lookAhead int) string {
 		}
 	}
 
-	res := "syntax error: unexpected " + $$Tokname(lookAhead)
+	res := "syntax error: unexpected " + $$CurrentToken
 
 	// To match Bison, suggest at most four expected tokens.
 	expected := make([]int, 0, 4)
@@ -3405,6 +3407,9 @@ out:
 	if $$Debug >= 3 {
 		__yyfmt__.Printf("lex %s(%d)\n", $$Tokname(token), uint(char))
 	}
+
+	$$CurrentToken = $$GetToken(char, token, lval)
+
 	return char, token
 }
 
