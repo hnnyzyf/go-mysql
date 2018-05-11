@@ -77,12 +77,14 @@ func checkIdent(s string) (int, string) {
 	ident := strings.ToLower(s)
 	if _, ok := Keywords[ident]; ok {
 		return Keywords[ident], strings.ToUpper(ident)
-	} else if _, ok := Character[ident]; ok {
-		return Character[ident], ident
+	} else if _, ok := CharacterSet[ident]; ok {
+		return CharacterSet[ident], ident
 	} else if _, ok := TimeUnit[ident]; ok {
 		return TimeUnit[ident], strings.ToUpper(ident)
 	} else if _, ok := FuncTime[ident]; ok {
 		return FuncTime[ident], strings.ToUpper(ident)
+	} else if _, ok := CharacterName[ident]; ok {
+		return CharacterName[ident], ident
 	} else {
 		return IDENT, s
 	}

@@ -28,6 +28,7 @@ import "strings"
 %token <ident>		BuiltinFucTimeAddIdent
 %token <ident>		BuiltinFucTimeSubIdent
 %token <ident>		BuiltinTimeUnitIdent
+%token <ident>    BuiltinCharacterName
 %token <ident>		IDENT
 
 %token <str>		DOUBLE_QUOTA_STRING
@@ -131,6 +132,7 @@ import "strings"
 %type <val>			opt_alias
 %type <val>			single_at_ident
 %type <val>			table_name
+%type <val>     opt_charset_name
      	 
 %type <expr> 		agg_expr
 %type <expr> 		bit_expr
@@ -478,11 +480,11 @@ bit_expr:
   				}
 
 simple_expr:
-  			 literal  					{ $$ = $1 }
+  			 opt_charset_name literal  					{ $$ = $2 }
   			| column_ref 				{ $$ = $1 }
-  			| variable 					{ $$ = $1 }
+  			| opt_charset_name variable 					{ $$ = $2 }
   			| func_expr 				{ $$ = $1 }
-  			| marker 					{ $$ = $1 }
+  			| opt_charset_name marker 					{ $$ = $2 }
   			| simple_expr COLLATE collation_name %prec OP  
   				{ 
   					$$ = &ast.CollateExpr{Expr:$1,Collate:$3}
@@ -584,6 +586,16 @@ identifier_or_star:
               	{
               	    $$ = "*"
               	}
+
+opt_charset_name:
+      BuiltinCharacterName 
+          {
+              $$ = ""
+          }
+      |/*EMPTY*/
+          {
+              $$ = ""
+          }
       
 variable:
     		single_at_ident 			{ $$ =&ast.UserVariable{Variable:$1} }

@@ -166,9 +166,9 @@ func (pre *IndexVisitor) FindEqualConditionInAnd0OrExpr(node *ast.And0OrExpr) {
 		}
 
 		if state == 0 {
-			pre.addInfo(fmt.Sprintln("	[Join条件索引校验]Where条件中的不存在连接条件,略过"))
+			pre.addInfo(fmt.Sprintln("[Join条件索引校验]Where条件中的不存在连接条件,略过"))
 		} else {
-			pre.addInfo(fmt.Sprintln("	[Join条件索引校验]当前条件(", generateString(node), ")是AND形式,校验连接条件索引"))
+			pre.addInfo(fmt.Sprintln("[Join条件索引校验]当前条件(", generateString(node), ")是AND形式,校验连接条件索引"))
 		}
 
 		for alias, columns := range indexMap {
@@ -180,21 +180,21 @@ func (pre *IndexVisitor) FindEqualConditionInAnd0OrExpr(node *ast.And0OrExpr) {
 				}
 
 				if primaryKey, ok := currentCtx.HasPrimary(indexs, alias); ok {
-					pre.addInfo(fmt.Sprintln("	[Join条件索引校验]表", alias, "存在主键索引条件:", primaryKey, ",不需要添加索引"))
+					pre.addInfo(fmt.Sprintln("[Join条件索引校验]表", alias, "存在主键索引条件:", primaryKey, ",不需要添加索引"))
 				} else {
 					flag := 0
 					for _, index := range indexs {
 						if currentIndex.HaveIndex(index) {
 							if len(index) == len(columns) {
-								pre.addInfo(fmt.Sprintln("	[Join条件索引校验]表", alias, "存在索引条件:", index))
+								pre.addInfo(fmt.Sprintln("[Join条件索引校验]表", alias, "存在索引条件:", index))
 								flag = 1
 							} else {
-								pre.addInfo(fmt.Sprintln("	[Join条件索引校验]表", alias, "存在索引条件:", index, ",该索引缺少列"))
+								pre.addInfo(fmt.Sprintln("[Join条件索引校验]表", alias, "存在索引条件:", index, ",该索引缺少列"))
 							}
 						}
 					}
 					if flag == 0 {
-						pre.addInfo(fmt.Sprintln("	[Join条件索引校验]表", alias, "不存在索引条件:", columns, ",需要添加索引"))
+						pre.addInfo(fmt.Sprintln("[Join条件索引校验]表", alias, "不存在索引条件:", columns, ",需要添加索引"))
 						table := currentCtx.Table[alias].GetTable()
 						indexQuery := generateIndex(table, columns)
 						if _, ok := pre.indexs["Join条件索引"]; ok {
@@ -209,7 +209,7 @@ func (pre *IndexVisitor) FindEqualConditionInAnd0OrExpr(node *ast.And0OrExpr) {
 		}
 
 	} else {
-		pre.addInfo(fmt.Sprintln("	[Join条件索引校验]当前条件(", generateString(node), ")是OR形式,请调整写法"))
+		pre.addInfo(fmt.Sprintln("[Join条件索引校验]当前条件(", generateString(node), ")是OR形式,请调整写法"))
 	}
 }
 

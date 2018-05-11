@@ -149,7 +149,7 @@ func (pre *IndexVisitor) CollectConditionIndex(node *ast.Join) {
 func (pre *IndexVisitor) CollectCandidateIndex(node *ast.WhereClause) {
 	ctx := pre.current
 	if node.GetTag() == ast.AST_EMPTY {
-		pre.addInfo(fmt.Sprintln("	[Where条件索引校验]没有Where条件,检查Order或者Group条件"))
+		pre.addInfo(fmt.Sprintln("[Where条件索引校验]没有Where条件,检查Order或者Group条件"))
 		for alias, _ := range ctx.Table {
 			//只处理relation_table的情况
 			if isRelationTable(alias, ctx) {
@@ -161,7 +161,7 @@ func (pre *IndexVisitor) CollectCandidateIndex(node *ast.WhereClause) {
 	}
 
 	//检查连接条件
-	pre.addInfo(fmt.Sprintln("	[Join条件索引校验]检查Where中的连接条件"))
+	pre.addInfo(fmt.Sprintln("[Join条件索引校验]检查Where中的连接条件"))
 	pre.FindEuqalConditionIndex(node.Where)
 
 	for alias, _ := range ctx.Table {
@@ -190,7 +190,7 @@ func (pre *IndexVisitor) GetIndex(alias string) {
 	if equalIndexs != nil {
 		//判断主键
 		if index, ok := ctx.HasPrimary(equalIndexs, alias); ok {
-			advise := fmt.Sprintln("	1.[主键条件校验] 索引", index, "是主键,无需添加索引")
+			advise := fmt.Sprintln("1.[主键条件校验] 索引", index, "是主键,无需添加索引")
 			pre.addInfo(advise)
 
 			if _, ok := pre.indexs["主键索引"]; ok {
@@ -207,7 +207,7 @@ func (pre *IndexVisitor) GetIndex(alias string) {
 		for rank, cardinality := range result {
 			percent := (1 - cardinality.Value/float32(sample)) * 100
 			scanRow := int((cardinality.Value) / float32(sample) * float32(row))
-			pre.addInfo(fmt.Sprintln("	2.[Range条件校验]排名第", rank+1, "的索引为", rangeIndexs[cardinality.Key], ",过滤掉", percent, "%的数据,扫描的行数预估为", scanRow))
+			pre.addInfo(fmt.Sprintln("2.[Range条件校验]排名第", rank+1, "的索引为", rangeIndexs[cardinality.Key], ",过滤掉", percent, "%的数据,扫描的行数预估为", scanRow))
 			index := rangeIndexs[cardinality.Key]
 			indexQuery := generateIndex(ctx.Table[alias].GetTable(), index)
 			lable := "Range索引"
@@ -250,7 +250,7 @@ func (pre *IndexVisitor) GetIndex(alias string) {
 		for rank, cardinality := range result {
 			percent := (1 - cardinality.Value/float32(sample)) * 100
 			scanRow := int((cardinality.Value) / float32(sample) * float32(row))
-			pre.addInfo(fmt.Sprintln("	2.[最左匹配索引校验]选择度排名第", rank+1, "的索引为", candidateIndex[cardinality.Key], ",其选择度为", cardinality.Value, "/", sample, ",可过滤掉:", percent, "%数据,扫描的行数预估为", int(scanRow)))
+			pre.addInfo(fmt.Sprintln("2.[最左匹配索引校验]选择度排名第", rank+1, "的索引为", candidateIndex[cardinality.Key], ",其选择度为", cardinality.Value, "/", sample, ",可过滤掉:", percent, "%数据,扫描的行数预估为", int(scanRow)))
 
 			index := candidateIndex[cardinality.Key]
 			indexQuery := generateIndex(ctx.Table[alias].GetTable(), candidateIndex[cardinality.Key])
@@ -292,7 +292,7 @@ func (pre *IndexVisitor) getEqualIndex(conditionStack *condition, alias string) 
 	equals := conditionStack.keys
 
 	if len(equals) == 0 {
-		pre.addInfo(fmt.Sprintln("	[等值索引校验]没有等值条件,略过"))
+		pre.addInfo(fmt.Sprintln("[等值索引校验]没有等值条件,略过"))
 		return nil, nil
 	}
 
@@ -306,10 +306,10 @@ func (pre *IndexVisitor) getEqualIndex(conditionStack *condition, alias string) 
 		expr := conditionStack.getCondition(index)
 		query := generateCardinality(sample, table, bestIndexName, bestIndex, index, expr)
 		fmt.Println(query)
-		pre.addInfo(fmt.Sprintln("	[等值索引校验]使用", query, "计算,", index, "的选择度"))
+		pre.addInfo(fmt.Sprintln("[等值索引校验]使用", query, "计算,", index, "的选择度"))
 		selectivity[idx] = float32(pre.GetFilterRow(alias, query))
 		//selectivity[idx] = float32(pre.GetCardinality(sample, alias, index))
-		pre.addInfo(fmt.Sprintln("	[等值索引校验]索引:", index, " 的选择度为", selectivity[idx]))
+		pre.addInfo(fmt.Sprintln("[等值索引校验]索引:", index, " 的选择度为", selectivity[idx]))
 
 	}
 
@@ -330,7 +330,7 @@ func (pre *IndexVisitor) getRangeIndex(conditionStack *condition, alias string) 
 	ranges := conditionStack.ranges
 
 	if len(ranges) == 0 {
-		pre.addInfo(fmt.Sprintln("	[Range索引校验]没有Range条件,略过"))
+		pre.addInfo(fmt.Sprintln("[Range索引校验]没有Range条件,略过"))
 		return nil, nil
 	}
 
@@ -344,12 +344,12 @@ func (pre *IndexVisitor) getRangeIndex(conditionStack *condition, alias string) 
 		expr := conditionStack.getCondition(index)
 		query := generateCardinality(sample, table, bestIndexName, bestIndex, index, expr)
 		fmt.Println(query)
-		pre.addInfo(fmt.Sprintln("	[Range索引校验]使用", query, "计算,", index, "的选择度"))
+		pre.addInfo(fmt.Sprintln("[Range索引校验]使用", query, "计算,", index, "的选择度"))
 		selectivity[idx] = float32(pre.GetFilterRow(alias, query))
 		//filter := float64(pre.GetFilter(alias, index, expr))
 		//selectivity[idx] = (float32)(1-math.Min(filter, float64(row))/float64(row)) * 100
 		//pre.addInfo(fmt.Sprintln("	[Range索引校验]索引:", index, " 过滤掉", selectivity[idx], "%的数据"))
-		pre.addInfo(fmt.Sprintln("	[Range索引校验]索引:", index, " 的选择度为", selectivity[idx]))
+		pre.addInfo(fmt.Sprintln("[Range索引校验]索引:", index, " 的选择度为", selectivity[idx]))
 	}
 
 	return candidateIndex, selectivity
@@ -390,10 +390,10 @@ func (pre *IndexVisitor) getLeftMostPrefixIndex(conditionStack *condition, alias
 
 		query := generateCardinality(sample, table, bestIndexName, bestIndex, index, expr)
 		fmt.Println(query)
-		pre.addInfo(fmt.Sprintln("	[等值索引校验]使用", query, "计算,", index, "的选择度"))
+		pre.addInfo(fmt.Sprintln("[等值索引校验]使用", query, "计算,", index, "的选择度"))
 		selectivity[idx] = float32(pre.GetFilterRow(alias, query))
 		//selectivity[idx] = float32(pre.GetCardinality(sample, alias, index))
-		pre.addInfo(fmt.Sprintln("	[等值索引校验]索引:", index, " 的选择度为", selectivity[idx]))
+		pre.addInfo(fmt.Sprintln("[等值索引校验]索引:", index, " 的选择度为", selectivity[idx]))
 
 	}
 
@@ -407,7 +407,7 @@ func (pre *IndexVisitor) getOrderbyIndex(conditionStack *condition, alias string
 
 	//检测投影中是否包含非order by 或者 primary的column
 	if !pre.checkProjectionHasPrimaryAndOrderBy(alias, orderColumns) {
-		pre.addInfo(fmt.Sprintln("	[Order条件检查],投影含有额外的Column,不能使用order中的条件"))
+		pre.addInfo(fmt.Sprintln("[Order条件检查],投影含有额外的Column,不能使用order中的条件"))
 		return nil, nil
 	}
 

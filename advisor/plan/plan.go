@@ -135,7 +135,7 @@ func (p *Plan) ProcessIndex() (error, []string, map[string][]string) {
 	v := NewIndexVisitor(p.Ctx, p.MetaServer)
 	count := 1
 	for stmt, _ := range p.Ctx {
-		v.addInfo(fmt.Sprintln("	", count, ". 当前校验的的Select语句是:", generateString(stmt)))
+		v.addInfo(fmt.Sprintln(count, ". 当前校验的的Select语句是:", generateString(stmt)))
 		stmt.Accept(v)
 		count = count + 1
 		v.addInfo(fmt.Sprintln("	"))
