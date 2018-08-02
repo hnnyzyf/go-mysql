@@ -1,1 +1,57 @@
 package protocol
+
+import (
+	"bytes"
+	"testing"
+
+	"github.com/hnnyzyf/go-mysql/util/binary"
+	. "gopkg.in/check.v1"
+)
+
+// Hook up gocheck into the "go test" runner.
+func Test(t *testing.T) { TestingT(t) }
+
+type MyPacketSuite struct{}
+
+var _ = Suite(&MyPacketSuite{})
+
+func (s *MyPacketSuite) TestRead(c *C) {
+	b := []byte{0x0f, 0x00, 0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x0E, 0x0D, 0x0C, 0x0B, 0x0A, 0x09, 0x0F}
+	r := bytes.NewBuffer(b)
+	res := []struct {
+		size uint32
+		id   uint8
+		p    []byte
+	}{
+		{15, 0, []byte{0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x0E, 0x0D, 0x0C, 0x0B, 0x0A, 0x09, 0x0F}},
+	}
+
+	p, err := ReadPacket(r)
+	if err != nil {
+		c.Error(err)
+	}
+	for i := range res {
+		c.Assert(p.ReadLength(), Equals, res[i].size)
+		c.Assert(p.ReadId(), Equals, res[i].id)
+		c.Assert(p.ReadPayload().Bytes(), DeepEquals, res[i].p)
+	}
+
+}
+
+func (s *MyPacketSuite) TestWrite(c *C) {
+	p := &Packet{
+		length: []byte{0x0f, 0x00, 0x00},
+		sid:    []byte{0x00},
+		p:      binary.NewReader([]byte{0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x0E, 0x0D, 0x0C, 0x0B, 0x0A, 0x09, 0x0F}),
+	}
+	res := []byte{0x0f, 0x00, 0x00, 0x00, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x0E, 0x0D, 0x0C, 0x0B, 0x0A, 0x09, 0x0F}
+
+	w := bytes.NewBuffer([]byte{})
+	err := WritePacket(w, p)
+	if err != nil {
+		c.Error(err)
+	}
+
+	c.Assert(w.Bytes(), DeepEquals, res)
+
+}
