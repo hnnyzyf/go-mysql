@@ -5,6 +5,7 @@ import (
 
 	"github.com/hnnyzyf/go-mysql/protocol"
 	"github.com/hnnyzyf/go-mysql/util/hack"
+	"github.com/hnnyzyf/go-mysql/util/math"
 	"github.com/juju/errors"
 )
 
@@ -34,9 +35,9 @@ type session struct {
 }
 
 //Connect create a tcp connection to server
-func Connect(addr string, user string, passwd string, db string) (*session, error) {
+func Connect(host string, user string, passwd string, db string) (*session, error) {
 	//the client connecting to the server
-	raddr, err := net.ResolveTCPAddr("tcp", address)
+	raddr, err := net.ResolveTCPAddr("tcp", host)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -78,8 +79,8 @@ func (s *session) ReadHandshakeV10() error {
 
 	//check sequenced id
 	sid := p.ReadId()
-	if sid != s.sid {
-		return errors.Errorf("invalid sequence id %d,expect %d", sequenceId, s.sid)
+	if sid != 0 {
+		return errors.Errorf("invalid sequence id %d,expect 0", sequenceId)
 	}
 
 	//get payload from packet
@@ -123,7 +124,11 @@ func (s *session) ReadHandshakeV10() error {
 	//set Capabilities (4 bytes)
 	s.capabilities = uint32(uflag)<<16 | uint32(lflag)
 	if s.capabilities&protocol.CLIENT_PLUGIN_AUTH == 0 {
-		return errors.Errorf("server does not support CLIENT_PLUGIN_AUTH")
+		return errors.Errorf("Server does not support CLIENT_PLUGIN_AUTH!")
+	}
+
+	if s.capabilities&protocol.CLIENT_PROTOCOL_41 == 0 {
+		return errors.Errorf("Old Protocol!The Server does not support CLIENT_PROTOCOL_41!")
 	}
 
 	//length of auth-plugin-data 1bytes
@@ -138,7 +143,8 @@ func (s *session) ReadHandshakeV10() error {
 	//if we use $len=MAX(13, length of auth-plugin-data - 8 as the length of auth_plugin_data_part2
 	//the length is more than 21 instead of 20
 	//so I decide to read only 12 bytes data as the challenge
-	length := max(13, uint64(authPluginDataLen)-8)
+	//maybe I should have a look at Mysql source code!?
+	length := math.MaxInt(13, int(authPluginDataLen)-8)
 	s.authPluginData = append(authPluginData, payload.ReadStringWithFixLen(12)...)
 
 	//skip
@@ -153,4 +159,69 @@ func (s *session) ReadHandshakeV10() error {
 	s.method = method
 
 	return nil
+}
+
+//https://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::SSLRequest
+//WriteHandshakeResponse41 return a HandshakeResponse to server
+func (s *Session) WriteHandshakeResponse41() error {
+	//write a header four bytes
+	length := 4
+
+	//add
+	capabilities := DefaultClientCapabilities | CLIENT_PLUGIN_AUTH
+	length += 4
+
+	//set max-packet size character set  reserved (all [0])
+	length += 4 + 1 + 23
+
+	//username+0x0
+	length += len(c.Username) + 1
+
+	//calculate auth-response
+	passwd := CalAuthResponse(c.AuthPluginData, c.Passwd)
+	if len(passwd) != 20 {
+		return errors.Errorf("invalid scrambled password,looking forward 20 bytes instead of %d bytes", len(passwd))
+	}
+	length += 1 + 20
+
+	//database
+	if len(c.Database) != 0 {
+		capabilities = capabilities & ^CLIENT_CONNECT_WITH_DB
+	}
+	length += len(c.Database) + 1
+
+	//auth plugin name
+	length += len(c.PluginName) + 1
+
+	//create a payload
+	buffer := make([]byte, length)
+	payload := NewPayLoad(buffer)
+
+	//write header
+	payload.WriteZero(4)
+	//write capability flags
+	payload.WriteInt4(capabilities)
+	//max-packet size
+	payload.WriteZero(4)
+	//character set
+	payload.WriteInt1(DEFAULT_CHARSET)
+	//reserved
+	payload.WriteZero(23)
+	//username
+	payload.WriteStringWithNull([]byte(c.Username))
+	//length of auth-response
+	payload.WriteInt1(uint8(len(passwd)))
+	//auth-response
+	payload.WriteStringWithFixLen(passwd)
+	//database
+	if len(c.Database) != 0 {
+		payload.WriteStringWithNull([]byte(c.Database))
+	} else {
+		payload.WriteZero(0)
+	}
+	//auth plugin name
+	payload.WriteStringWithNull(c.PluginName)
+
+	return c.WritePacket(payload.Bytes())
+
 }
