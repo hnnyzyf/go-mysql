@@ -1,4 +1,4 @@
-package payload
+package binary
 
 //ReadInt1 reads 1 bytes
 func ReadInt1(buffer []byte) uint8 {
