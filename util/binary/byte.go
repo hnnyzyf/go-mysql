@@ -110,77 +110,89 @@ func WriteInt8(b []byte, val uint64) {
 	b[7] = uint8(val >> 56)
 }
 
-//payload represent a buffer in a packet
-type payload struct {
+//Payload represent a buffer in a packet
+type Payload struct {
 	b   []byte
 	off int
 }
 
-func New(b []byte) *payload {
-	return &payload{
+func NewReader(b []byte) *Payload {
+	return &Payload{
+		b:   b,
+		off: 0,
+	}
+}
+
+func NewWriter(b []byte) *Payload {
+	return &Payload{
 		b:   b,
 		off: 0,
 	}
 }
 
 //IsEOf return
-func (p *payload) IsEOF() bool {
+func (p *Payload) IsEOF() bool {
 	return p.off >= len(p.b)
 }
 
-func (p *payload) Bytes() []byte {
+func (p *Payload) Bytes() []byte {
 	return p.b
 }
 
+//IsEOf return
+func (p *Payload) Len() int {
+	return len(p.b)
+}
+
 //ReadInt1 reads 1 bytes
-func (p *payload) ReadInt1() uint8 {
+func (p *Payload) ReadInt1() uint8 {
 	buffer := p.b[p.off:]
 	p.off += 1
 	return ReadInt1(buffer)
 }
 
 //ReadInt2 reads 2 bytes
-func (p *payload) ReadInt2() uint16 {
+func (p *Payload) ReadInt2() uint16 {
 	buffer := p.b[p.off:]
 	p.off += 2
 	return ReadInt2(buffer)
 }
 
 //ReadInt3 reads 3 bytes
-func (p *payload) ReadInt3() uint32 {
+func (p *Payload) ReadInt3() uint32 {
 	buffer := p.b[p.off:]
 	p.off += 3
 	return ReadInt3(buffer)
 }
 
 //ReadInt4 reads 4 bytes
-func (p *payload) ReadInt4() uint32 {
+func (p *Payload) ReadInt4() uint32 {
 	buffer := p.b[p.off:]
 	p.off += 4
 	return ReadInt4(buffer)
 }
 
 //ReadInt6 reads 6 bytes
-func (p *payload) ReadInt6() uint64 {
+func (p *Payload) ReadInt6() uint64 {
 	buffer := p.b[p.off:]
 	p.off += 6
 	return ReadInt6(buffer)
 }
 
 //ReadInt8 reads 8 bytes
-func (p *payload) ReadInt8() uint64 {
+func (p *Payload) ReadInt8() uint64 {
 	buffer := p.b[p.off:]
 	p.off += 8
 	return ReadInt8(buffer)
 }
 
 //ReadZero reads length bytes
-func (p *payload) ReadZero(l int) {
+func (p *Payload) ReadZero(l int) {
 	p.off += l
 }
 
 //ReadLengthEncodedInteger read undetermined length integer
-func (p *payload) ReadLengthEncodedInteger() (uint64, int) {
+func (p *Payload) ReadLengthEncodedInteger() (uint64, int) {
 	switch i := p.b[p.off]; {
 	case i < 0xfb:
 		return uint64(p.ReadInt1()), 1
@@ -198,7 +210,7 @@ func (p *payload) ReadLengthEncodedInteger() (uint64, int) {
 }
 
 //ReadStringWithNull reads a string terminated with null(0x00)
-func (p *payload) ReadStringWithNull() []byte {
+func (p *Payload) ReadStringWithNull() []byte {
 	for off := p.off; off < len(p.b); off++ {
 		if p.b[off] == 0x00 {
 			//return not include 0x00
@@ -212,65 +224,65 @@ func (p *payload) ReadStringWithNull() []byte {
 }
 
 //ReadStringWithEOF reads a string util EOF
-func (p *payload) ReadStringWithEOF() []byte {
+func (p *Payload) ReadStringWithEOF() []byte {
 	return p.b[p.off:]
 }
 
 //ReadStringWithFixLen reads a string  with fixed length
-func (p *payload) ReadStringWithFixLen(l int) []byte {
+func (p *Payload) ReadStringWithFixLen(l int) []byte {
 	b := p.b[p.off : p.off+l]
 	p.off += l
 	return b
 }
 
 //WriteInt1 write 1 byte into buffer
-func (p *payload) WriteInt1(val uint8) {
+func (p *Payload) WriteInt1(val uint8) {
 	buffer := p.b[p.off:]
 	p.off += 1
 	WriteInt1(buffer, val)
 }
 
-func (p *payload) WriteInt2(val uint16) {
+func (p *Payload) WriteInt2(val uint16) {
 	buffer := p.b[p.off:]
 	p.off += 2
 	WriteInt2(buffer, val)
 }
 
-func (p *payload) WriteInt3(val uint32) {
+func (p *Payload) WriteInt3(val uint32) {
 	buffer := p.b[p.off:]
 	p.off += 3
 	WriteInt3(buffer, val)
 }
 
-func (p *payload) WriteInt4(val uint32) {
+func (p *Payload) WriteInt4(val uint32) {
 	buffer := p.b[p.off:]
 	p.off += 4
 	WriteInt4(buffer, val)
 }
 
-func (p *payload) WriteInt6(val uint64) {
+func (p *Payload) WriteInt6(val uint64) {
 	buffer := p.b[p.off:]
 	p.off += 6
 	WriteInt6(buffer, val)
 }
 
-func (p *payload) WriteInt8(val uint64) {
+func (p *Payload) WriteInt8(val uint64) {
 	buffer := p.b[p.off:]
 	p.off += 8
 	WriteInt8(buffer, val)
 }
 
-func (p *payload) WriteZero(l int) {
+func (p *Payload) WriteZero(l int) {
 	p.off += l
 }
 
-func (p *payload) WriteStringWithNull(str []byte) {
+func (p *Payload) WriteStringWithNull(str []byte) {
 	_ = copy(p.b[p.off:], str)
 	p.off += len(str)
 	p.WriteZero(1)
 }
 
-func (p *payload) WriteStringWithFixLen(str []byte) {
+func (p *Payload) WriteStringWithFixLen(str []byte) {
 	_ = copy(p.b[p.off:], str)
 	p.off += len(str)
 }

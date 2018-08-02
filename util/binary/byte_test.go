@@ -16,7 +16,7 @@ var _ = Suite(&MyPayloadSuite{})
 
 func (s *MyPayloadSuite) TestWriteInteger(c *C) {
 	b := make([]byte, 24)
-	p := New(b)
+	p := NewWriter(b)
 	p.WriteInt1(0x01)
 	p.WriteInt2(0x0203)
 	p.WriteInt3(0x040506)
@@ -33,7 +33,7 @@ func (s *MyPayloadSuite) TestWriteInteger(c *C) {
 
 func (s *MyPayloadSuite) TestReadInteger(c *C) {
 	b := make([]byte, 24)
-	p := New(b)
+	p := NewWriter(b)
 	p.WriteInt1(0x01)
 	p.WriteInt2(0x0203)
 	p.WriteInt3(0x040506)
@@ -41,7 +41,7 @@ func (s *MyPayloadSuite) TestReadInteger(c *C) {
 	p.WriteInt6(0x123456789ABC)
 	p.WriteInt8(0x1F2F3F4F5F6F7F8F)
 
-	p = New(b)
+	p = NewReader(b)
 
 	c.Assert(p.ReadInt1(), Equals, uint8(0x01))
 	c.Assert(p.ReadInt2(), Equals, uint16(0x0203))
@@ -54,7 +54,7 @@ func (s *MyPayloadSuite) TestReadInteger(c *C) {
 func (s *MyPayloadSuite) TestWriteStringWithNull(c *C) {
 	st := []byte("我们做个测试")
 	b := make([]byte, len(st)+1)
-	p := New(b)
+	p := NewWriter(b)
 
 	p.WriteStringWithNull(st)
 
@@ -68,10 +68,10 @@ func (s *MyPayloadSuite) TestWriteStringWithNull(c *C) {
 func (s *MyPayloadSuite) TestReadStringWithNull(c *C) {
 	st := []byte("我们做个测试")
 	b := make([]byte, len(st)+1)
-	p := New(b)
+	p := NewWriter(b)
 	p.WriteStringWithNull(st)
 
 	res := "我们做个测试"
-	p = New(b)
+	p = NewReader(b)
 	c.Assert(string(p.ReadStringWithNull()), Equals, res)
 }
