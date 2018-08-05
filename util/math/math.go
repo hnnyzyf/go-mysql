@@ -32,6 +32,14 @@ func MaxUint64(x, y uint64) uint64 {
 	}
 }
 
+func MaxInt(x, y int) int {
+	if x > y {
+		return x
+	} else {
+		return y
+	}
+}
+
 func MaxInt8(x, y int8) int8 {
 	if x > y {
 		return x
@@ -89,6 +97,15 @@ func MinUint32(x, y uint32) uint32 {
 }
 
 func MinUint64(x, y uint64) uint64 {
+	if x < y {
+		return x
+	} else {
+		return y
+	}
+}
+
+
+func MinInt(x, y int) int {
 	if x < y {
 		return x
 	} else {

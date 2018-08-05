@@ -5,8 +5,8 @@
 
 平时的工作的主要内容是对mysql进行维护，积累了很多对mysql操作的工具和基础库，这个包中均为由golang书写的mysql工具，包括但不限于如下内容
 
-    - mysql的SQL解析器
-    - mysql的C/S协议解析器
+- mysql的SQL解析器
+- mysql的C/S协议解析器
 
 
 ## 语言需求
