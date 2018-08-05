@@ -1,106 +1,160 @@
 package protocol
 
 import (
-	"bytes"
+	"fmt"
 	"io"
 
 	"github.com/hnnyzyf/go-mysql/util/binary"
+	"github.com/hnnyzyf/go-mysql/util/math"
 	"github.com/juju/errors"
+)
+
+const (
+	OK_Packet      uint8 = 0x00
+	ERR_Packet     uint8 = 0xFF
+	EOF_Packet     uint8 = 0xFE
+	Unknown_Packet uint8 = 0xAA
 )
 
 //Packet is composed of three parts
 type Packet struct {
 	//Length of the payload.
-	//The number of bytes in the packet beyond the initial 4 bytes that make up the packet header.
-	length []byte
+	//we use uint64 to represent the length of payload,it is enough to store any length
+	//A payload is impossible to more than 18446744073709551615 bytes
+	//which is nearly 16777216TB
+	length int
 	//Sequence ID
-	sid []byte
+	sid uint8
 	//[len=payload_length] payload of the packet
-	p *binary.Payload
+	payload io.Reader
+}
+
+func NewPacket(l int, i uint8, p io.Reader) *Packet {
+	return &Packet{
+		length:  l,
+		sid:     i,
+		payload: p,
+	}
 }
 
 //ReadLength returns the length of payload
-func (p *Packet) ReadLength() uint32 {
-	return binary.ReadInt3(p.length)
+func (p *Packet) ReadLength() int {
+	return p.length
 }
 
 //ReadLength returns the id of a packet
 func (p *Packet) ReadId() uint8 {
-	return binary.ReadInt1(p.sid)
+	return p.sid
 }
 
 //ReadPayload return the payload of a packet
-func (p *Packet) ReadPayload() *binary.Payload {
-	return p.p
+func (p *Packet) ReadPayload() (*binary.Buffer, error) {
+	if b, ok := p.payload.(*binary.Buffer); !ok {
+		return nil, errors.Errorf("Protocol:Not a corret Packet!")
+	} else {
+		return b, nil
+	}
 }
 
-//ReadPacket read a packet from a io.Reader
-func ReadPacket(r io.Reader) (*Packet, error) {
+//ReadPacket read the id packet from a io.Reader
+func ReadPacket(r io.Reader, id uint8) (*Packet, error) {
 	//read the first 4 bytes
 	header := make([]byte, 4)
 	if _, err := io.ReadFull(r, header); err != nil {
 		return nil, errors.Trace(err)
 	}
 
-	//get the length of payload and the sequence id
-	length := binary.ReadInt3(header[0:3])
+	//get the length of payload
+	length, err := binary.ReadInt3(header[0:3])
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
 	if length > PayLoadMaxLen || length < 1 {
 		return nil, errors.Errorf("invalid payload length: %d", length)
 	}
 
+	//check sequenced id
+	sid, err := binary.ReadInt1(header[3:])
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+	if sid != id {
+		return nil, errors.Errorf("invalid sequence id %d,expect %d", sid, id)
+	}
+
 	//write $length bytes into the buffer
-	buffer := bytes.NewBuffer([]byte{})
-	if n, err := io.CopyN(buffer, r, int64(length)); err != nil {
+	payload := binary.NewBuffer(make([]byte, length))
+
+	if n, err := io.CopyN(payload, r, int64(length)); err != nil {
 		return nil, errors.Trace(err)
 	} else if n != int64(length) {
 		return nil, errors.Errorf("Error package")
 	} else {
 		return &Packet{
-			length: header[0:3],
-			sid:    header[3:],
-			p:      binary.NewReader(buffer.Bytes()),
+			length:  int(length),
+			sid:     sid,
+			payload: payload,
 		}, nil
 	}
 }
 
 //WritePacket write a packet into a io.Writer
-func WritePacket(w io.Writer, p *Packet) error {
-	length := p.ReadLength()
-	if length > PayLoadMaxLen || length < 1 {
-		return errors.Errorf("invalid payload length: %d", length)
+//If a packet is bigger than PayLoadMaxLen,
+//it will be splited into some small packets
+func WritePacket(w io.Writer, packet *Packet) (uint8, error) {
+	//get size and payload
+	size := packet.length
+	sid := packet.sid
+	payload := packet.payload
+
+	//alloc memroy for header
+	header := make([]byte, 4)
+
+	//while length<=0
+	for size > 0 {
+		fmt.Println("current", size)
+		//get the payload length and sid
+		length := math.MinInt(size, int(PayLoadMaxLen))
+		sid += 1
+
+		//length and header
+		if err := binary.WriteInt3(header, uint32(length)); err != nil {
+			return sid, errors.Trace(err)
+		}
+		if err := binary.WriteInt1(header[3:], sid); err != nil {
+			return sid, errors.Trace(err)
+		}
+
+		//write header
+		if n, err := w.Write(header); err != nil {
+			return sid, errors.Trace(err)
+		} else {
+			if n != 4 {
+				return sid, errors.Errorf("Fail to write 4 bytes header!")
+			}
+		}
+
+		fmt.Println("header", header)
+
+		//write payload
+		if n, err := io.CopyN(w, payload, int64(length)); err != nil {
+			return sid, errors.Trace(err)
+		} else {
+			if n != int64(length) {
+				return sid, errors.Errorf("Fail to write %d bytes payload!", length)
+			}
+		}
+
+		fmt.Println("payload", length)
+		//size and payload
+		size -= length
 	}
 
-	if p.p.Len() != int(length) {
-		return errors.Errorf("invalid payload: %d", length)
-	}
+	return sid, nil
+}
 
-	//write length
-	n, err := w.Write(p.length)
-	if err != nil {
-		return errors.Trace(err)
-	} else if n != 3 {
-		return errors.Errorf("Fail to write the length of payload,Expect 3 bytes( %d bytes)", n)
-	} else {
-		//donothing
-	}
-
-	n, err = w.Write(p.sid)
-	if err != nil {
-		return errors.Trace(err)
-	} else if n != 1 {
-		return errors.Errorf("Fail to write the sequence id!")
-	} else {
-		//donothing
-	}
-
-	n, err = w.Write(p.p.Bytes())
-	if err != nil {
-		return errors.Trace(err)
-	} else if n != int(length) {
-		return errors.Errorf("Fail to write the payload!Expect %d bytes( %d bytes)", length, n)
-	} else {
-		//donothing
-	}
-
+//CopyPacket try to use send file to copy a packet from reader to writer
+func CopyPacket(w io.Writer, r io.Reader) error {
+	//undo
 	return nil
 }

@@ -20,11 +20,13 @@ type Method interface {
 func NewMethod(name string) (Method, error) {
 	switch name {
 	case "mysql_native_password":
-		return &spa{}, nil
+		return SPA, nil
 	default:
 		return nil, errors.Errorf("Invalid authentication method:%s", name)
 	}
 }
+
+var SPA = &spa{}
 
 //Represent the mysql_native_password method
 //using a tested, crypto-graphic hashing function which isn't broken
