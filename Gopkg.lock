@@ -26,7 +26,7 @@
   version = "v0.1.0"
 
 [[projects]]
-  digest = "1:d862b5c2dcdb1cd2b1bfa768123550d15cb34cf4121af658c090ce50eac2d5b1"
+  digest = "1:44c631134380c5fbe7378bf8bfe49c1e703ded0f4beb1726fc29bc56b4f9b147"
   name = "golang.org/x/text"
   packages = [
     "encoding",
@@ -38,6 +38,7 @@
     "encoding/simplifiedchinese",
     "encoding/traditionalchinese",
     "encoding/unicode",
+    "encoding/unicode/utf32",
     "internal/gen",
     "internal/utf8internal",
     "runes",
@@ -68,6 +69,7 @@
     "golang.org/x/text/encoding/simplifiedchinese",
     "golang.org/x/text/encoding/traditionalchinese",
     "golang.org/x/text/encoding/unicode",
+    "golang.org/x/text/encoding/unicode/utf32",
     "gopkg.in/check.v1",
   ]
   solver-name = "gps-cdcl"
