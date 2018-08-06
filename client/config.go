@@ -4,6 +4,7 @@ import (
 	"time"
 	
 	"github.com/hnnyzyf/go-mysql/protocol"
+	"github.com/hnnyzyf/go-mysql/util/character"
 )
 
 var DefaultConfig = &Config{
@@ -38,7 +39,7 @@ type Config struct {
 	autoCommit bool
 
 	//charset 
-	character uint8
+	charset *character.Charset
 
 	//Default SQL_MODE to use
 	sqlMode uint8
