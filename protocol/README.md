@@ -1,57 +1,41 @@
-# MySql的协议声明
+# Mysql 协议说明
 
-Protocol包主要实现的是mysql的的连接协议
+Mysql 协议主要实现了通信的基本操作和信息，包括如下内容:
+- 读取packet
+- 写入packet
+- 验证方法
+- 连接参数
 
-## 介绍
+## Packet的处理
 
-Mysql的协议主要实现了如下两个过程:
-    
-- Connection Phase
-- Command Phase
+### ReadPacket方法
 
-### 连接阶段
+ReadPacket主要实现了读取packet的方法，函数原型为:
 
-连接阶段 主要有两种方式
+```
+func ReadPacket(r io.Reader, id uint8) (*Packet, error)
 
-- Plain HandShake
+```
 
-![](image/plain_shake.png)
+### WritePacket方法
 
-- SSL Handshake
+WirtePacket主要实现了写入packet的方法，会自动根据pyaload的长度确定是否要拆分成更小的packet,函数原型为:
 
-### 命令阶段
+```
+func WritePacket(w io.Writer, packet *Packet) (uint8, error)
 
-HEX | Constant Name
----|---
-00|COM_SLEEP
-01|COM_QUIT
-02|COM_INIT_DB
-03|COM_QUERY
-04|COM_FIELD_LIST
-05|COM_CREATE_DB
-06|COM_DROP_DB
-07|COM_REFRESH
-08|COM_SHUTDOWN
-09|COM_STATISTICS
-0a|COM_PROCESS_INFO
-0b|COM_CONNECT
-0c|COM_PROCESS_KILL
-0d|COM_DEBUG
-0e|COM_PING
-0f|COM_TIME
-10|COM_DELAYED_INSERT
-11|COM_CHANGE_USER
-12|COM_BINLOG_DUMP
-13|COM_TABLE_DUMP
-14|COM_CONNECT_OUT
-15|COM_REGISTER_SLAVE
-16|COM_STMT_PREPARE
-17|COM_STMT_EXECUTE
-18|COM_STMT_SEND_LONG_DATA
-19|COM_STMT_CLOSE
-1a|COM_STMT_RESET
-1b|COM_SET_OPTION
-1c|COM_STMT_FETCH
-1d|COM_DAEMON
-1e|COM_BIN
-1f|COM_RESET_CONNECTION
+```
+
+## 验证方法
+
+提供了两种基本的验证方法:
+- mysql_native_password
+- ssl
+
+## 连接参数
+
+提供了如下连接参数的设置:
+
+- Capability 
+- Com
+- Statu Flag
