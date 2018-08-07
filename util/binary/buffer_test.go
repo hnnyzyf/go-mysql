@@ -107,3 +107,16 @@ func (s *MyPayloadSuite) TestReadStringWithNull(c *C) {
 	c.Assert(string(st), Equals, res)
 
 }
+
+
+func (s *MyPayloadSuite) TestLengthEncodeInteger(c *C) {
+	b := []byte{230, 136, 145, 228, 187, 172, 229, 129, 154, 228, 184, 170, 230, 181, 139, 232, 175, 149, 0}
+	p := NewBuffer(b)
+
+	res := "我们做个测试"
+	st, err := p.ReadStringWithNull()
+	c.Assert(err, Equals, nil)
+
+	c.Assert(string(st), Equals, res)
+
+}

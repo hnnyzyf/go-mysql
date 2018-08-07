@@ -218,6 +218,23 @@ func StoreInt8(val uint64) []byte {
 	return b
 }
 
+//LengthOfInteger return the length of a length encode integer
+func LengthOfInteger(val uint64) int {
+	switch val; {
+	case val < 0xfb:
+		return 1
+	case val < 0x10000:
+		return 3
+	case val < 0x1000000:
+		return 3
+	case val <= 0xFFFFFFFFFFFFFFFF:
+		return 9
+	default:
+		panic("Invaid LengthEncodedInteger flag!")
+	}
+	return -1
+}
+
 //Buffer represent a buffer in a packet
 type Buffer struct {
 	b   []byte
@@ -321,7 +338,9 @@ func (p *Buffer) ReadLengthEncodedInteger() (int, uint64, error) {
 	if p.IsEOF() {
 		return -1, 0, errEOF
 	}
-	switch i := p.b[p.off]; {
+	i := p.b[p.off]
+	p.off++
+	switch i; {
 	case i < 0xfb:
 		val, err := p.ReadInt1()
 		return 1, uint64(val), err
@@ -333,7 +352,7 @@ func (p *Buffer) ReadLengthEncodedInteger() (int, uint64, error) {
 		return 3, uint64(val), err
 	case i == 0xfe:
 		val, err := p.ReadInt8()
-		return 8, val, err
+		return 9, val, err
 	default:
 		panic("Invaid LengthEncodedInteger flag!")
 	}
@@ -438,4 +457,28 @@ func (p *Buffer) WriteStringWithFixLen(str []byte) error {
 	_ = copy(p.b[p.off:], str)
 	p.off += len(str)
 	return nil
+}
+
+//WriteLengthEncodedInteger write undetermined length integer
+func (p *Buffer) WriteLengthEncodedInteger(val uint64) (int, error) {
+	switch val; {
+	case val < 0xfb:
+		err := p.WriteInt1(uint8(val))
+		return 1, err
+	case val < 0x10000:
+		_ = p.WriteInt(0xfc)
+		err := p.WriteInt2(uint16(val))
+		return 3, err
+	case val < 0x1000000:
+		_ = p.WriteInt(0xfd)
+		err := p.WriteInt3(uint32(val))
+		return 3, err
+	case val <= 0xFFFFFFFFFFFFFFFF:
+		_ = p.WriteInt(0xfe)
+		err := p.WriteInt8(val)
+		return 9, err
+	default:
+		panic("Invaid LengthEncodedInteger flag!")
+	}
+	return -1, nil
 }
