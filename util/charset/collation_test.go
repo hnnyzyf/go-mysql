@@ -14,9 +14,20 @@ type MyCollationSuite struct{}
 var _ = Suite(&MyCollationSuite{})
 
 func (s *MyCollationSuite) TestCollation(c *C) {
-	var i uint8 = 1
-	for k, v := range collation {
-		c.Assert(k, Equals, i)
-		i++
+	data := []uint8{
+		0x21,
 	}
+
+	res := []Collation{
+		{"utf8_general_ci", 0x21, "utf8", true},
+	}
+
+	for i := range data {
+		x := collations[data[i]]
+		c.Assert(x.Name, Equals, res[i].Name)
+		c.Assert(x.ID, Equals, res[i].ID)
+		c.Assert(x.Charset, Equals, res[i].Charset)
+		c.Assert(x.IsDefault, Equals, res[i].IsDefault)
+	}
+
 }

@@ -6,7 +6,7 @@ type Collation struct {
 	Name string
 
 	//the code of collation
-	Id uint8
+	ID uint8
 
 	//the belonging of current collation
 	Charset string
@@ -17,23 +17,24 @@ type Collation struct {
 
 //the mysql collations
 var collations = []*Collation{
-	{"big5_chinese_ci", 0x1, "big5", true},
-	{"latin2_czech_cs", 0x2, "latin2", false},
-	{"dec8_swedish_ci", 0x3, "dec8", true},
-	{"cp850_general_ci", 0x4, "cp850", true},
-	{"latin1_german1_ci", 0x5, "latin1", false},
-	{"hp8_english_ci", 0x6, "hp8", true},
-	{"koi8r_general_ci", 0x7, "koi8r", true},
-	{"latin1_swedish_ci", 0x8, "latin1", true},
-	{"latin2_general_ci", 0x9, "latin2", true},
-	{"swe7_swedish_ci", 0xA, "swe7", true},
-	{"ascii_general_ci", 0xB, "ascii", true},
-	{"ujis_japanese_ci", 0xC, "ujis", true},
-	{"sjis_japanese_ci", 0xD, "sjis", true},
-	{"cp1251_bulgarian_ci", 0xE, "cp1251", false},
-	{"latin1_danish_ci", 0xF, "latin1", false},
+	{"unknow00_general_ci", 0x00, "unknown", true},
+	{"big5_chinese_ci", 0x01, "big5", true},
+	{"latin2_czech_cs", 0x02, "latin2", false},
+	{"dec8_swedish_ci", 0x03, "dec8", true},
+	{"cp850_general_ci", 0x04, "cp850", true},
+	{"latin1_german1_ci", 0x05, "latin1", false},
+	{"hp8_english_ci", 0x06, "hp8", true},
+	{"koi8r_general_ci", 0x07, "koi8r", true},
+	{"latin1_swedish_ci", 0x08, "latin1", true},
+	{"latin2_general_ci", 0x09, "latin2", true},
+	{"swe7_swedish_ci", 0x0A, "swe7", true},
+	{"ascii_general_ci", 0x0B, "ascii", true},
+	{"ujis_japanese_ci", 0x0C, "ujis", true},
+	{"sjis_japanese_ci", 0x0D, "sjis", true},
+	{"cp1251_bulgarian_ci", 0x0E, "cp1251", false},
+	{"latin1_danish_ci", 0x0F, "latin1", false},
 	{"hebrew_general_ci", 0x10, "hebrew", true},
-	{"unknow_general_ci", 0x11, "unknown", true},
+	{"unknow17_general_ci", 0x11, "unknown", false},
 	{"tis620_thai_ci", 0x12, "tis620", true},
 	{"euckr_korean_ci", 0x13, "euckr", true},
 	{"latin7_estonian_cs", 0x14, "latin7", false},
