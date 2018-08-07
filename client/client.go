@@ -1,23 +1,26 @@
 package client
 
 import (
+	"crypto/tls"
 	"net"
 
 	"github.com/hnnyzyf/go-mysql/protocol"
 	"github.com/hnnyzyf/go-mysql/util/binary"
+	"github.com/hnnyzyf/go-mysql/util/charset"
 	"github.com/hnnyzyf/go-mysql/util/hack"
 	"github.com/hnnyzyf/go-mysql/util/math"
 	"github.com/juju/errors"
+	"golang.org/x/text/encoding"
 )
 
-var errHandShake10 = errors.Errorf("Client：Not a valid HandShake10 packets")
-var errResponsePacket = errors.Errorf("Client:Not a valid response Packet")
-var errERRPacket = errors.Errorf("Client:Not a valid Err packet")
+var errHandShake10 = errors.Errorf("Client:not a valid HandShake10 packets")
+var errResponsePacket = errors.Errorf("Client:not a valid response Packet")
+var errERRPacket = errors.Errorf("Client:not a valid Err packet")
 
 //session represent a connection to server from client
 type session struct {
-	//the real conn to server
-	c *net.TCPConn
+	//the real conn to server,the
+	conn net.Conn
 
 	//connection inforamtion
 	username string
@@ -31,52 +34,57 @@ type session struct {
 	//It starts at 0 and is reset to 0 when a new command begins in the Command Phase.
 	sid uint8
 
-	//auth represent the authentication method
-	method protocol.Method
+	////capabilities flag use in client
+	capabilities uint32
 
 	//20-bytes random data from serve
 	authPluginData []byte
 
-	//the name of authentication method()
-	pluginName []byte
+	//authentication method
+	authMethod protocol.Method
 
-	//The capability flags are used by the client and server
-	//to indicate which features they support and want to use.
-	capabilities uint32
-
-	//the character of server
-	character uint8
+	//charset
+	charset uint8
+	//charset method
+	charMethod encoding.Encoding
 }
 
-//Connect create a tcp connection to server
-func Connect(host string, user string, passwd string, db string, cfg *Config) (*session, error) {
-	//the client connecting to the server
-	raddr, err := net.ResolveTCPAddr("tcp", host)
+//connect create a tcp connection to server
+func connect(host string, user string, passwd string, db string, cfg *Config) (*session, error) {
+	//the client connecting to the server with timeout
+	conn, err := net.DialTimeout("tcp", host, cfg.Timeout)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
 
-	//connect to raddr
-	c, err := net.DialTCP("tcp", nil, raddr)
-	if err != nil {
-		return nil, errors.Trace(err)
-	}
-
-	conn := &session{
-		c:        c,
+	//init session
+	s := &session{
+		conn:     conn,
 		username: user,
 		password: passwd,
 		database: db,
 		cfg:      cfg,
 	}
 
+	//init configuration
+	if err := s.init(); err != nil {
+		return errors.Trace(err)
+	}
+
 	//the server responds with the Initial Handshake Packet
-	if err = conn.ReadHandshakeV10(); err != nil {
+	if err = s.readHandShakeV10(); err != nil {
 		return nil, errors.Trace(err)
 	}
 
+	if cfg.IsSSL {
+		//the client use ssl to sends the SSL Request Packet
+		if err = s.writeSSLRequeset(); err != nil {
+			return nil, errors.Trace(err)
+		}
+	}
+
 	//the client sends the Handshake Response Packet
-	if err = conn.WriteHandshakeResponse41(); err != nil {
+	if err = s.writeHandshakeResponse41(); err != nil {
 		return nil, errors.Trace(err)
 	}
 
@@ -84,7 +92,7 @@ func Connect(host string, user string, passwd string, db string, cfg *Config) (*
 	// 		OK-packet:return success
 	//		ERR-packet:return false
 	//		EOF-packet:return false
-	packet, header, err := conn.ReadResponsePacket()
+	packet, header, err := s.readResponsePacket()
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -92,7 +100,7 @@ func Connect(host string, user string, passwd string, db string, cfg *Config) (*
 	//check response packet
 	switch header {
 	case protocol.OK_Packet:
-		return conn, nil
+		return s, nil
 	case protocol.ERR_Packet:
 		if errMsg, err := parseErrPacket(packet); err != nil {
 			return nil, errors.Trace(err)
@@ -100,17 +108,66 @@ func Connect(host string, user string, passwd string, db string, cfg *Config) (*
 			return nil, errors.Errorf(errMsg.msg)
 		}
 	default:
-		return nil, errors.Errorf("Fail to accept correct generic response packet from server!")
+		return nil, errors.Errorf("Client:fail to accept correct generic response packet from server!")
 	}
 
-	return conn, nil
-
+	return s, nil
 }
 
-//ReadHandshakeV10 Read the init handshake packet
-func (s *session) ReadHandshakeV10() error {
+//Connect is a wrapper of connect
+func Connect(host string, user string, passwd string, db string) (*session, error) {
+	return connect(host, user, passwd, db, defaultConfig)
+}
+
+//ConnectWithConfig is a wrapper of connect
+func ConnectWithConfig(host string, user string, passwd string, db string, cfg *Config) (*session, error) {
+	return connect(host, user, passwd, db, cfg)
+}
+
+//init read configuration from config
+func (s *session) init() error {
+	cfg := s.cfg
+
+	//set capabilities
+	s.capabilities = cfg.Capabilities
+	if len(database) == 0 {
+		s.capabilities = s.capabilities & (^protocol.CLIENT_CONNECT_WITH_DB)
+	}
+
+	//set the authmethod and configuration
+	pluginName := protocol.DefaultPluginName
+	if cfg.IsSSL {
+		pluginName = protocol.SSL
+		s.capabilities = s.capabilities & protocol.CLIENT_SSL
+	}
+	if cfg.IsSSL && cfg.TlsConfig == nil {
+		return errors.Errorf("Client:Not provide tls configuraions.")
+	}
+	if method, err := protocol.GetMethod(pluginName); err != nil {
+		return errors.Trace(err)
+	} else {
+		s.authMethod = method
+	}
+
+	//set charset
+	if method, err := charset.GetMethod(cfg.Charset); err != nil {
+		return errors.Trace(err)
+	} else {
+		s.charMethod = method
+	}
+	if id, err := charset.GetID(cfg.Charset); err != nil {
+		return errors.Trace(err)
+	} else {
+		s.charset = id
+	}
+
+	return nil
+}
+
+//readHandShakeV10 Read the init handshake packet
+func (s *session) readHandShakeV10() error {
 	//Get packet from conn
-	packet, err := protocol.ReadPacket(s.c, s.sid)
+	packet, err := protocol.ReadPacket(s.conn, s.sid)
 	if err != nil {
 		return errors.Trace(err)
 	}
@@ -122,11 +179,11 @@ func (s *session) ReadHandshakeV10() error {
 	}
 
 	//read protocol version 1 bytes
-	if protocol_version, err := payload.ReadInt1(); err != nil {
+	if protocolVersion, err := payload.ReadInt1(); err != nil {
 		return errHandShake10
 	} else {
-		if protocol_version != 0x0a {
-			return errors.Errorf("Client:invalid protocol version: %d ", protocol_version)
+		if testProtocolVersion(protocolVersion) {
+			return errors.Errorf("Client:not a valid protocol version: %d ", protocolVersion)
 		}
 	}
 	//read server version string.null
@@ -162,7 +219,7 @@ func (s *session) ReadHandshakeV10() error {
 	}
 
 	//read character set 1 bytes
-	s.character, err = payload.ReadInt1()
+	_, err = payload.ReadInt1()
 	if err != nil {
 		return errHandShake10
 	}
@@ -179,16 +236,20 @@ func (s *session) ReadHandshakeV10() error {
 
 	//set Capabilities (4 bytes)
 	s.capabilities = uint32(uflag)<<16 | uint32(lflag)
-	if s.capabilities&protocol.CLIENT_PLUGIN_AUTH == 0 {
-		return errors.Errorf("Server does not support CLIENT_PLUGIN_AUTH!")
+	if testPluginAuth(s.capabilities) {
+		return errors.Errorf("Client:server does not support CLIENT_PLUGIN_AUTH!")
 	}
 
-	if s.capabilities&protocol.CLIENT_PROTOCOL_41 == 0 {
-		return errors.Errorf("The server seems too old and does not support CLIENT_PROTOCOL_41!")
+	if testProtocol41(s.capabilities) {
+		return errors.Errorf("Client:the server seems too old and does not support CLIENT_PROTOCOL_41!")
 	}
 
-	if s.capabilities&protocol.CLIENT_SECURE_CONNECTION == 0 {
-		return errors.Errorf("The server does not support CLIENT_SECURE_CONNECTION!")
+	if testSecureConnection(s.capabilities) {
+		return errors.Errorf("Client:the server does not support CLIENT_SECURE_CONNECTION!")
+	}
+
+	if cfg.IsSSL && !testSSL(s.capabilities) {
+		return errors.Errorf("Client:the server does not support SSL authentication method!")
 	}
 
 	//length of auth-plugin-data 1bytes
@@ -222,27 +283,55 @@ func (s *session) ReadHandshakeV10() error {
 	}
 
 	//read pluginName and create authentication method
-	s.pluginName, err = payload.ReadStringWithNull()
+	_, err = payload.ReadStringWithNull()
 	if err != nil {
 		return errHandShake10
 	}
 
-	method, err := protocol.NewMethod(hack.String(s.pluginName))
-	if err != nil {
-		return errors.Trace(err)
-	}
-	s.method = method
-
 	return nil
 }
 
+//writeSSLRequeset create ssl communication to server
+func (s *session) writeSSLRequeset() error {
+	length := 4 + 4 + 1 + 23
+
+	//create a payload
+	payload := binary.NewBuffer(make([]byte, length))
+
+	//write capability
+	if err := payload.WriteInt4(s.capabilities); err != nil {
+		return errors.Trace(err)
+	}
+
+	//write max_packet size
+	if err := payload.WriteInt4(protocol.PayLoadMaxLen); err != nil {
+		return errors.Trace(err)
+	}
+
+	//write chracter set
+	if err := payload.WriteInt1(s.charset); err != nil {
+		return errors.Trace(err)
+	}
+
+	//create packet
+	packet := protocol.NewPacket(length, s.sid, payload)
+
+	//write packet
+	sid, err := protocol.WritePacket(s.conn, packet)
+	if err != nil {
+		return errors.Trace(err)
+	}
+
+	//replace the origin connection to ssl connection
+	s.conn = tls.Client(s.conn, s.cfg.tlsConfig)
+}
+
 //https://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::SSLRequest
-//WriteHandshakeResponse41 return a HandshakeResponse to server
-func (s *session) WriteHandshakeResponse41() error {
+//writeHandshakeResponse41 return a HandshakeResponse to server
+func (s *session) writeHandshakeResponse41() error {
 	//write a header four bytes
 	length := 0
 	//add capabilities
-	capabilities := protocol.DefaultClientCapabilities | protocol.CLIENT_PLUGIN_AUTH
 	length += 4
 
 	//set max-packet size character set  reserved (all [0])
@@ -252,17 +341,15 @@ func (s *session) WriteHandshakeResponse41() error {
 	length += len(s.username) + 1
 
 	//calculate auth-response
-	ciphertext := s.method.EncodeKey(s.authPluginData, s.password)
-
+	ciphertext := s.authMethod.EncodeKey(s.authPluginData, s.password)
 	if len(ciphertext) != 20 {
-		return errors.Errorf("invalid scrambled password,looking forward 20 bytes instead of %d bytes", len(ciphertext))
+		return errors.Errorf("Client:invalid scrambled password,looking forward 20 bytes instead of %d bytes", len(ciphertext))
+	}
+	if !testLenencData(s.capabilities){
+		length += 
 	}
 	length += 1 + 20
 
-	//database
-	if len(s.database) != 0 {
-		capabilities = capabilities & (^protocol.CLIENT_CONNECT_WITH_DB)
-	}
 	length += len(s.database) + 1
 
 	//auth plugin name
@@ -277,12 +364,12 @@ func (s *session) WriteHandshakeResponse41() error {
 	}
 
 	//max-packet size
-	if err := payload.WriteZero(4); err != nil {
+	if err := payload.WriteZero(protocol.PayLoadMaxLen); err != nil {
 		return errors.Trace(err)
 	}
 
 	//character set
-	if err := payload.WriteInt1(protocol.DefaultCharacter); err != nil {
+	if err := payload.WriteInt1(s.charset); err != nil {
 		return errors.Trace(err)
 	}
 
@@ -326,7 +413,7 @@ func (s *session) WriteHandshakeResponse41() error {
 	packet := protocol.NewPacket(length, s.sid, payload)
 
 	//write packet
-	sid, err := protocol.WritePacket(s.c, packet)
+	sid, err := protocol.WritePacket(s.conn, packet)
 	if err != nil {
 		return errors.Trace(err)
 	}
@@ -337,10 +424,10 @@ func (s *session) WriteHandshakeResponse41() error {
 	return nil
 }
 
-//ReadResponsePacket implements to read generic response packet
-func (s *session) ReadResponsePacket() (*protocol.Packet, uint8, error) {
+//readResponsePacket implements to read generic response packet
+func (s *session) readResponsePacket() (*protocol.Packet, uint8, error) {
 	//Get packet from conn
-	packet, err := protocol.ReadPacket(s.c, s.sid)
+	packet, err := protocol.ReadPacket(s.conn, s.sid)
 	if err != nil {
 		return nil, protocol.Unknown_Packet, errors.Trace(err)
 	}
