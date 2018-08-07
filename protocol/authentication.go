@@ -17,10 +17,12 @@ type Method interface {
 }
 
 //Create a authentication method
-func NewMethod(name string) (Method, error) {
+func GetMethod(name uint8) (Method, error) {
 	switch name {
-	case "mysql_native_password":
+	case mysql_native_password:
 		return SPA, nil
+	case ssl:
+		return nil,nil 
 	default:
 		return nil, errors.Errorf("Invalid authentication method:%s", name)
 	}

@@ -35,7 +35,7 @@ var _ = Suite(&MyAuthSuite{})
 //    res=encode(s,passwd)
 //    print [ord(j) for j in list(res)]
 func (s *MyAuthSuite) TestSPA(c *C) {
-	m, err := NewMethod("mysql_native_password")
+	m, err := GetMethod(mysql_native_password)
 	if err != nil {
 		c.Error(err)
 	}
