@@ -15,6 +15,9 @@ type Method interface {
 
 	//The client use this method to create a response inforamtion
 	EncodeKey([]byte, string) []byte
+
+	//Name return the name of plugin name
+	Name() string
 }
 
 var SPA = &securePassword{}
@@ -72,6 +75,10 @@ func (a *oldPassword) EncodeKey(scramble []byte, passwd string) []byte {
 	return r
 }
 
+func (a *oldPassword) Name() string{
+	return "mysql_old_password"
+}
+
 //Represent the mysql_native_password method
 //using a tested, crypto-graphic hashing function which isn't broken
 //knowning the content of the hash in the mysql.user table isn't enough to authenticate against the MySQL Server.
@@ -111,6 +118,10 @@ func (a *securePassword) EncodeKey(scramble []byte, passwd string) []byte {
 	return hash3
 }
 
+func (a *securePassword) Name() string{
+	return "mysql_native_password"
+}
+
 //Reprensent the mysql_clear_password method
 //https://dev.mysql.com/doc/internals/en/clear-text-authentication.html
 type clearPassword struct{}
@@ -123,6 +134,11 @@ func (a *clearPassword) EncodeKey(scramble []byte, passwd string) []byte {
 	return hack.Slice(passwd)
 }
 
+func (a *clearPassword) Name() string{
+	return "mysql_clear_password"
+}
+
+
 //Reprensent the sha256_password method
 //https://dev.mysql.com/doc/internals/en/sha256.html
 type sha256Password struct{}
@@ -133,4 +149,8 @@ func (a *sha256Password) CreateKey() []byte {
 
 func (a *sha256Password) EncodeKey(scramble []byte, passwd string) []byte {
 	return hack.Slice(passwd)
+}
+
+func (a *sha256Password) Name() string{
+	return "sha256_password"
 }

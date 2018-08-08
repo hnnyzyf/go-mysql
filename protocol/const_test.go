@@ -68,30 +68,3 @@ func (s *MyConstSuite) TestClientConst(c *C) {
 		c.Assert(data[i], Equals, res[i])
 	}
 }
-
-//func (s *MyConstSuite) TestClientAllConst(c *C) {
-//	data := []uint32{
-//		CLIENT_ALL_FLAGS,
-//		CLIENT_SSL,
-//		^(CLIENT_SSL),
-//		CLIENT_COMPRESS,
-//		^(CLIENT_COMPRESS),
-//		CLIENT_SSL_VERIFY_SERVER_CERT,
-//		^(CLIENT_SSL_VERIFY_SERVER_CERT),
-//		CLIENT_BASIC_FLAGS,
-//	}
-//	res := []uint32{
-//		0xc07FFFFF,
-//		0x800,
-//		0xFFFFF7FF,
-//		0x20,
-//		0xFFFFFFdF,
-//		0x40000000,
-//		0xBFFFFFFF,
-//		0x807FF7DF,
-//	}
-//
-//	for i := range res {
-//		c.Assert(data[i], Equals, res[i])
-//	}
-//}

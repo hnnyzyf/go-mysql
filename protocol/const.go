@@ -313,8 +313,3 @@ const (
 	Utf8mb4_unicode_520_ci   uint8 = 0xEA
 	Utf8mb4_vietnamese_ci    uint8 = 0xE1
 )
-
-const (
-	mysql_native_password uint8 = 0x01
-	ssl                   uint8 = 0x02
-)

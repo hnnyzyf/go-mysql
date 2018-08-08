@@ -94,7 +94,7 @@ func GetID(name string) (uint8, error) {
 	charset := strings.ToLower(strings.Trim(name, "\t\n\r\f "))
 	n, ok := charsets[charset]
 	if !ok {
-		return nil, errors.Errorf("Charset:Invalid charset name:%d", charset)
+		return 0, errors.Errorf("Charset:Invalid charset name:%d", charset)
 	}
 
 	return n.ID, nil
