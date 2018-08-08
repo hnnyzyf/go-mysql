@@ -26,7 +26,7 @@ func (s *MyClientSuite) init() error {
 		return err
 	}
 	s.conn = &session{
-		c:        c,
+		conn:     c,
 		username: "test",
 		password: "123456",
 		database: "test",
@@ -36,13 +36,13 @@ func (s *MyClientSuite) init() error {
 
 var _ = Suite(&MyClientSuite{})
 
-func (s *MyClientSuite) TestReadHandshakeV10(c *C) {
+func (s *MyClientSuite) TestConnect(c *C) {
 	err := s.init()
 	if err != nil {
 		c.Error(err)
 	}
 	defer s.conn.Close()
-	err = s.conn.ReadHandshakeV10()
+	err = s.conn.readHandShakeV10()
 	if err != nil {
 		c.Error(err)
 	}

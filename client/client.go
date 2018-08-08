@@ -2,6 +2,7 @@ package client
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net"
 
 	"github.com/hnnyzyf/go-mysql/protocol"
@@ -28,13 +29,13 @@ type session struct {
 	database string
 
 	//some options
-	cfg *Config
+	cfg *config
 
 	//The sequence-id is incremented with each packet and may wrap around.
 	//It starts at 0 and is reset to 0 when a new command begins in the Command Phase.
 	sid uint8
 
-	////capabilities flag use in client
+	//capabilities flag use in client
 	capabilities uint32
 
 	//20-bytes random data from serve
@@ -46,13 +47,14 @@ type session struct {
 	//charset
 	charset uint8
 	//charset method
-	charMethod encoding.Encoding
+	decoder *encoding.Decoder
+	encoder *encoding.Encoder
 }
 
 //connect create a tcp connection to server
-func connect(host string, user string, passwd string, db string, cfg *Config) (*session, error) {
+func connect(host string, user string, passwd string, db string, cfg *config) (*session, error) {
 	//the client connecting to the server with timeout
-	conn, err := net.DialTimeout("tcp", host, cfg.Timeout)
+	conn, err := net.DialTimeout("tcp", host, cfg.timeout)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -68,7 +70,7 @@ func connect(host string, user string, passwd string, db string, cfg *Config) (*
 
 	//init configuration
 	if err := s.init(); err != nil {
-		return errors.Trace(err)
+		return nil, errors.Trace(err)
 	}
 
 	//the server responds with the Initial Handshake Packet
@@ -76,7 +78,7 @@ func connect(host string, user string, passwd string, db string, cfg *Config) (*
 		return nil, errors.Trace(err)
 	}
 
-	if cfg.IsSSL {
+	if cfg.isSSL {
 		//the client use ssl to sends the SSL Request Packet
 		if err = s.writeSSLRequeset(); err != nil {
 			return nil, errors.Trace(err)
@@ -120,7 +122,7 @@ func Connect(host string, user string, passwd string, db string) (*session, erro
 }
 
 //ConnectWithConfig is a wrapper of connect
-func ConnectWithConfig(host string, user string, passwd string, db string, cfg *Config) (*session, error) {
+func ConnectWithConfig(host string, user string, passwd string, db string, cfg *config) (*session, error) {
 	return connect(host, user, passwd, db, cfg)
 }
 
@@ -129,33 +131,35 @@ func (s *session) init() error {
 	cfg := s.cfg
 
 	//set capabilities
-	s.capabilities = cfg.Capabilities
-	if len(database) == 0 {
-		s.capabilities = s.capabilities & (^protocol.CLIENT_CONNECT_WITH_DB)
+	s.capabilities = cfg.capabilities | protocol.CLIENT_CONNECT_ATTRS
+
+	if len(s.database) == 0 {
+		s.capabilities &= (^protocol.CLIENT_CONNECT_WITH_DB)
 	}
 
-	//set the authmethod and configuration
-	pluginName := protocol.DefaultPluginName
-	if cfg.IsSSL {
-		pluginName = protocol.SSL
-		s.capabilities = s.capabilities & protocol.CLIENT_SSL
+	if cfg.isSSL {
+		s.capabilities |= protocol.CLIENT_SSL
 	}
-	if cfg.IsSSL && cfg.TlsConfig == nil {
+
+	if cfg.mutilStatement {
+		s.capabilities |= protocol.CLIENT_MULTI_STATEMENTS
+	}
+
+	//test ssl
+	if cfg.isSSL && cfg.tlsConfig == nil {
 		return errors.Errorf("Client:Not provide tls configuraions.")
 	}
-	if method, err := protocol.GetMethod(pluginName); err != nil {
+
+	//set charset method
+	if method, err := charset.GetMethod(cfg.charset); err != nil {
 		return errors.Trace(err)
 	} else {
-		s.authMethod = method
+		s.decoder = method.NewDecoder()
+		s.encoder = method.NewEncoder()
 	}
 
-	//set charset
-	if method, err := charset.GetMethod(cfg.Charset); err != nil {
-		return errors.Trace(err)
-	} else {
-		s.charMethod = method
-	}
-	if id, err := charset.GetID(cfg.Charset); err != nil {
+	//set charset id
+	if id, err := charset.GetID(cfg.charset); err != nil {
 		return errors.Trace(err)
 	} else {
 		s.charset = id
@@ -182,7 +186,7 @@ func (s *session) readHandShakeV10() error {
 	if protocolVersion, err := payload.ReadInt1(); err != nil {
 		return errHandShake10
 	} else {
-		if testProtocolVersion(protocolVersion) {
+		if !testProtocolVersion(protocolVersion) {
 			return errors.Errorf("Client:not a valid protocol version: %d ", protocolVersion)
 		}
 	}
@@ -223,7 +227,8 @@ func (s *session) readHandShakeV10() error {
 	if err != nil {
 		return errHandShake10
 	}
-	//read status
+
+	//read status flag
 	if _, err := payload.ReadInt2(); err != nil {
 		return errHandShake10
 	}
@@ -235,22 +240,26 @@ func (s *session) readHandShakeV10() error {
 	}
 
 	//set Capabilities (4 bytes)
-	s.capabilities = uint32(uflag)<<16 | uint32(lflag)
-	if testPluginAuth(s.capabilities) {
-		return errors.Errorf("Client:server does not support CLIENT_PLUGIN_AUTH!")
+	capabilities := uint32(uflag)<<16 | uint32(lflag)
+	if !testPluginAuth(capabilities) {
+		return errors.Errorf("Client:the server does not support CLIENT_PLUGIN_AUTH!")
 	}
 
-	if testProtocol41(s.capabilities) {
+	if !testProtocol41(capabilities) {
 		return errors.Errorf("Client:the server seems too old and does not support CLIENT_PROTOCOL_41!")
 	}
 
-	if testSecureConnection(s.capabilities) {
+	if !testSecureConnection(capabilities) {
 		return errors.Errorf("Client:the server does not support CLIENT_SECURE_CONNECTION!")
 	}
 
-	if cfg.IsSSL && !testSSL(s.capabilities) {
-		return errors.Errorf("Client:the server does not support SSL authentication method!")
+	if s.cfg.isSSL && !testSSL(capabilities) {
+		return errors.Errorf("Client:the server does not support SSL connection!")
 	}
+
+	//The client should only announce the capabilities
+	//in the Handshake Response Packet that it has in common with the server.
+	s.capabilities &= capabilities
 
 	//length of auth-plugin-data 1bytes
 	authPluginDataLen, err := payload.ReadInt1()
@@ -282,10 +291,16 @@ func (s *session) readHandShakeV10() error {
 		return errHandShake10
 	}
 
-	//read pluginName and create authentication method
-	_, err = payload.ReadStringWithNull()
+	//read pluginName and set authentication method
+	pluginName, err := payload.ReadStringWithNull()
 	if err != nil {
 		return errHandShake10
+	}
+
+	if method, err := protocol.GetMethod(hack.String(pluginName)); err != nil {
+		return errors.Trace(err)
+	} else {
+		s.authMethod = method
 	}
 
 	return nil
@@ -322,8 +337,12 @@ func (s *session) writeSSLRequeset() error {
 		return errors.Trace(err)
 	}
 
+	s.sid = sid
+
 	//replace the origin connection to ssl connection
 	s.conn = tls.Client(s.conn, s.cfg.tlsConfig)
+
+	return nil
 }
 
 //https://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::SSLRequest
@@ -337,34 +356,68 @@ func (s *session) writeHandshakeResponse41() error {
 	//set max-packet size character set  reserved (all [0])
 	length += 4 + 1 + 23
 
-	//username+0x0
-	length += len(s.username) + 1
+	//username+0x0 and 	//convert database from utf8 to the charset
+	var username []byte
+	if name, err := s.decoder.Bytes(hack.Slice(s.username)); err != nil {
+		return errors.Trace(err)
+	} else {
+		username = name
+	}
+	length += len(username) + 1
 
 	//calculate auth-response
-	ciphertext := s.authMethod.EncodeKey(s.authPluginData, s.password)
-	if len(ciphertext) != 20 {
-		return errors.Errorf("Client:invalid scrambled password,looking forward 20 bytes instead of %d bytes", len(ciphertext))
+	password := s.authMethod.EncodeKey(s.authPluginData, s.password)
+	length += len(password)
+	if testLenencData(s.capabilities) {
+		length += binary.LengthOfInteger(uint64(len(password)))
+	} else if testSecureConnection(s.capabilities) {
+		length += 1
+	} else {
+		length += 1
 	}
-	if !testLenencData(s.capabilities){
-		length += 
-	}
-	length += 1 + 20
 
-	length += len(s.database) + 1
+	//set database name
+	var database []byte
+	if testConnectWithDB(s.capabilities) {
+		//convert database from utf8 to the charset
+		if db, err := s.decoder.Bytes(hack.Slice(s.database)); err != nil {
+			return errors.Trace(err)
+		} else {
+			database = db
+		}
+		length += len(database) + 1
+	}
 
 	//auth plugin name
-	length += len(s.pluginName) + 1
+	if testPluginAuth(s.capabilities) {
+		length += len(s.authMethod.Name()) + 1
+	}
+
+	//add attributes
+	var key []byte
+	var value []byte
+	if testConnectAttrs(s.capabilities) {
+		key = hack.Slice("AUTOCOMMIT")
+		if s.cfg.autoCommit {
+			value = hack.Slice("0")
+		} else {
+			value = hack.Slice("1")
+		}
+		length += binary.LengthOfInteger(uint64(len(key) + len(value)))
+		length += len(key)
+		length += len(value)
+	}
 
 	//create a payload
 	payload := binary.NewBuffer(make([]byte, length))
 
 	//write capability flags
-	if err := payload.WriteInt4(capabilities); err != nil {
+	if err := payload.WriteInt4(s.capabilities); err != nil {
 		return errors.Trace(err)
 	}
 
 	//max-packet size
-	if err := payload.WriteZero(protocol.PayLoadMaxLen); err != nil {
+	if err := payload.WriteInt4(protocol.PayLoadMaxLen); err != nil {
 		return errors.Trace(err)
 	}
 
@@ -379,34 +432,62 @@ func (s *session) writeHandshakeResponse41() error {
 	}
 
 	//username
-	if err := payload.WriteStringWithNull(hack.Slice(s.username)); err != nil {
+	if err := payload.WriteStringWithNull(username); err != nil {
 		return errors.Trace(err)
 	}
 
-	//length of auth-response
-	if err := payload.WriteInt1(uint8(len(ciphertext))); err != nil {
-		return errors.Trace(err)
-	}
-
-	//auth-response
-	if err := payload.WriteStringWithFixLen(ciphertext); err != nil {
-		return errors.Trace(err)
-	}
-
-	//database
-	if len(s.database) != 0 {
-		if err := payload.WriteStringWithNull(hack.Slice(s.database)); err != nil {
+	//write auth-response
+	if testLenencData(s.capabilities) {
+		if _, err := payload.WriteLengthEncodedInteger(uint64(len(password))); err != nil {
+			return errors.Trace(err)
+		}
+		if err := payload.WriteStringWithFixLen(password); err != nil {
+			return errors.Trace(err)
+		}
+	} else if testSecureConnection(s.capabilities) {
+		if err := payload.WriteInt1(uint8(len(password))); err != nil {
+			return errors.Trace(err)
+		}
+		if err := payload.WriteStringWithFixLen(password); err != nil {
 			return errors.Trace(err)
 		}
 	} else {
-		if err := payload.WriteZero(0); err != nil {
+		if err := payload.WriteStringWithNull(password); err != nil {
+			return errors.Trace(err)
+		}
+	}
+
+	//database
+	if testConnectWithDB(s.capabilities) {
+		if err := payload.WriteStringWithNull(database); err != nil {
 			return errors.Trace(err)
 		}
 	}
 
 	//auth plugin name
-	if err := payload.WriteStringWithNull(s.pluginName); err != nil {
-		return errors.Trace(err)
+	if testPluginAuth(s.capabilities) {
+		if err := payload.WriteStringWithNull(hack.Slice(s.authMethod.Name())); err != nil {
+			return errors.Trace(err)
+		}
+	}
+
+	//set attribute
+	if testConnectAttrs(s.capabilities) {
+		//write length of all key-values
+		n := binary.LengthOfInteger(uint64(len(key) + len(value)))
+		if _, err := payload.WriteLengthEncodedInteger(uint64(n)); err != nil {
+			return errors.Trace(err)
+		}
+
+		//write key
+		if err := payload.WriteStringWithFixLen(key); err != nil {
+			return errors.Trace(err)
+		}
+
+		//write value
+		if err := payload.WriteStringWithFixLen(value); err != nil {
+			return errors.Trace(err)
+		}
 	}
 
 	//create packet
@@ -460,7 +541,7 @@ func (s *session) readResponsePacket() (*protocol.Packet, uint8, error) {
 }
 
 func (s *session) Close() {
-	s.c.Close()
+	s.conn.Close()
 }
 
 type errMsg struct {
