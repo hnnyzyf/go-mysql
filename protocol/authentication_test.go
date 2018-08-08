@@ -1,12 +1,99 @@
 package protocol
 
 import (
+	"testing"
+
 	. "gopkg.in/check.v1"
 )
+
+// Hook up gocheck into the "go test" runner.
+func Test(t *testing.T) { TestingT(t) }
 
 type MyAuthSuite struct{}
 
 var _ = Suite(&MyAuthSuite{})
+
+//use following scrip as another test
+//from six import byte2int,int2byte
+//import struct
+//import io
+//
+//SCRAMBLE_LENGTH_323 = 8
+//
+//class RandStruct_323(object):
+//
+//    def __init__(self, seed1, seed2):
+//        self.max_value = 0x3FFFFFFF
+//        self.seed1 = seed1 % self.max_value
+//        self.seed2 = seed2 % self.max_value
+//
+//    def my_rnd(self):
+//        self.seed1 = (self.seed1 * 3 + self.seed2) % self.max_value
+//        self.seed2 = (self.seed1 + self.seed2 + 33) % self.max_value
+//        return float(self.seed1) / float(self.max_value)
+//
+//
+//def scramble_old_password(password, message):
+//    """Scramble for old_password"""
+//    hash_pass = _hash_password_323(password)
+//    hash_message = _hash_password_323(message[:SCRAMBLE_LENGTH_323])
+//    hash_pass_n = struct.unpack(">LL", hash_pass)
+//    hash_message_n = struct.unpack(">LL", hash_message)
+//
+//    rand_st = RandStruct_323(
+//        hash_pass_n[0] ^ hash_message_n[0], hash_pass_n[1] ^ hash_message_n[1]
+//    )
+//    outbuf = io.BytesIO()
+//    for _ in range(min(SCRAMBLE_LENGTH_323, len(message))):
+//        outbuf.write(int2byte(int(rand_st.my_rnd() * 31) + 64))
+//    extra = int2byte(int(rand_st.my_rnd() * 31))
+//    out = outbuf.getvalue()
+//    outbuf = io.BytesIO()
+//    for c in out:
+//        outbuf.write(int2byte(byte2int(c) ^ byte2int(extra)))
+//    return outbuf.getvalue()
+//
+//def _hash_password_323(password):
+//    nr = 1345345333
+//    add = 7
+//    nr2 = 0x12345671
+//
+//    # x in py3 is numbers, p27 is chars
+//    for c in [byte2int(x) for x in password if x not in (' ', '\t', 32, 9)]:
+//        nr ^= (((nr & 63) + add) * c) + (nr << 8) & 0xFFFFFFFF
+//        nr2 = (nr2 + ((nr2 << 8) ^ nr)) & 0xFFFFFFFF
+//        add = (add + c) & 0xFFFFFFFF
+//
+//    r1 = nr & ((1 << 31) - 1)  # kill sign bits
+//    r2 = nr2 & ((1 << 31) - 1)
+//    return struct.pack(">LL", r1, r2)
+//
+//scramble=["sstvy~&AHQZju^GVk!EX","ppqsvz$)EMWgr#DShxBU","##$^(AFLTbku%ESgv_Qi"]
+//password=["123456\t78","12345 678","C0mpl!ca ted#PASS123"]
+//
+//for i in range(len(scramble)):
+//    print scramble_old_password(password[i],scramble[i]).encode("hex")
+func (s *MyAuthSuite) TestoldPassword(c *C) {
+	m, err := GetMethod("mysql_old_password")
+	if err != nil {
+		c.Error(err)
+	}
+
+	data := []struct {
+		scramble []byte
+		password string
+		key      []byte
+	}{
+		{[]byte("sstvy~&AHQZju^GVk!EX"), "123456\t78", []byte{0x46, 0x4a, 0x55, 0x5c, 0x5c, 0x5b, 0x41, 0x49}},
+		{[]byte("ppqsvz$)EMWgr#DShxBU"), "12345 678", []byte{0x43, 0x53, 0x5b, 0x52, 0x4b, 0x43, 0x57, 0x4a}},
+		{[]byte("##$^(AFLTbku%ESgv_Qi"), "C0mpl!ca ted#PASS123", []byte{0x4d, 0x5d, 0x4c, 0x53, 0x47, 0x5c, 0x55, 0x4d}},
+	}
+
+	for i := range data {
+		c.Assert(m.EncodeKey(data[i].scramble, data[i].password), DeepEquals, data[i].key)
+	}
+
+}
 
 //use following script as the another test
 //#!/usr/bin/env python
@@ -34,8 +121,8 @@ var _ = Suite(&MyAuthSuite{})
 //for s in scramble:
 //    res=encode(s,passwd)
 //    print [ord(j) for j in list(res)]
-func (s *MyAuthSuite) TestSPA(c *C) {
-	m, err := GetMethod(mysql_native_password)
+func (s *MyAuthSuite) TestsecurePasswprd(c *C) {
+	m, err := GetMethod("mysql_native_password")
 	if err != nil {
 		c.Error(err)
 	}

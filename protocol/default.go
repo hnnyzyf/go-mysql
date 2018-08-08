@@ -21,8 +21,3 @@ const DefaultClientCapabilities uint32 = CLIENT_LONG_PASSWORD |
 	CLIENT_PLUGIN_AUTH |
 	CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA |
 	CLIENT_CONNECT_ATTRS
-
-	//default plugin name
-const DefaultPluginName uint8 = mysql_native_password
-
-const SSL uint8 = ssl
