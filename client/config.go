@@ -7,33 +7,81 @@ import (
 	"github.com/hnnyzyf/go-mysql/protocol"
 )
 
-var defaultConfig = &Config{
-	Timeout: 0,
+var defaultConfig = &config{
+	timeout: 0,
 
-	Charset:      "utf8",
-	Capabilities: protocol.DefaultClientCapabilities,
+	charset:      "utf8",
+	capabilities: protocol.DefaultClientCapabilities,
 
-	IsSSL: false,
+	isSSL:     false,
+	tlsConfig: nil,
 
-	AutoCommit:     true,
-	MutilStatement: false,
+	autoCommit:     true,
+	mutilStatement: false,
 }
 
-type Config struct {
+type config struct {
 	//Dial Timeout
-	Timeout time.Duration
+	timeout time.Duration
 
 	//capabilities flag use in client
-	Capabilities uint32
+	//You have better not change the Capabilities
+	capabilities uint32
 	//charset
-	Charset string
+	charset string
 
 	//wether use ssl to connct
-	IsSSL     bool
-	TlsConfig *tls.Config
+	isSSL     bool
+	tlsConfig *tls.Config
 
 	//mutil statement
-	MutilStatement bool
+	mutilStatement bool
 	//autocommit
-	AutoCommit bool
+	autoCommit bool
+}
+
+func NewConfig() *config {
+	return &config{
+		timeout: 0,
+
+		charset:      "utf8",
+		capabilities: protocol.DefaultClientCapabilities,
+
+		isSSL:     false,
+		tlsConfig: nil,
+
+		autoCommit:     true,
+		mutilStatement: false,
+	}
+}
+
+//SetTimeout add the timeout for dail
+func (c *config) SetTimeout(t time.Duration) {
+	c.timeout = t
+}
+
+//SetCapability add the capability flag
+func (c *config) SetCapability(capability uint32) {
+	c.capabilities = capability
+}
+
+//SetCharSet add the charset
+func (c *config) SetCharSet(s string) {
+	c.charset = s
+}
+
+//SetSSL add the ssl
+func (c *config) SetSSL(ok bool, cfg *tls.Config) {
+	c.isSSL = ok
+	c.tlsConfig = cfg
+}
+
+//SetMutilStatement set the mutistatement
+func (c *config) SetMutilStatement(ok bool) {
+	c.mutilStatement = ok
+}
+
+//SetAutoCommit set the autocommit
+func (c *config) SetAutoCommit(ok bool) {
+	c.autoCommit = ok
 }

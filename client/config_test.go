@@ -1,22 +1,34 @@
 package client
 
 import (
-	"fmt"
-	"testing"
+	"github.com/hnnyzyf/go-mysql/protocol"
+	. "gopkg.in/check.v1"
 )
 
-var data = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+type MyConfigSuite struct{}
 
-func read(b []byte) {
-	l := len(b)
-	b = data[:l]
-}
+var _ = Suite(&MyConfigSuite{})
 
-func Test_copy(t *testing.T) {
-	x := make([]byte, 5)
+func (s *MyConfigSuite) TestConfig(c *C) {
+	data := []*config{
+		{0, protocol.DefaultClientCapabilities, "utf8", false, nil, true, false},
+	}
 
-	read(x)
+	for i := range data {
+		cfg := NewConfig()
+		cfg.SetTimeout(data[i].timeout)
+		cfg.SetCapability(data[i].capabilities)
+		cfg.SetCharSet(data[i].charset)
+		cfg.SetSSL(data[i].isSSL, data[i].tlsConfig)
+		cfg.SetMutilStatement(data[i].mutilStatement)
+		cfg.SetAutoCommit(data[i].autoCommit)
 
-	fmt.Println(x)
-
+		c.Assert(data[i].timeout, Equals, cfg.timeout)
+		c.Assert(data[i].charset, Equals, cfg.charset)
+		c.Assert(data[i].capabilities, Equals, cfg.capabilities)
+		c.Assert(data[i].isSSL, Equals, cfg.isSSL)
+		c.Assert(data[i].tlsConfig, Equals, cfg.tlsConfig)
+		c.Assert(data[i].mutilStatement, Equals, cfg.mutilStatement)
+		c.Assert(data[i].autoCommit, Equals, cfg.autoCommit)
+	}
 }
