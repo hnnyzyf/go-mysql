@@ -101,9 +101,8 @@ func (s *MyPacketSuite) TestWriteBigPacket(c *C) {
 		size int
 		sid  uint8
 	}{
-		{2*int(PayLoadMaxLen) + 1, 5},
-		{2*int(PayLoadMaxLen) + 15647, 0},
-		{15*int(PayLoadMaxLen) + 76543, 255},
+		{2*int(PayLoadMaxLen) + 1, 255},
+		{8*int(PayLoadMaxLen) + 76543, 0},
 	}
 
 	for i := range data {
@@ -116,7 +115,5 @@ func (s *MyPacketSuite) TestWriteBigPacket(c *C) {
 		c.Assert(len(w.Bytes()), Equals, len(b))
 		c.Assert(w.Bytes(), DeepEquals, b)
 		c.Assert(sid, Equals, id)
-
 	}
-
 }

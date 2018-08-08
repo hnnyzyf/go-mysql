@@ -1,7 +1,6 @@
 package protocol
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/hnnyzyf/go-mysql/util/binary"
@@ -56,7 +55,7 @@ func (p *Packet) ReadPayload() (*binary.Buffer, error) {
 	}
 }
 
-//ReadPacket read the id packet from a io.Reader
+//ReadPacket read the id packet from a io.Reader and write it into io.Writer
 func ReadPacket(r io.Reader, id uint8) (*Packet, error) {
 	//read the first 4 bytes
 	header := make([]byte, 4)
@@ -112,7 +111,6 @@ func WritePacket(w io.Writer, packet *Packet) (uint8, error) {
 
 	//while length<=0
 	for size > 0 {
-		fmt.Println("current", size)
 		//get the payload length and sid
 		length := math.MinInt(size, int(PayLoadMaxLen))
 		sid += 1
@@ -134,8 +132,6 @@ func WritePacket(w io.Writer, packet *Packet) (uint8, error) {
 			}
 		}
 
-		fmt.Println("header", header)
-
 		//write payload
 		if n, err := io.CopyN(w, payload, int64(length)); err != nil {
 			return sid, errors.Trace(err)
@@ -145,7 +141,6 @@ func WritePacket(w io.Writer, packet *Packet) (uint8, error) {
 			}
 		}
 
-		fmt.Println("payload", length)
 		//size and payload
 		size -= length
 	}
