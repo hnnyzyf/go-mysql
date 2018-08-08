@@ -28,12 +28,23 @@ type Packet struct {
 	payload io.Reader
 }
 
+//test whether the payload should be reset offset
+type testResetOffset interface {
+	ResetOffset()
+}
+
 func NewPacket(l int, i uint8, p io.Reader) *Packet {
+	//reset offset if the payload need
+	if buffer, ok := p.(testResetOffset); ok {
+		buffer.ResetOffset()
+	}
+
 	return &Packet{
 		length:  l,
 		sid:     i,
 		payload: p,
 	}
+
 }
 
 //ReadLength returns the length of payload
@@ -89,11 +100,7 @@ func ReadPacket(r io.Reader, id uint8) (*Packet, error) {
 	} else if n != int64(length) {
 		return nil, errors.Errorf("Error package")
 	} else {
-		return &Packet{
-			length:  int(length),
-			sid:     sid,
-			payload: payload,
-		}, nil
+		return NewPacket(int(length), sid, payload), nil
 	}
 }
 
