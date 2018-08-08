@@ -281,6 +281,9 @@ func (p *Buffer) Len() int {
 	return len(p.b)
 }
 
+func (p *Buffer)Off() int{
+	return p.off
+}
 //IsEOf return
 func (p *Buffer) ResetOffset() {
 	p.off = 0
@@ -448,22 +451,22 @@ func (p *Buffer) WriteZero(l int) error {
 }
 
 func (p *Buffer) WriteStringWithNull(str []byte) error {
-	if p.off+len(str)+1 > len(p.b) {
+	if n:= copy(p.b[p.off:], str);n!=len(str){
 		return errTooSmall
+	}else{
+		p.off += len(str)
 	}
-	_ = copy(p.b[p.off:], str)
-	p.off += len(str)
-	p.WriteZero(1)
-	return nil
+	//write '\0'
+	return p.WriteInt1(0x00)
 }
 
 func (p *Buffer) WriteStringWithFixLen(str []byte) error {
-	if p.off+len(str)+1 > len(p.b) {
+	if n:= copy(p.b[p.off:], str);n!=len(str){
 		return errTooSmall
+	}else{
+		p.off += len(str)
+		return nil
 	}
-	_ = copy(p.b[p.off:], str)
-	p.off += len(str)
-	return nil
 }
 
 //WriteLengthEncodedInteger write undetermined length integer
