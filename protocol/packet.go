@@ -80,7 +80,7 @@ func ReadPacket(r io.Reader, id uint8) (*Packet, error) {
 		return nil, errors.Trace(err)
 	}
 	if length > PayLoadMaxLen || length < 1 {
-		return nil, errors.Errorf("invalid payload length: %d", length)
+		return nil, errors.Errorf("Protocol:invalid payload length: %d", length)
 	}
 
 	//check sequenced id
@@ -89,7 +89,7 @@ func ReadPacket(r io.Reader, id uint8) (*Packet, error) {
 		return nil, errors.Trace(err)
 	}
 	if sid != id {
-		return nil, errors.Errorf("invalid sequence id %d,expect %d", sid, id)
+		return nil, errors.Errorf("Protocol:invalid sequence id %d,expect %d", sid, id)
 	}
 
 	//write $length bytes into the buffer
@@ -98,7 +98,7 @@ func ReadPacket(r io.Reader, id uint8) (*Packet, error) {
 	if n, err := io.CopyN(payload, r, int64(length)); err != nil {
 		return nil, errors.Trace(err)
 	} else if n != int64(length) {
-		return nil, errors.Errorf("Error package")
+		return nil, errors.Errorf("Protocol:Error package")
 	} else {
 		return NewPacket(int(length), sid, payload), nil
 	}
@@ -135,7 +135,7 @@ func WritePacket(w io.Writer, packet *Packet) (uint8, error) {
 			return sid, errors.Trace(err)
 		} else {
 			if n != 4 {
-				return sid, errors.Errorf("Fail to write 4 bytes header!")
+				return sid, errors.Errorf("Protocol:Fail to write 4 bytes header!")
 			}
 		}
 
@@ -144,7 +144,7 @@ func WritePacket(w io.Writer, packet *Packet) (uint8, error) {
 			return sid, errors.Trace(err)
 		} else {
 			if n != int64(length) {
-				return sid, errors.Errorf("Fail to write %d bytes payload!", length)
+				return sid, errors.Errorf("Protocol:Fail to write %d bytes payload!", length)
 			}
 		}
 
@@ -152,7 +152,7 @@ func WritePacket(w io.Writer, packet *Packet) (uint8, error) {
 		size -= length
 	}
 
-	return sid, nil
+	return sid+1, nil
 }
 
 //CopyPacket try to use send file to copy a packet from reader to writer
