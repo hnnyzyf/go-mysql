@@ -220,14 +220,14 @@ func StoreInt8(val uint64) []byte {
 
 //LengthOfInteger return the length of a length encode integer
 func LengthOfInteger(val uint64) int {
-	switch val; {
+	switch {
 	case val < 0xfb:
 		return 1
-	case val < 0x10000:
+	case val <= 0xffff:
 		return 3
-	case val < 0x1000000:
-		return 3
-	case val <= 0xFFFFFFFFFFFFFFFF:
+	case val <= 0xffffff:
+		return 4
+	case val <= 0xffffffffffffffff:
 		return 9
 	default:
 		panic("Invaid LengthEncodedInteger flag!")
@@ -279,6 +279,11 @@ func (p *Buffer) Bytes() []byte {
 //IsEOf return
 func (p *Buffer) Len() int {
 	return len(p.b)
+}
+
+//IsEOf return
+func (p *Buffer) ResetOffset() {
+	p.off = 0
 }
 
 //ReadInt1 reads 1 bytes
@@ -333,31 +338,33 @@ func (p *Buffer) ReadZero(l int) error {
 }
 
 //ReadLengthEncodedInteger read undetermined length integer
-func (p *Buffer) ReadLengthEncodedInteger() (int, uint64, error) {
+func (p *Buffer) ReadLengthEncodedInteger() (uint64, int, error) {
 
 	if p.IsEOF() {
-		return -1, 0, errEOF
+		return 0, -1, errEOF
 	}
 	i := p.b[p.off]
-	p.off++
-	switch i; {
+	switch {
 	case i < 0xfb:
 		val, err := p.ReadInt1()
-		return 1, uint64(val), err
+		return uint64(val), 1, err
 	case i == 0xfc:
+		p.off++
 		val, err := p.ReadInt2()
-		return 2, uint64(val), err
+		return uint64(val), 3, err
 	case i == 0xfd:
+		p.off++
 		val, err := p.ReadInt3()
-		return 3, uint64(val), err
+		return uint64(val), 4, err
 	case i == 0xfe:
+		p.off++
 		val, err := p.ReadInt8()
-		return 9, val, err
+		return val, 9, err
 	default:
 		panic("Invaid LengthEncodedInteger flag!")
 	}
 
-	return -1, 0, nil
+	return 0, -1, nil
 }
 
 //ReadStringWithNull reads a string terminated with null(0x00)
@@ -461,20 +468,20 @@ func (p *Buffer) WriteStringWithFixLen(str []byte) error {
 
 //WriteLengthEncodedInteger write undetermined length integer
 func (p *Buffer) WriteLengthEncodedInteger(val uint64) (int, error) {
-	switch val; {
+	switch {
 	case val < 0xfb:
 		err := p.WriteInt1(uint8(val))
 		return 1, err
-	case val < 0x10000:
-		_ = p.WriteInt(0xfc)
+	case val <= 0xffff:
+		_ = p.WriteInt1(0xfc)
 		err := p.WriteInt2(uint16(val))
 		return 3, err
-	case val < 0x1000000:
-		_ = p.WriteInt(0xfd)
+	case val < 0xffffff:
+		_ = p.WriteInt1(0xfd)
 		err := p.WriteInt3(uint32(val))
-		return 3, err
-	case val <= 0xFFFFFFFFFFFFFFFF:
-		_ = p.WriteInt(0xfe)
+		return 4, err
+	case val <= 0xffffffffffffffff:
+		_ = p.WriteInt1(0xfe)
 		err := p.WriteInt8(val)
 		return 9, err
 	default:

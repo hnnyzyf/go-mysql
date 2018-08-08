@@ -108,15 +108,42 @@ func (s *MyPayloadSuite) TestReadStringWithNull(c *C) {
 
 }
 
-
 func (s *MyPayloadSuite) TestLengthEncodeInteger(c *C) {
-	b := []byte{230, 136, 145, 228, 187, 172, 229, 129, 154, 228, 184, 170, 230, 181, 139, 232, 175, 149, 0}
+	b := make([]byte, 1+3+4+9)
+	data := []struct {
+		val uint64
+		n   int
+	}{
+		{0x01, 1},
+		{0x0203, 3},
+		{0x040506, 4},
+		{0x0708091011121314, 9},
+	}
+
+	for i := range data {
+		val := data[i].val
+		n := data[i].n
+		c.Assert(LengthOfInteger(val), Equals, n)
+	}
+
+	res := []byte{0x01, 0xfc, 0x03, 0x02, 0xfd, 0x06, 0x05, 0x04, 0xfe, 0x14, 0x13, 0x12, 0x11, 0x10, 0x09, 0x08, 0x07}
 	p := NewBuffer(b)
+	for i := range data {
+		val := data[i].val
+		n := data[i].n
+		l, err := p.WriteLengthEncodedInteger(val)
+		c.Assert(err, Equals, nil)
+		c.Assert(l, Equals, n)
+	}
 
-	res := "我们做个测试"
-	st, err := p.ReadStringWithNull()
-	c.Assert(err, Equals, nil)
+	c.Assert(b, DeepEquals, res)
+	p.ResetOffset()
 
-	c.Assert(string(st), Equals, res)
+	for i := range data {
+		val, n, err := p.ReadLengthEncodedInteger()
+		c.Assert(err, Equals, nil)
+		c.Assert(n, Equals, data[i].n)
+		c.Assert(val, Equals, data[i].val)
+	}
 
 }
