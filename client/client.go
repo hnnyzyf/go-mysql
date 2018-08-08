@@ -2,7 +2,6 @@ package client
 
 import (
 	"crypto/tls"
-	"fmt"
 	"net"
 
 	"github.com/hnnyzyf/go-mysql/protocol"
@@ -74,19 +73,19 @@ func connect(host string, user string, passwd string, db string, cfg *config) (*
 	}
 
 	//the server responds with the Initial Handshake Packet
-	if err = s.readHandShakeV10(); err != nil {
+	if err := s.readHandShakeV10(); err != nil {
 		return nil, errors.Trace(err)
 	}
 
 	if cfg.isSSL {
 		//the client use ssl to sends the SSL Request Packet
-		if err = s.writeSSLRequeset(); err != nil {
+		if err := s.writeSSLRequeset(); err != nil {
 			return nil, errors.Trace(err)
 		}
 	}
 
 	//the client sends the Handshake Response Packet
-	if err = s.writeHandshakeResponse41(); err != nil {
+	if err := s.writeHandshakeResponse41(); err != nil {
 		return nil, errors.Trace(err)
 	}
 
@@ -223,8 +222,7 @@ func (s *session) readHandShakeV10() error {
 	}
 
 	//read character set 1 bytes
-	_, err = payload.ReadInt1()
-	if err != nil {
+	if _, err := payload.ReadInt1(); err != nil {
 		return errHandShake10
 	}
 
@@ -292,15 +290,14 @@ func (s *session) readHandShakeV10() error {
 	}
 
 	//read pluginName and set authentication method
-	pluginName, err := payload.ReadStringWithNull()
-	if err != nil {
+	if pluginName, err := payload.ReadStringWithNull(); err != nil {
 		return errHandShake10
-	}
-
-	if method, err := protocol.GetMethod(hack.String(pluginName)); err != nil {
-		return errors.Trace(err)
 	} else {
-		s.authMethod = method
+		if method, err := protocol.GetMethod(hack.String(pluginName)); err != nil {
+			return errors.Trace(err)
+		} else {
+			s.authMethod = method
+		}
 	}
 
 	return nil
@@ -332,12 +329,11 @@ func (s *session) writeSSLRequeset() error {
 	packet := protocol.NewPacket(length, s.sid, payload)
 
 	//write packet
-	sid, err := protocol.WritePacket(s.conn, packet)
-	if err != nil {
+	if sid, err := protocol.WritePacket(s.conn, packet); err != nil {
 		return errors.Trace(err)
+	} else {
+		s.sid = sid
 	}
-
-	s.sid = sid
 
 	//replace the origin connection to ssl connection
 	s.conn = tls.Client(s.conn, s.cfg.tlsConfig)
@@ -356,7 +352,7 @@ func (s *session) writeHandshakeResponse41() error {
 	//set max-packet size character set  reserved (all [0])
 	length += 4 + 1 + 23
 
-	//username+0x0 and 	//convert database from utf8 to the charset
+	//username+0x0 and convert database from utf8 to the charset
 	var username []byte
 	if name, err := s.decoder.Bytes(hack.Slice(s.username)); err != nil {
 		return errors.Trace(err)
@@ -478,12 +474,10 @@ func (s *session) writeHandshakeResponse41() error {
 		if _, err := payload.WriteLengthEncodedInteger(uint64(n)); err != nil {
 			return errors.Trace(err)
 		}
-
 		//write key
 		if err := payload.WriteStringWithFixLen(key); err != nil {
 			return errors.Trace(err)
 		}
-
 		//write value
 		if err := payload.WriteStringWithFixLen(value); err != nil {
 			return errors.Trace(err)
@@ -494,13 +488,11 @@ func (s *session) writeHandshakeResponse41() error {
 	packet := protocol.NewPacket(length, s.sid, payload)
 
 	//write packet
-	sid, err := protocol.WritePacket(s.conn, packet)
-	if err != nil {
+	if sid, err := protocol.WritePacket(s.conn, packet); err != nil {
 		return errors.Trace(err)
+	} else {
+		s.sid = sid
 	}
-
-	//set sid
-	s.sid = sid
 
 	return nil
 }
