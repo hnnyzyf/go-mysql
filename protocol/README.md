@@ -28,14 +28,8 @@ func WritePacket(w io.Writer, packet *Packet) (uint8, error)
 
 ## 验证方法
 
-提供了两种基本的验证方法:
+提供了多种验证方法:
+- mysql_old_password(不推荐)
 - mysql_native_password
-- ssl
-
-## 连接参数
-
-提供了如下连接参数的设置:
-
-- Capability 
-- Com
-- Statu Flag
+- mysql_clear_password
+- sha256_password

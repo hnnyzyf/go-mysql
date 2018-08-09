@@ -152,7 +152,7 @@ func WritePacket(w io.Writer, packet *Packet) (uint8, error) {
 		size -= length
 	}
 
-	return sid+1, nil
+	return sid, nil
 }
 
 //CopyPacket try to use send file to copy a packet from reader to writer

@@ -75,7 +75,7 @@ func (a *oldPassword) EncodeKey(scramble []byte, passwd string) []byte {
 	return r
 }
 
-func (a *oldPassword) Name() string{
+func (a *oldPassword) Name() string {
 	return "mysql_old_password"
 }
 
@@ -118,7 +118,7 @@ func (a *securePassword) EncodeKey(scramble []byte, passwd string) []byte {
 	return hash3
 }
 
-func (a *securePassword) Name() string{
+func (a *securePassword) Name() string {
 	return "mysql_native_password"
 }
 
@@ -134,10 +134,9 @@ func (a *clearPassword) EncodeKey(scramble []byte, passwd string) []byte {
 	return hack.Slice(passwd)
 }
 
-func (a *clearPassword) Name() string{
+func (a *clearPassword) Name() string {
 	return "mysql_clear_password"
 }
-
 
 //Reprensent the sha256_password method
 //https://dev.mysql.com/doc/internals/en/sha256.html
@@ -151,6 +150,6 @@ func (a *sha256Password) EncodeKey(scramble []byte, passwd string) []byte {
 	return hack.Slice(passwd)
 }
 
-func (a *sha256Password) Name() string{
+func (a *sha256Password) Name() string {
 	return "sha256_password"
 }
