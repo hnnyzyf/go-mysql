@@ -134,6 +134,8 @@ func (s *session) init() error {
 
 	if len(s.database) == 0 {
 		s.capabilities &= (^protocol.CLIENT_CONNECT_WITH_DB)
+	} else {
+		s.capabilities |= protocol.CLIENT_CONNECT_WITH_DB
 	}
 
 	if cfg.isSSL {
@@ -146,7 +148,7 @@ func (s *session) init() error {
 
 	//test ssl
 	if cfg.isSSL && cfg.tlsConfig == nil {
-		return errors.Errorf("Client:Not provide tls configuraions.")
+		return errors.Errorf("Client:not provide tls configuraions.")
 	}
 
 	//set charset method
@@ -203,6 +205,8 @@ func (s *session) readHandShakeV10() error {
 	authPluginData, err := payload.ReadStringWithFixLen(8)
 	if err != nil {
 		return errHandShake10
+	} else {
+		s.authPluginData = authPluginData
 	}
 
 	//skip filler 1 bytes
@@ -239,20 +243,8 @@ func (s *session) readHandShakeV10() error {
 
 	//set Capabilities (4 bytes)
 	capabilities := uint32(uflag)<<16 | uint32(lflag)
-	if !testPluginAuth(capabilities) {
-		return errors.Errorf("Client:the server does not support CLIENT_PLUGIN_AUTH!")
-	}
-
-	if !testProtocol41(capabilities) {
-		return errors.Errorf("Client:the server seems too old and does not support CLIENT_PROTOCOL_41!")
-	}
-
-	if !testSecureConnection(capabilities) {
-		return errors.Errorf("Client:the server does not support CLIENT_SECURE_CONNECTION!")
-	}
-
 	if s.cfg.isSSL && !testSSL(capabilities) {
-		return errors.Errorf("Client:the server does not support SSL connection!")
+		return errors.Errorf("Client:server does not support SSL connection!")
 	}
 
 	//The client should only announce the capabilities
@@ -260,9 +252,19 @@ func (s *session) readHandShakeV10() error {
 	s.capabilities &= capabilities
 
 	//length of auth-plugin-data 1bytes
-	authPluginDataLen, err := payload.ReadInt1()
-	if err != nil {
-		return errHandShake10
+	var authPluginDataLen uint8
+	if testPluginAuth(capabilities) {
+		if length, err := payload.ReadInt1(); err != nil {
+			return errHandShake10
+		} else {
+			authPluginDataLen = length
+		}
+	} else {
+		if err := payload.ReadZero(1); err != nil {
+			return errHandShake10
+		} else {
+			authPluginDataLen = 0
+		}
 	}
 
 	//skip reserved 10 bytes
@@ -277,27 +279,41 @@ func (s *session) readHandShakeV10() error {
 	//the length is more than 21 instead of 20
 	//so I decide to read only 12 bytes data as the challenge
 	//maybe I should have a look at Mysql source code!?
-	length := math.MaxInt(13, int(authPluginDataLen)-8)
-	lauthPluginData, err := payload.ReadStringWithFixLen(12)
-	if err != nil {
-		return errHandShake10
-	}
-	s.authPluginData = append(authPluginData, lauthPluginData...)
-
-	//skip
-	if err := payload.ReadZero(length - 12); err != nil {
-		return errHandShake10
+	if testSecureConnection(capabilities) {
+		length := math.MaxInt(13, int(authPluginDataLen)-8)
+		lauthPluginData, err := payload.ReadStringWithFixLen(12)
+		if err != nil {
+			return errHandShake10
+		}
+		//skip
+		if err := payload.ReadZero(length - 12); err != nil {
+			return errHandShake10
+		}
+		s.authPluginData = append(s.authPluginData, lauthPluginData...)
 	}
 
 	//read pluginName and set authentication method
-	if pluginName, err := payload.ReadStringWithNull(); err != nil {
-		return errHandShake10
-	} else {
-		if method, err := protocol.GetMethod(hack.String(pluginName)); err != nil {
-			return errors.Trace(err)
+	var pluginName string
+	if testPluginAuth(capabilities) {
+		if name, err := payload.ReadStringWithNull(); err != nil {
+			return errHandShake10
 		} else {
-			s.authMethod = method
+			pluginName = hack.String(name)
 		}
+	} else {
+		//https://dev.mysql.com/doc/internals/en/determining-authentication-method.html
+		if !testProtocol41(capabilities) || !testSecureConnection(capabilities) {
+			pluginName = "mysql_old_password"
+		} else if testProtocol41(capabilities) && testSecureConnection(capabilities) {
+			pluginName = "mysql_native_password"
+		} else {
+			return errors.Errorf("Client:server do not support any authentication method")
+		}
+	}
+	if method, err := protocol.GetMethod(pluginName); err != nil {
+		return errors.Trace(err)
+	} else {
+		s.authMethod = method
 	}
 
 	return nil
@@ -500,9 +516,12 @@ func (s *session) writeHandshakeResponse41() error {
 //readResponsePacket implements to read generic response packet
 func (s *session) readResponsePacket() (*protocol.Packet, uint8, error) {
 	//Get packet from conn
-	packet, err := protocol.ReadPacket(s.conn, s.sid)
+	packet, err := protocol.ReadPacket(s.conn, s.sid+1)
 	if err != nil {
 		return nil, protocol.Unknown_Packet, errors.Trace(err)
+	} else {
+		//id should be equal to response packet
+		s.sid = packet.ReadId()
 	}
 
 	//Read length
@@ -517,12 +536,14 @@ func (s *session) readResponsePacket() (*protocol.Packet, uint8, error) {
 	//Read Header
 	header, err := payload.ReadInt1()
 	if err != nil {
-		return nil, protocol.Unknown_Packet, errResponsePacket
+		return nil, protocol.Unknown_Packet, errors.Trace(err)
 	}
 
-	if header == protocol.OK_Packet && length > 7 {
+	//OK: header = 0 and length of packet > 7
+	//EOF: header = 0xfe and length of packet < 9
+	if header == protocol.OK_Packet && length > 7-4 {
 		return packet, header, nil
-	} else if header == protocol.EOF_Packet && length < 9 {
+	} else if header == protocol.EOF_Packet && length < 9-4 {
 		return packet, header, nil
 	} else if header == protocol.ERR_Packet {
 		return packet, header, nil
@@ -547,11 +568,6 @@ func parseErrPacket(packet *protocol.Packet) (*errMsg, error) {
 	payload, err := packet.ReadPayload()
 	if err != nil {
 		return nil, errors.Trace(err)
-	}
-
-	//header
-	if _, err := payload.ReadInt1(); err != nil {
-		return nil, errERRPacket
 	}
 
 	//code
