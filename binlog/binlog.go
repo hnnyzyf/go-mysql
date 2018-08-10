@@ -40,6 +40,16 @@ func (r *reader) ParseFile() error {
 		return errors.Trace(err)
 	}
 
+	//parse all event for loop
+	for !r.IsEOF() {
+		if _, err := r.ReadHeader(); err != nil {
+			return errors.Trace(err)
+		} else {
+			//undo
+			//try to parse all event
+		}
+	}
+
 	return nil
 }
 
@@ -61,16 +71,8 @@ func (r *reader) readMagicNumber() error {
 //		- if event-size == 19 + 56: version = 3
 //		- otherwise: invalid
 func (r *reader) ReadFormatDescriptionEvent() error {
-	buffer := r.b[r.pos:]
-
-	header := binary.NewBuffer(buffer[:EventHeaderLen+2])
-	//read timestamp
-	if err := header.Skip(4); err != nil {
-		return errors.Trace(err)
-	}
-
-	//event type
-	if event, err := header.ReadInt1(); err != nil {
+	//check header
+	if event, err := r.ReadHeader(); err != nil {
 		return errors.Trace(err)
 	} else {
 		if event != FORMAT_DESCRIPTION_EVENT {
@@ -78,25 +80,9 @@ func (r *reader) ReadFormatDescriptionEvent() error {
 		}
 	}
 
-	//skip server-id and event-size
-	if err := header.Skip(8); err != nil {
-		return errors.Trace(err)
-	}
-
-	//read position
-	if pos, err := header.ReadInt4(); err != nil {
-		return errors.Trace(err)
-	} else {
-		r.pos = pos
-	}
-
-	//skip server-id and event-size
-	if err := header.Skip(2); err != nil {
-		return errors.Trace(err)
-	}
-
 	//check binlogversion
-	if binlogVersion, err := header.ReadInt2(); err != nil {
+	buffer := r.b[4+uint32(EventHeaderLen):]
+	if binlogVersion, err := binary.ReadInt2(buffer); err != nil {
 		return errors.Annotate(err, "Binlog:fail to read binlog version,the error is ")
 	} else {
 		if !testBinlogVersionV4(binlogVersion) {
@@ -105,4 +91,42 @@ func (r *reader) ReadFormatDescriptionEvent() error {
 	}
 
 	return nil
+}
+
+//IsEOF test whether we read the eof
+func (r *reader) IsEOF() bool {
+	return r.pos == uint32(len(r.b))
+}
+
+//Readerheader parse the header and return the event type
+func (r *reader) ReadHeader() (uint8, error) {
+	buffer := r.b[r.pos:]
+
+	//read
+	header := binary.NewBuffer(buffer[:EventHeaderLen])
+
+	//skil timestamp
+	if err := header.Skip(4); err != nil {
+		return 0, errors.Trace(err)
+	}
+
+	//event type
+	event, err := header.ReadInt1()
+	if err != nil {
+		return 0, errors.Trace(err)
+	}
+
+	//skip server-id and event-size
+	if err := header.Skip(8); err != nil {
+		return 0, errors.Trace(err)
+	}
+
+	//read position
+	if pos, err := header.ReadInt4(); err != nil {
+		return 0, errors.Trace(err)
+	} else {
+		r.pos = pos
+	}
+
+	return event, nil
 }
