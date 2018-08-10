@@ -2,7 +2,7 @@ package binary
 
 import (
 	"io"
-	
+
 	"github.com/juju/errors"
 )
 
@@ -266,7 +266,6 @@ func (p *Buffer) ToReader() io.Reader {
 	return p
 }
 
-
 //Write implement the io.Write interface
 func (p *Buffer) Write(b []byte) (int, error) {
 	if len(p.b)-p.off < len(b) {
@@ -290,7 +289,7 @@ func (p *Buffer) Len() int {
 	return len(p.b)
 }
 
-func (p *Buffer) Off() int{
+func (p *Buffer) Off() int {
 	return p.off
 }
 
@@ -336,8 +335,8 @@ func (p *Buffer) ReadInt8() (uint64, error) {
 	return ReadInt8(buffer)
 }
 
-//ReadZero reads length bytes
-func (p *Buffer) ReadZero(l int) error {
+//Skip 
+func (p *Buffer) Skip(l int) error {
 	if p.off+l > len(p.b) {
 		return errTooSmall
 	}
@@ -456,9 +455,9 @@ func (p *Buffer) WriteZero(l int) error {
 }
 
 func (p *Buffer) WriteStringWithNull(str []byte) error {
-	if n:= copy(p.b[p.off:], str);n!=len(str){
+	if n := copy(p.b[p.off:], str); n != len(str) {
 		return errTooSmall
-	}else{
+	} else {
 		p.off += len(str)
 	}
 	//write '\0'
@@ -466,9 +465,9 @@ func (p *Buffer) WriteStringWithNull(str []byte) error {
 }
 
 func (p *Buffer) WriteStringWithFixLen(str []byte) error {
-	if n:= copy(p.b[p.off:], str);n!=len(str){
+	if n := copy(p.b[p.off:], str); n != len(str) {
 		return errTooSmall
-	}else{
+	} else {
 		p.off += len(str)
 		return nil
 	}

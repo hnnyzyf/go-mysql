@@ -246,7 +246,7 @@ func (s *session) readHandShakeV10() error {
 			authPluginDataLen = length
 		}
 	} else {
-		if err := payload.ReadZero(1); err != nil {
+		if err := payload.Skip(1); err != nil {
 			return errHandShake10
 		} else {
 			authPluginDataLen = 0
@@ -254,7 +254,7 @@ func (s *session) readHandShakeV10() error {
 	}
 
 	//skip reserved 10 bytes
-	if err := payload.ReadZero(10); err != nil {
+	if err := payload.Skip(10); err != nil {
 		return errHandShake10
 	}
 
@@ -272,7 +272,7 @@ func (s *session) readHandShakeV10() error {
 			return errHandShake10
 		}
 		//skip
-		if err := payload.ReadZero(length - 12); err != nil {
+		if err := payload.Skip(length - 12); err != nil {
 			return errHandShake10
 		}
 		s.authPluginData = append(s.authPluginData, lauthPluginData...)
