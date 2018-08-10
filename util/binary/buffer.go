@@ -1,6 +1,8 @@
 package binary
 
 import (
+	"io"
+	
 	"github.com/juju/errors"
 )
 
@@ -258,6 +260,13 @@ func (p *Buffer) Read(b []byte) (int, error) {
 	return n, nil
 }
 
+//Read implement the io.Reader interface
+func (p *Buffer) ToReader() io.Reader {
+	p.off = 0
+	return p
+}
+
+
 //Write implement the io.Write interface
 func (p *Buffer) Write(b []byte) (int, error) {
 	if len(p.b)-p.off < len(b) {
@@ -281,12 +290,8 @@ func (p *Buffer) Len() int {
 	return len(p.b)
 }
 
-func (p *Buffer)Off() int{
+func (p *Buffer) Off() int{
 	return p.off
-}
-//IsEOf return
-func (p *Buffer) ResetOffset() {
-	p.off = 0
 }
 
 //ReadInt1 reads 1 bytes
