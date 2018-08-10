@@ -48,6 +48,11 @@ func (c *Conn) Close() {
 	c.conn.Close()
 }
 
+//Reset resets sid to 0
+func (c *Conn) Reset() {
+	c.sid = 0
+}
+
 //TransformToSSL tranform a connection to SSL connection
 func (c *Conn) TransformToSSL(cfg *tls.Config) {
 	c.conn = tls.Client(c.conn, cfg)
@@ -71,14 +76,17 @@ func (c *Conn) ReadPacket() ([]byte, error) {
 	}
 
 	//check sequenced id
-	sid, err := binary.ReadInt1(header[3:])
-	if err != nil {
+	if sid, err := binary.ReadInt1(header[3:]); err != nil {
 		return nil, errors.Trace(err)
-	}
-	if sid != c.sid {
+		//if it is not command packet or handshake packet
+	} else if sid != 0 && sid != c.sid {
 		return nil, errors.Errorf("Protocol:invalid sequence id %d,expect %d", sid, c.sid)
+		//if it is a command packet or handshake packet or just sid roll around from 255 to 0
+		//when we read this packet,next sid should be 1
+	} else if sid == 0 {
+		c.sid = 1
+		//sid == c.sid means that current packet is we expect ,so we just increase the sid
 	} else {
-		//turn next sid
 		c.sid++
 	}
 
