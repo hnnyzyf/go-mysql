@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"crypto/tls"
 	"io"
 	"net"
 
@@ -9,13 +10,21 @@ import (
 	"github.com/juju/errors"
 )
 
+const (
+	OK_Packet      uint8 = 0x00
+	ERR_Packet     uint8 = 0xFF
+	EOF_Packet     uint8 = 0xFE
+	Unknown_Packet uint8 = 0xAA
+)
+
 const DefaultBufferSize = 16 * 1024
 
 type Conn struct {
 	//the real conn
 	conn net.Conn
 
-	//the sequence id
+	//The sequence-id is incremented with each packet and may wrap around.
+	//It starts at 0 and is reset to 0 when a new command begins in the Command Phase.
 	sid uint8
 
 	//header
@@ -32,6 +41,16 @@ func NewConn(conn net.Conn) *Conn {
 		header: make([]byte, 4),
 		buffer: make([]byte, DefaultBufferSize),
 	}
+}
+
+//Close the connection
+func (c *Conn) Close() {
+	c.conn.Close()
+}
+
+//TransformToSSL tranform a connection to SSL connection
+func (c *Conn) TransformToSSL(cfg *tls.Config) {
+	c.conn = tls.Client(c.conn, cfg)
 }
 
 //ReadPacket read the packet from a io.Reader
