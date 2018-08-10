@@ -54,5 +54,7 @@ const (
 
 var MagicNumber string = string([]byte{0xfe, 0x62, 0x69, 0x6e})
 
+const MagicNumberLen uint32 = 4
+
 //we only support v4 binlog version
-const EventHeaderLen uint8 = 19
+const EventHeaderLen uint32 = 19

@@ -9,7 +9,7 @@ import (
 func Test(t *testing.T) { TestingT(t) }
 
 type MyBinlogSuite struct {
-	r *reader
+	r *Reader
 }
 
 func newSuite() *MyBinlogSuite {

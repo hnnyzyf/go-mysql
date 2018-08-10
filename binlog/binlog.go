@@ -12,24 +12,32 @@ var errInvalidBinlog error = errors.Errorf("Binlog:not a valid binlog file")
 var errInvalidVersion error = errors.Errorf("Binlog:only supprot binlog version:v4")
 
 //we only support
-type reader struct {
+type Reader struct {
 	//the buffer stores the all information in file
 	b []byte
-	//pos reprenst the position of next event
-	pos uint32
+
+	//payload reprensent the payload position of current event
+	current uint32
+
+	//pnextos reprensent the position of next event
+	next uint32
 }
 
 //Create a Reader for binlog
-func NewReader(path string) (*reader, error) {
+func NewReader(path string) (*Reader, error) {
 	if b, err := ioutil.ReadFile(path); err != nil {
-		return nil, errors.Annotate(err, "Binlog:fail to create reader,the error is ")
+		return nil, errors.Annotate(err, "Binlog:fail to create Reader,the error is ")
 	} else {
-		return &reader{b, 4}, nil
+		return &Reader{
+			b:       b,
+			current: 0,
+			next:    MagicNumberLen,
+		}, nil
 	}
 }
 
 //Parse a complete binlog file
-func (r *reader) ParseFile() error {
+func (r *Reader) ParseFile() error {
 	//check magic number
 	if err := r.readMagicNumber(); err != nil {
 		return errors.Trace(err)
@@ -42,11 +50,12 @@ func (r *reader) ParseFile() error {
 
 	//parse all event for loop
 	for !r.IsEOF() {
-		if _, err := r.ReadHeader(); err != nil {
+		if event, err := r.ReadHeader(); err != nil {
 			return errors.Trace(err)
 		} else {
-			//undo
-			//try to parse all event
+			if err := r.HandleEvent(event); err != nil {
+				return errors.Trace(err)
+			}
 		}
 	}
 
@@ -54,9 +63,9 @@ func (r *reader) ParseFile() error {
 }
 
 //readMagicNumber check the binlog file header
-func (r *reader) readMagicNumber() error {
+func (r *Reader) readMagicNumber() error {
 	//checkc the magic hader
-	if magic := hack.String(r.b[:4]); magic != MagicNumber {
+	if magic := hack.String(r.b[:MagicNumberLen]); magic != MagicNumber {
 		return errInvalidBinlog
 	}
 	return nil
@@ -70,7 +79,7 @@ func (r *reader) readMagicNumber() error {
 //		- if event-size == 13 + 56: version = 1
 //		- if event-size == 19 + 56: version = 3
 //		- otherwise: invalid
-func (r *reader) ReadFormatDescriptionEvent() error {
+func (r *Reader) ReadFormatDescriptionEvent() error {
 	//check header
 	if event, err := r.ReadHeader(); err != nil {
 		return errors.Trace(err)
@@ -81,7 +90,7 @@ func (r *reader) ReadFormatDescriptionEvent() error {
 	}
 
 	//check binlogversion
-	buffer := r.b[4+uint32(EventHeaderLen):]
+	buffer := r.b[MagicNumberLen+EventHeaderLen:]
 	if binlogVersion, err := binary.ReadInt2(buffer); err != nil {
 		return errors.Annotate(err, "Binlog:fail to read binlog version,the error is ")
 	} else {
@@ -94,13 +103,13 @@ func (r *reader) ReadFormatDescriptionEvent() error {
 }
 
 //IsEOF test whether we read the eof
-func (r *reader) IsEOF() bool {
-	return r.pos == uint32(len(r.b))
+func (r *Reader) IsEOF() bool {
+	return r.next >= uint32(len(r.b))
 }
 
-//Readerheader parse the header and return the event type
-func (r *reader) ReadHeader() (uint8, error) {
-	buffer := r.b[r.pos:]
+//ReadHeader parse the header and return the event type
+func (r *Reader) ReadHeader() (uint8, error) {
+	buffer := r.b[r.next:]
 
 	//read
 	header := binary.NewBuffer(buffer[:EventHeaderLen])
@@ -125,8 +134,25 @@ func (r *reader) ReadHeader() (uint8, error) {
 	if pos, err := header.ReadInt4(); err != nil {
 		return 0, errors.Trace(err)
 	} else {
-		r.pos = pos
+		r.current = r.next + EventHeaderLen
+		r.next = pos
 	}
 
 	return event, nil
+}
+
+//HandleEvent handle differnet event
+func (r *Reader) HandleEvent(event uint8) error {
+	//create a event handler
+	handler, err := NewEventHandler(event, r.b[r.current:r.next])
+	if err != nil {
+		return errors.Trace(err)
+	}
+
+	//parse the Event
+	if err := handler.Parse(); err != nil {
+		return errors.Trace(err)
+	}
+
+	return nil
 }
