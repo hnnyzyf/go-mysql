@@ -1,7 +1,6 @@
 package client
 
 import (
-	"crypto/tls"
 	"net"
 
 	"github.com/hnnyzyf/go-mysql/protocol"
@@ -20,7 +19,7 @@ var errERRPacket = errors.Errorf("Client:not a valid Err packet")
 //session represent a connection to server from client
 type session struct {
 	//the real conn to server,the
-	conn net.Conn
+	*protocol.Conn
 
 	//connection inforamtion
 	username string
@@ -30,16 +29,11 @@ type session struct {
 	//some options
 	cfg *config
 
-	//The sequence-id is incremented with each packet and may wrap around.
-	//It starts at 0 and is reset to 0 when a new command begins in the Command Phase.
-	sid uint8
-
 	//capabilities flag use in client
 	capabilities uint32
 
 	//20-bytes random data from serve
 	authPluginData []byte
-
 	//authentication method
 	authMethod protocol.Method
 
@@ -60,7 +54,7 @@ func connect(host string, user string, passwd string, db string, cfg *config) (*
 
 	//init session
 	s := &session{
-		conn:     conn,
+		Conn:     protocol.NewConn(conn),
 		username: user,
 		password: passwd,
 		database: db,
@@ -93,23 +87,18 @@ func connect(host string, user string, passwd string, db string, cfg *config) (*
 	// 		OK-packet:return success
 	//		ERR-packet:return false
 	//		EOF-packet:return false
-	packet, header, err := s.readResponsePacket()
-	if err != nil {
+	if buffer, header, err := s.readResponsePacket(); err != nil {
 		return nil, errors.Trace(err)
-	}
-
-	//check response packet
-	switch header {
-	case protocol.OK_Packet:
-		return s, nil
-	case protocol.ERR_Packet:
-		if errMsg, err := parseErrPacket(packet); err != nil {
-			return nil, errors.Trace(err)
-		} else {
-			return nil, errors.Errorf(errMsg.msg)
+	} else {
+		//check response packet
+		switch header {
+		case protocol.OK_Packet:
+			return s, nil
+		case protocol.ERR_Packet:
+			return nil, parseErrPacket(buffer)
+		default:
+			return nil, errors.Errorf("Client:fail to accept correct generic response packet from server!")
 		}
-	default:
-		return nil, errors.Errorf("Client:fail to accept correct generic response packet from server!")
 	}
 
 	return s, nil
@@ -172,16 +161,13 @@ func (s *session) init() error {
 //readHandShakeV10 Read the init handshake packet
 func (s *session) readHandShakeV10() error {
 	//Get packet from conn
-	packet, err := protocol.ReadPacket(s.conn, s.sid)
+	buffer, err := s.ReadPacket()
 	if err != nil {
 		return errors.Trace(err)
 	}
 
-	//get payload from packet
-	payload, err := packet.ReadPayload()
-	if err != nil {
-		return err
-	}
+	//init payload
+	payload := binary.NewBuffer(buffer)
 
 	//read protocol version 1 bytes
 	if protocolVersion, err := payload.ReadInt1(); err != nil {
@@ -321,10 +307,10 @@ func (s *session) readHandShakeV10() error {
 
 //writeSSLRequeset create ssl communication to server
 func (s *session) writeSSLRequeset() error {
-	length := 4 + 4 + 1 + 23
+	size := 4 + 4 + 1 + 23
 
 	//create a payload
-	payload := binary.NewBuffer(make([]byte, length))
+	payload := binary.NewBuffer(make([]byte, size))
 
 	//write capability
 	if err := payload.WriteInt4(s.capabilities); err != nil {
@@ -341,18 +327,13 @@ func (s *session) writeSSLRequeset() error {
 		return errors.Trace(err)
 	}
 
-	//create packet
-	packet := protocol.NewPacket(length, s.sid, payload)
-
 	//write packet
-	if sid, err := protocol.WritePacket(s.conn, packet); err != nil {
+	if err := s.WritePacket(size, payload.ToReader()); err != nil {
 		return errors.Trace(err)
-	} else {
-		s.sid = sid
 	}
 
 	//replace the origin connection to ssl connection
-	s.conn = tls.Client(s.conn, s.cfg.tlsConfig)
+	s.TransformToSSL(s.cfg.tlsConfig)
 
 	return nil
 }
@@ -361,12 +342,12 @@ func (s *session) writeSSLRequeset() error {
 //writeHandshakeResponse41 return a HandshakeResponse to server
 func (s *session) writeHandshakeResponse41() error {
 	//write a header four bytes
-	length := 0
+	size := 0
 	//add capabilities
-	length += 4
+	size += 4
 
 	//set max-packet size character set  reserved (all [0])
-	length += 4 + 1 + 23
+	size += 4 + 1 + 23
 
 	//username+0x0 and convert database from utf8 to the charset
 	var username []byte
@@ -375,17 +356,17 @@ func (s *session) writeHandshakeResponse41() error {
 	} else {
 		username = name
 	}
-	length += len(username) + 1
+	size += len(username) + 1
 
 	//calculate auth-response
 	password := s.authMethod.EncodeKey(s.authPluginData, s.password)
-	length += len(password)
+	size += len(password)
 	if testLenencData(s.capabilities) {
-		length += binary.LengthOfInteger(uint64(len(password)))
+		size += binary.LengthOfInteger(uint64(len(password)))
 	} else if testSecureConnection(s.capabilities) {
-		length += 1
+		size += 1
 	} else {
-		length += 1
+		size += 1
 	}
 
 	//set database name
@@ -397,12 +378,12 @@ func (s *session) writeHandshakeResponse41() error {
 		} else {
 			database = db
 		}
-		length += len(database) + 1
+		size += len(database) + 1
 	}
 
 	//auth plugin name
 	if testPluginAuth(s.capabilities) {
-		length += len(s.authMethod.Name()) + 1
+		size += len(s.authMethod.Name()) + 1
 	}
 
 	//add attributes
@@ -415,13 +396,13 @@ func (s *session) writeHandshakeResponse41() error {
 		} else {
 			value = hack.Slice("1")
 		}
-		length += binary.LengthOfInteger(uint64(len(key) + len(value)))
-		length += len(key)
-		length += len(value)
+		size += binary.LengthOfInteger(uint64(len(key) + len(value)))
+		size += len(key)
+		size += len(value)
 	}
 
 	//create a payload
-	payload := binary.NewBuffer(make([]byte, length))
+	payload := binary.NewBuffer(make([]byte, size))
 
 	//write capability flags
 	if err := payload.WriteInt4(s.capabilities); err != nil {
@@ -500,38 +481,24 @@ func (s *session) writeHandshakeResponse41() error {
 		}
 	}
 
-	//create packet
-	packet := protocol.NewPacket(length, s.sid, payload)
-
 	//write packet
-	if sid, err := protocol.WritePacket(s.conn, packet); err != nil {
+	if err := s.WritePacket(size, payload.ToReader()); err != nil {
 		return errors.Trace(err)
-	} else {
-		s.sid = sid
 	}
 
 	return nil
 }
 
 //readResponsePacket implements to read generic response packet
-func (s *session) readResponsePacket() (*protocol.Packet, uint8, error) {
+func (s *session) readResponsePacket() ([]byte, uint8, error) {
 	//Get packet from conn
-	packet, err := protocol.ReadPacket(s.conn, s.sid+1)
+	buffer, err := s.ReadPacket()
 	if err != nil {
 		return nil, protocol.Unknown_Packet, errors.Trace(err)
-	} else {
-		//id should be equal to response packet
-		s.sid = packet.ReadId()
 	}
-
-	//Read length
-	length := packet.ReadLength()
 
 	//Read payload
-	payload, err := packet.ReadPayload()
-	if err != nil {
-		return nil, protocol.Unknown_Packet, errors.Trace(err)
-	}
+	payload := binary.NewBuffer(buffer)
 
 	//Read Header
 	header, err := payload.ReadInt1()
@@ -541,61 +508,43 @@ func (s *session) readResponsePacket() (*protocol.Packet, uint8, error) {
 
 	//OK: header = 0 and length of packet > 7
 	//EOF: header = 0xfe and length of packet < 9
-	if header == protocol.OK_Packet && length > 7-4 {
-		return packet, header, nil
-	} else if header == protocol.EOF_Packet && length < 9-4 {
-		return packet, header, nil
+	if header == protocol.OK_Packet && len(buffer) > 7-4 {
+		return buffer[1:], header, nil
+	} else if header == protocol.EOF_Packet && len(buffer) < 9-4 {
+		return buffer[1:], header, nil
 	} else if header == protocol.ERR_Packet {
-		return packet, header, nil
+		return buffer[1:], header, nil
 	} else {
 		return nil, header, errResponsePacket
 	}
 
 }
 
-func (s *session) Close() {
-	s.conn.Close()
-}
-
-type errMsg struct {
-	code  uint16 //error-code
-	state []byte //	SQL State
-	msg   string //human readable error message
-}
-
 //parseErrPacket parse the payload of errPacket
-func parseErrPacket(packet *protocol.Packet) (*errMsg, error) {
-	payload, err := packet.ReadPayload()
-	if err != nil {
-		return nil, errors.Trace(err)
-	}
+func parseErrPacket(buffer []byte) error {
+	payload := binary.NewBuffer(buffer)
 
 	//code
 	code, err := payload.ReadInt2()
 	if err != nil {
-		return nil, errERRPacket
+		return errERRPacket
 	}
 
 	//marker
 	if _, err = payload.ReadStringWithFixLen(1); err != nil {
-		return nil, errERRPacket
+		return errERRPacket
 	}
 
 	//SQL State
-	state, err := payload.ReadStringWithFixLen(5)
-	if err != nil {
-		return nil, errERRPacket
+	if _, err := payload.ReadStringWithFixLen(5); err != nil {
+		return errERRPacket
 	}
 
 	//human readable error message
 	msg, err := payload.ReadStringWithEOF()
 	if err != nil {
-		return nil, errERRPacket
+		return errERRPacket
 	}
 
-	return &errMsg{
-		code:  code,
-		state: state,
-		msg:   hack.String(msg),
-	}, nil
+	return errors.Errorf("Client:error(%d):%s", code, hack.String(msg))
 }

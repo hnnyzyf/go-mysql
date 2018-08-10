@@ -81,9 +81,9 @@ func (s *MyClientSuite) TestConnectWithFailure(c *C) {
 		d string
 		e string
 	}{
-		{"127.0.0.1:3306", "test", "1234567", "test", `Acces.+`},
-		{"127.0.0.1:3306", "test", "1234567", "", `Acces.+`},
-		{"127.0.0.1:3306", "test2", "123456", "test", `Acces.+`},
+		{"127.0.0.1:3306", "test", "1234567", "test", `.+Acces.+`},
+		{"127.0.0.1:3306", "test", "1234567", "", `.+Acces.+`},
+		{"127.0.0.1:3306", "test2", "123456", "test", `.+Acces.+`},
 		{"127.0.0.1:1234", "test", "123456", "", `.+connection.+`},
 		{"127.0.0.1:3306", "test", "123456", "test2", `.+database.+`},
 	}
