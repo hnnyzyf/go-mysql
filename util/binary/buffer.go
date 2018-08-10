@@ -335,7 +335,7 @@ func (p *Buffer) ReadInt8() (uint64, error) {
 	return ReadInt8(buffer)
 }
 
-//Skip 
+//Skip
 func (p *Buffer) Skip(l int) error {
 	if p.off+l > len(p.b) {
 		return errTooSmall
