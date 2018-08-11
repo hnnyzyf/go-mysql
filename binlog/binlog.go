@@ -25,9 +25,6 @@ type Reader struct {
 	//output channel
 	output chan EventHandler
 
-	//stop channel
-	stop chan struct{}
-
 	//represent the error message when error occures
 	err error
 }
@@ -42,21 +39,20 @@ func NewReader(path string) (*Reader, error) {
 			current: 0,
 			next:    MagicNumberLen,
 			output:  make(chan EventHandler),
-			stop:    make(chan struct{}),
 		}, nil
 	}
 }
 
 //Parse a complete binlog file
-func (r *Reader) ParseFile() (chan EventHandler, chan struct{}, error) {
+func (r *Reader) ParseFile() (chan EventHandler, error) {
 	//check magic number
 	if err := r.readMagicNumber(); err != nil {
-		return nil, nil, errors.Trace(err)
+		return nil, errors.Trace(err)
 	}
 
 	//check binlog version
 	if err := r.ReadFormatDescriptionEvent(); err != nil {
-		return nil, nil, errors.Trace(err)
+		return nil, errors.Trace(err)
 	}
 
 	//parse all event for loop
@@ -78,10 +74,10 @@ func (r *Reader) ParseFile() (chan EventHandler, chan struct{}, error) {
 			}
 		}
 		//stop
-		r.stop <- struct{}{}
+		close(r.output)
 	}()
 
-	return r.output, r.stop, nil
+	return r.output, nil
 }
 
 //Error return the error
