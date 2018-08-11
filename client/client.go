@@ -95,7 +95,7 @@ func connect(host string, user string, passwd string, db string, cfg *config) (*
 		case protocol.OK_Packet:
 			return s, nil
 		case protocol.ERR_Packet:
-			return nil, parseErrPacket(buffer)
+			return nil, readErrPacket(buffer)
 		default:
 			return nil, errors.Errorf("Client:fail to accept correct generic response packet from server!")
 		}
@@ -520,8 +520,8 @@ func (s *session) readResponsePacket() ([]byte, uint8, error) {
 
 }
 
-//parseErrPacket parse the payload of errPacket
-func parseErrPacket(buffer []byte) error {
+//readErrPacket parse the payload of errPacket
+func readErrPacket(buffer []byte) error {
 	payload := binary.NewBuffer(buffer)
 
 	//code
@@ -547,4 +547,25 @@ func parseErrPacket(buffer []byte) error {
 	}
 
 	return errors.Errorf("Client:error(%d):%s", code, hack.String(msg))
+}
+
+//WriteCommand write a command to server according to the 
+func (s *session) WriteCommand(size uint64,buffer []byte) error {
+	//check size and buffer
+	if size!=len(buffer){
+		return errors.Errorf("Client:expect %d bytes buffer,but the real size is %d bytes",size,len(buffer))
+	}
+
+	//create payload
+	payload:=binary.NewBuffer(buffer)
+
+	//reset sid
+	s.Reset()
+
+	//write packet
+	if err := s.WritePacket(size, payload.ToReader()); err != nil {
+		return errors.Trace(err)
+	}
+
+	return nil
 }
