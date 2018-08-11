@@ -446,14 +446,6 @@ func (p *Buffer) WriteInt8(val uint64) error {
 	return WriteInt8(buffer, val)
 }
 
-func (p *Buffer) WriteZero(l int) error {
-	if p.off+l > len(p.b) {
-		return errTooSmall
-	}
-	p.off += l
-	return nil
-}
-
 func (p *Buffer) WriteStringWithNull(str []byte) error {
 	if n := copy(p.b[p.off:], str); n != len(str) {
 		return errTooSmall
