@@ -16,11 +16,20 @@ type Reader struct {
 	//the buffer stores the all information in file
 	b []byte
 
-	//payload reprensent the payload position of current event
+	//cuurent reprensent the payload position of current event
 	current uint32
 
-	//pnextos reprensent the position of next event
+	//next reprensent the position of next event
 	next uint32
+
+	//output channel
+	output chan EventHandler
+
+	//stop channel
+	stop chan struct{}
+
+	//represent the error message when error occures
+	err error
 }
 
 //Create a Reader for binlog
@@ -32,34 +41,52 @@ func NewReader(path string) (*Reader, error) {
 			b:       b,
 			current: 0,
 			next:    MagicNumberLen,
+			output:  make(chan EventHandler),
+			stop:    make(chan struct{}),
 		}, nil
 	}
 }
 
 //Parse a complete binlog file
-func (r *Reader) ParseFile() error {
+func (r *Reader) ParseFile() (chan EventHandler, chan struct{}, error) {
 	//check magic number
 	if err := r.readMagicNumber(); err != nil {
-		return errors.Trace(err)
+		return nil, nil, errors.Trace(err)
 	}
 
 	//check binlog version
 	if err := r.ReadFormatDescriptionEvent(); err != nil {
-		return errors.Trace(err)
+		return nil, nil, errors.Trace(err)
 	}
 
 	//parse all event for loop
-	for !r.IsEOF() {
-		if event, err := r.ReadHeader(); err != nil {
-			return errors.Trace(err)
-		} else {
-			if err := r.HandleEvent(event); err != nil {
-				return errors.Trace(err)
+	go func() {
+		//loop
+		for !r.IsEOF() {
+			if event, err := r.ReadHeader(); err != nil {
+				r.err = errors.Trace(err)
+				break
+			} else {
+				//create a event handler
+				if handler, err := NewEventHandler(event, r.b[r.current:r.next]); err != nil {
+					r.err = errors.Trace(err)
+					break
+				} else {
+					//add handler to output channel
+					r.output <- handler
+				}
 			}
 		}
-	}
+		//stop
+		r.stop <- struct{}{}
+	}()
 
-	return nil
+	return r.output, r.stop, nil
+}
+
+//Error return the error
+func (r *Reader) Error() error {
+	return r.err
 }
 
 //readMagicNumber check the binlog file header
@@ -104,7 +131,7 @@ func (r *Reader) ReadFormatDescriptionEvent() error {
 
 //IsEOF test whether we read the eof
 func (r *Reader) IsEOF() bool {
-	return r.next >= uint32(len(r.b))
+	return r.next == uint32(len(r.b))
 }
 
 //ReadHeader parse the header and return the event type
@@ -139,20 +166,4 @@ func (r *Reader) ReadHeader() (uint8, error) {
 	}
 
 	return event, nil
-}
-
-//HandleEvent handle differnet event
-func (r *Reader) HandleEvent(event uint8) error {
-	//create a event handler
-	handler, err := NewEventHandler(event, r.b[r.current:r.next])
-	if err != nil {
-		return errors.Trace(err)
-	}
-
-	//parse the Event
-	if err := handler.Parse(); err != nil {
-		return errors.Trace(err)
-	}
-
-	return nil
 }

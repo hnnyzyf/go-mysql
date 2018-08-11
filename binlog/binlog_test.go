@@ -22,7 +22,18 @@ func newSuite() *MyBinlogSuite {
 var _ = Suite(newSuite())
 
 func (s *MyBinlogSuite) TestParse(c *C) {
-	err := s.r.ParseFile()
-	c.Log(err)
+	output, stop, err := s.r.ParseFile()
 	c.Assert(err, IsNil)
+
+Done:
+	for {
+		select {
+		case handler := <-output:
+			_ = handler.Parse()
+		case <-stop:
+			c.Log(s.r.Error())
+			break Done
+		}
+	}
+
 }
