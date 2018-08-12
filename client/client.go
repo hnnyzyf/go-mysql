@@ -16,8 +16,8 @@ var errHandShake10 = errors.Errorf("Client:not a valid HandShake10 packets")
 var errResponsePacket = errors.Errorf("Client:not a valid response Packet")
 var errERRPacket = errors.Errorf("Client:not a valid Err packet")
 
-//session represent a connection to server from client
-type session struct {
+//Session represent a connection to server from client
+type Session struct {
 	//the real conn to server,the
 	*protocol.Conn
 
@@ -45,15 +45,15 @@ type session struct {
 }
 
 //connect create a tcp connection to server
-func connect(host string, user string, passwd string, db string, cfg *config) (*session, error) {
+func connect(host string, user string, passwd string, db string, cfg *config) (*Session, error) {
 	//the client connecting to the server with timeout
 	conn, err := net.DialTimeout("tcp", host, cfg.timeout)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
 
-	//init session
-	s := &session{
+	//init Session
+	s := &Session{
 		Conn:     protocol.NewConn(conn),
 		username: user,
 		password: passwd,
@@ -87,15 +87,14 @@ func connect(host string, user string, passwd string, db string, cfg *config) (*
 	// 		OK-packet:return success
 	//		ERR-packet:return false
 	//		EOF-packet:return false
-	if buffer, header, err := s.readResponsePacket(); err != nil {
+	if buffer, err := s.ReadPacket(); err != nil {
 		return nil, errors.Trace(err)
 	} else {
-		//check response packet
-		switch header {
-		case protocol.OK_Packet:
+		switch {
+		case IsOkPacket(buffer):
 			return s, nil
-		case protocol.ERR_Packet:
-			return nil, readErrPacket(buffer)
+		case IsErrPacket(buffer):
+			return s, ReadErrPacket(buffer)
 		default:
 			return nil, errors.Errorf("Client:fail to accept correct generic response packet from server!")
 		}
@@ -105,17 +104,17 @@ func connect(host string, user string, passwd string, db string, cfg *config) (*
 }
 
 //Connect is a wrapper of connect
-func Connect(host string, user string, passwd string, db string) (*session, error) {
+func Connect(host string, user string, passwd string, db string) (*Session, error) {
 	return connect(host, user, passwd, db, defaultConfig)
 }
 
 //ConnectWithConfig is a wrapper of connect
-func ConnectWithConfig(host string, user string, passwd string, db string, cfg *config) (*session, error) {
+func ConnectWithConfig(host string, user string, passwd string, db string, cfg *config) (*Session, error) {
 	return connect(host, user, passwd, db, cfg)
 }
 
 //init read configuration from config
-func (s *session) init() error {
+func (s *Session) init() error {
 	cfg := s.cfg
 
 	//set capabilities
@@ -159,7 +158,7 @@ func (s *session) init() error {
 }
 
 //readHandShakeV10 Read the init handshake packet
-func (s *session) readHandShakeV10() error {
+func (s *Session) readHandShakeV10() error {
 	//Get packet from conn
 	buffer, err := s.ReadPacket()
 	if err != nil {
@@ -306,7 +305,7 @@ func (s *session) readHandShakeV10() error {
 }
 
 //writeSSLRequeset create ssl communication to server
-func (s *session) writeSSLRequeset() error {
+func (s *Session) writeSSLRequeset() error {
 	size := 4 + 4 + 1 + 23
 
 	//create a payload
@@ -340,7 +339,7 @@ func (s *session) writeSSLRequeset() error {
 
 //https://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::SSLRequest
 //writeHandshakeResponse41 return a HandshakeResponse to server
-func (s *session) writeHandshakeResponse41() error {
+func (s *Session) writeHandshakeResponse41() error {
 	//write a header four bytes
 	size := 0
 	//add capabilities
@@ -420,7 +419,7 @@ func (s *session) writeHandshakeResponse41() error {
 	}
 
 	//reserved
-	if err := payload.WriteZero(23); err != nil {
+	if err := payload.Skip(23); err != nil {
 		return errors.Trace(err)
 	}
 
@@ -489,75 +488,15 @@ func (s *session) writeHandshakeResponse41() error {
 	return nil
 }
 
-//readResponsePacket implements to read generic response packet
-func (s *session) readResponsePacket() ([]byte, uint8, error) {
-	//Get packet from conn
-	buffer, err := s.ReadPacket()
-	if err != nil {
-		return nil, protocol.Unknown_Packet, errors.Trace(err)
-	}
-
-	//Read payload
-	payload := binary.NewBuffer(buffer)
-
-	//Read Header
-	header, err := payload.ReadInt1()
-	if err != nil {
-		return nil, protocol.Unknown_Packet, errors.Trace(err)
-	}
-
-	//OK: header = 0 and length of packet > 7
-	//EOF: header = 0xfe and length of packet < 9
-	if header == protocol.OK_Packet && len(buffer) > 7-4 {
-		return buffer[1:], header, nil
-	} else if header == protocol.EOF_Packet && len(buffer) < 9-4 {
-		return buffer[1:], header, nil
-	} else if header == protocol.ERR_Packet {
-		return buffer[1:], header, nil
-	} else {
-		return nil, header, errResponsePacket
-	}
-
-}
-
-//readErrPacket parse the payload of errPacket
-func readErrPacket(buffer []byte) error {
-	payload := binary.NewBuffer(buffer)
-
-	//code
-	code, err := payload.ReadInt2()
-	if err != nil {
-		return errERRPacket
-	}
-
-	//marker
-	if _, err = payload.ReadStringWithFixLen(1); err != nil {
-		return errERRPacket
-	}
-
-	//SQL State
-	if _, err := payload.ReadStringWithFixLen(5); err != nil {
-		return errERRPacket
-	}
-
-	//human readable error message
-	msg, err := payload.ReadStringWithEOF()
-	if err != nil {
-		return errERRPacket
-	}
-
-	return errors.Errorf("Client:error(%d):%s", code, hack.String(msg))
-}
-
-//WriteCommand write a command to server according to the 
-func (s *session) WriteCommand(size uint64,buffer []byte) error {
+//WriteCommand write a command to server according to the
+func (s *Session) WriteCommand(size int, buffer []byte) error {
 	//check size and buffer
-	if size!=len(buffer){
-		return errors.Errorf("Client:expect %d bytes buffer,but the real size is %d bytes",size,len(buffer))
+	if size != len(buffer) {
+		return errors.Errorf("Client:expect %d bytes buffer,but the real size is %d bytes", size, len(buffer))
 	}
 
 	//create payload
-	payload:=binary.NewBuffer(buffer)
+	payload := binary.NewBuffer(buffer)
 
 	//reset sid
 	s.Reset()

@@ -43,3 +43,13 @@ func testConnectWithDB(capability uint32) bool {
 func testConnectAttrs(capability uint32) bool {
 	return capability&protocol.CLIENT_CONNECT_ATTRS != 0
 }
+
+//testOkPacket tests whether current packet is ok packet
+func testOkPacket(header uint8) bool {
+	return header == protocol.OK_Packet
+}
+
+//testErrpacket test whether current packet is err packet
+func testErrPacket(header uint8) bool {
+	return header == protocol.ERR_Packet
+}

@@ -13,7 +13,8 @@ import (
 func Test(t *testing.T) { TestingT(t) }
 
 type MyClientSuite struct {
-	tls *tls.Config
+	tls     *tls.Config
+	testTls bool
 }
 
 func (s *MyClientSuite) initTls() error {
@@ -27,7 +28,7 @@ func (s *MyClientSuite) initTls() error {
 	return nil
 }
 
-var _ = Suite(&MyClientSuite{})
+var _ = Suite(&MyClientSuite{testTls: false})
 
 func (s *MyClientSuite) TestConnect(c *C) {
 	data := []struct {
@@ -58,18 +59,20 @@ func (s *MyClientSuite) TestConnectWithSSL(c *C) {
 		{"127.0.0.1:3306", "testssl", "123456", "test"},
 		{"127.0.0.1:3306", "testssl", "123456", ""},
 	}
-	cfg := NewConfig()
-	if err := s.initTls(); err != nil {
-		c.Error(err)
-	}
-	cfg.SetSSL(true, s.tls)
-	for i := range data {
-		l := data[i]
-		conn, err := ConnectWithConfig(l.h, l.u, l.p, l.d, cfg)
-		if err != nil {
+	if s.testTls {
+		cfg := NewConfig()
+		if err := s.initTls(); err != nil {
 			c.Error(err)
 		}
-		conn.Close()
+		cfg.SetSSL(true, s.tls)
+		for i := range data {
+			l := data[i]
+			conn, err := ConnectWithConfig(l.h, l.u, l.p, l.d, cfg)
+			if err != nil {
+				c.Error(err)
+			}
+			conn.Close()
+		}
 	}
 }
 
