@@ -1,7 +1,7 @@
 package binlog
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/hnnyzyf/go-mysql/util/binary"
 	"github.com/hnnyzyf/go-mysql/util/hack"
@@ -14,7 +14,7 @@ var errInvalidVersion error = errors.Errorf("Binlog:only supprot binlog version:
 //we only support
 type Reader struct {
 	//the buffer stores the all information in file
-	b []byte
+	b *bianry.Cache
 
 	//cuurent reprensent the payload position of current event
 	current uint32
@@ -31,11 +31,11 @@ type Reader struct {
 
 //Create a Reader for binlog
 func NewReader(path string) (*Reader, error) {
-	if b, err := ioutil.ReadFile(path); err != nil {
+	if file, err := os.Open(path); err != nil {
 		return nil, errors.Annotate(err, "Binlog:fail to create Reader,the error is ")
 	} else {
 		return &Reader{
-			b:       b,
+			b:       binary.NewCache(file),
 			current: 0,
 			next:    MagicNumberLen,
 			output:  make(chan EventHandler),
@@ -87,8 +87,13 @@ func (r *Reader) Error() error {
 
 //readMagicNumber check the binlog file header
 func (r *Reader) readMagicNumber() error {
+	//read magic number
+	buffer, err := r.c.Read(4)
+	if err != nil {
+		return errors.Trace(err)
+	}
 	//checkc the magic hader
-	if magic := hack.String(r.b[:MagicNumberLen]); magic != MagicNumber {
+	if magic := hack.String(buffer); magic != MagicNumber {
 		return errInvalidBinlog
 	}
 	return nil
@@ -113,7 +118,7 @@ func (r *Reader) readFormatDescriptionEvent() error {
 	}
 
 	//check binlogversion
-	buffer := r.b[MagicNumberLen+EventHeaderLen:]
+	buffer,err := r.b[MagicNumberLen+EventHeaderLen:]
 	if binlogVersion, err := binary.ReadInt2(buffer); err != nil {
 		return errors.Annotate(err, "Binlog:fail to read binlog version,the error is ")
 	} else {
