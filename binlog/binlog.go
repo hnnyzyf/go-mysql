@@ -51,15 +51,15 @@ func (r *Reader) ParseFile() (chan EventHandler, error) {
 	}
 
 	//check binlog version
-	if err := r.ReadFormatDescriptionEvent(); err != nil {
+	if err := r.readFormatDescriptionEvent(); err != nil {
 		return nil, errors.Trace(err)
 	}
 
 	//parse all event for loop
 	go func() {
 		//loop
-		for !r.IsEOF() {
-			if event, err := r.ReadHeader(); err != nil {
+		for !r.isEOF() {
+			if event, err := r.readHeader(); err != nil {
 				r.err = errors.Trace(err)
 				break
 			} else {
@@ -102,9 +102,9 @@ func (r *Reader) readMagicNumber() error {
 //		- if event-size == 13 + 56: version = 1
 //		- if event-size == 19 + 56: version = 3
 //		- otherwise: invalid
-func (r *Reader) ReadFormatDescriptionEvent() error {
+func (r *Reader) readFormatDescriptionEvent() error {
 	//check header
-	if event, err := r.ReadHeader(); err != nil {
+	if event, err := r.readHeader(); err != nil {
 		return errors.Trace(err)
 	} else {
 		if event != FORMAT_DESCRIPTION_EVENT {
@@ -126,12 +126,12 @@ func (r *Reader) ReadFormatDescriptionEvent() error {
 }
 
 //IsEOF test whether we read the eof
-func (r *Reader) IsEOF() bool {
+func (r *Reader) isEOF() bool {
 	return r.next == uint32(len(r.b))
 }
 
-//ReadHeader parse the header and return the event type
-func (r *Reader) ReadHeader() (uint8, error) {
+//readHeader parse the header and return the event type
+func (r *Reader) readHeader() (uint8, error) {
 	buffer := r.b[r.next:]
 
 	//read

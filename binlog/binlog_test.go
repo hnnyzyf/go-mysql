@@ -26,12 +26,13 @@ func (s *MyBinlogSuite) TestParse(c *C) {
 	c.Assert(err, IsNil)
 
 	for {
-		if handler, ok := <-output; ok {
-			_ = handler.Parse()
-		} else {
+		handler, ok := <-output
+		if !ok {
 			c.Log(s.r.Error())
 			break
 		}
+		//parese the hadler
+		_ = handler.Parse()
 	}
 
 }
