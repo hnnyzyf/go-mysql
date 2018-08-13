@@ -1,7 +1,7 @@
 package binlog
 
 import (
-	"github.com/juju/errors"
+	"github.com/hnnyzyf/go-mysql/util/binary"
 )
 
 //Header represent the event header
@@ -18,12 +18,24 @@ type Header struct {
 func NewHeader(b []byte) *Header {
 	return &Header{
 		Timestamp: b[:4],
-		EventType: b[4:6],
-		ServerId:  b[6:10],
-		EventSize: b[10:14],
-		LogPos:    b[14:18],
-		Flags:     b[18:19],
+		EventType: b[4:5],
+		ServerId:  b[5:9],
+		EventSize: b[9:13],
+		LogPos:    b[13:17],
+		Flags:     b[17:19],
 	}
+}
+
+//Kind returns the type of header
+func (h *Header) Kind() uint8 {
+	k, _ := binary.ReadInt1(h.EventType)
+	return k
+}
+
+//GetPayloadSize return the event size
+func (h *Header) Pos() uint32 {
+	p, _ := binary.ReadInt4(h.LogPos)
+	return p
 }
 
 //represent the start_event_v3

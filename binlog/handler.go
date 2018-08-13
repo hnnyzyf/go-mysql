@@ -1,5 +1,9 @@
 package binlog
 
+import (
+	"github.com/juju/errors"
+)
+
 //EventHandler represent the handler of Event
 type EventHandler interface {
 	//Parse the event and return error

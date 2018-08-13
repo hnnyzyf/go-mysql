@@ -13,7 +13,7 @@ type MyBinlogSuite struct {
 }
 
 func newSuite() *MyBinlogSuite {
-	r, _ := NewReader("./bin/mysql-bin.000001")
+	r := NewReader()
 	return &MyBinlogSuite{
 		r: r,
 	}
@@ -22,9 +22,9 @@ func newSuite() *MyBinlogSuite {
 var _ = Suite(newSuite())
 
 func (s *MyBinlogSuite) TestParse(c *C) {
-	output, err := s.r.ParseFile()
+	output, err := s.r.Open("./bin/mysql-bin.000001")
+	defer s.r.Close()
 	c.Assert(err, IsNil)
-
 	for {
 		handler, ok := <-output
 		if !ok {
