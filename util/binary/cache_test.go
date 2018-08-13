@@ -34,13 +34,11 @@ func (s *MyCacheSuite) TestRead(c *C) {
 		{890, b[2110:3000], nil},
 		{1095, b[3000:4095], nil},
 		{1, b[4095:], nil},
-		{2, make([]byte, 2), io.EOF},
+		{2, nil, io.EOF},
 	}
 
 	for i := range data {
-		c.Log(data[i].size)
-		buffer := make([]byte, data[i].size)
-		err := cache.Read(buffer)
+		buffer, err := cache.Read(data[i].size)
 		c.Assert(buffer, DeepEquals, data[i].res)
 		if data[i].err == nil {
 			c.Assert(err, IsNil)

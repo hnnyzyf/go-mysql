@@ -43,56 +43,56 @@ func NewCacheWithSize(r io.Reader, size int) *Cache {
 //  case2:avali == 0 and size <=len(c.b) fill the buffer and copy directly
 //  case3:avali > 0 and size > avali copy remaining and read others from io.Reader
 //  case4:avali >0 and size <- avali copy remaining
-func (c *Cache) Read(buffer []byte) error {
-	//fmt.Println("size", len(buffer), c.avail)
+func (c *Cache) Read(size int) ([]byte, error) {
+	buffer := make([]byte, size)
 	//case 1
 	if c.avail == 0 && len(buffer) > len(c.b) {
 		//read
 		if err := c.read(buffer); err != nil {
-			return errors.Trace(err)
+			return nil, errors.Trace(err)
 		}
 		//fill buffer
 		if err := c.fill(); err != nil {
-			return errors.Trace(err)
+			return nil, errors.Trace(err)
 		} else {
-			return nil
+			return buffer, nil
 		}
 	} else if c.avail == 0 && len(buffer) <= len(c.b) {
 		//fill buffer
 		if err := c.fill(); err != nil {
-			return errors.Trace(err)
+			return nil, errors.Trace(err)
 		}
 		//copy data
 		if n := copy(buffer, c.b); n != len(buffer) {
-			return errNoEnoughData
+			return nil, errNoEnoughData
 		} else {
 			//fmt.Println("size", len(buffer), n, c.off, c.avail)
 			c.off += n
 			c.avail -= n
-			return nil
+			return buffer, nil
 		}
 	} else if c.avail > 0 && len(buffer) > c.avail {
 		//copy data
 		if n := copy(buffer, c.b[c.off:c.off+c.avail]); n != c.avail {
-			return errNoEnoughData
+			return nil, errNoEnoughData
 		} else {
 			//read from io.reader
 			if err := c.read(buffer[c.avail:]); err != nil {
-				return errors.Trace(err)
+				return nil, errors.Trace(err)
 			} else {
 				c.off += c.avail
 				c.avail -= c.avail
-				return nil
+				return buffer, nil
 			}
 		}
 	} else if c.avail > 0 && len(buffer) <= c.avail {
 		//copy data
 		if n := copy(buffer, c.b[c.off:c.off+len(buffer)]); n != len(buffer) {
-			return errNoEnoughData
+			return nil, errNoEnoughData
 		} else {
 			c.off += n
 			c.avail -= n
-			return nil
+			return buffer, nil
 		}
 	} else {
 		panic("binary:impossible cache state")
