@@ -6,7 +6,8 @@ import (
 	"github.com/juju/errors"
 )
 
-var errNoEnoughData = errors.Errorf("Cache:fail to copy data from buffer")
+var errBufferCopy = errors.Errorf("Cache:no enough bytes to copy from buffer")
+var errReaderCopy = errors.Errorf("Cache:no enough bytes to copy from reader")
 
 //the default cache size is 4KB
 const defaultBufferSize = 4 * 1024
@@ -46,9 +47,9 @@ func NewCacheWithSize(r io.Reader, size int) *Cache {
 func (c *Cache) Read(size int) ([]byte, error) {
 	buffer := make([]byte, size)
 	//case 1
-	if c.avail == 0 && len(buffer) > len(c.b) {
-		//read
-		if err := c.read(buffer); err != nil {
+	if c.avail == 0 && size > len(c.b) {
+		//copy from reader
+		if err := c.copy(buffer); err != nil {
 			return nil, errors.Trace(err)
 		}
 		//fill buffer
@@ -57,27 +58,26 @@ func (c *Cache) Read(size int) ([]byte, error) {
 		} else {
 			return buffer, nil
 		}
-	} else if c.avail == 0 && len(buffer) <= len(c.b) {
+	} else if c.avail == 0 && size <= len(c.b) {
 		//fill buffer
 		if err := c.fill(); err != nil {
 			return nil, errors.Trace(err)
 		}
-		//copy data
-		if n := copy(buffer, c.b); n != len(buffer) {
-			return nil, errNoEnoughData
+		//copy data from buffer
+		if n := copy(buffer, c.b); n != size {
+			return nil, errBufferCopy
 		} else {
-			//fmt.Println("size", len(buffer), n, c.off, c.avail)
 			c.off += n
 			c.avail -= n
 			return buffer, nil
 		}
-	} else if c.avail > 0 && len(buffer) > c.avail {
-		//copy data
+	} else if c.avail > 0 && size > c.avail {
+		//copy data from buffer
 		if n := copy(buffer, c.b[c.off:c.off+c.avail]); n != c.avail {
-			return nil, errNoEnoughData
+			return nil, errBufferCopy
 		} else {
-			//read from io.reader
-			if err := c.read(buffer[c.avail:]); err != nil {
+			//copy from io.reader
+			if err := c.copy(buffer[c.avail:]); err != nil {
 				return nil, errors.Trace(err)
 			} else {
 				c.off += c.avail
@@ -85,10 +85,10 @@ func (c *Cache) Read(size int) ([]byte, error) {
 				return buffer, nil
 			}
 		}
-	} else if c.avail > 0 && len(buffer) <= c.avail {
+	} else if c.avail > 0 && size <= c.avail {
 		//copy data
-		if n := copy(buffer, c.b[c.off:c.off+len(buffer)]); n != len(buffer) {
-			return nil, errNoEnoughData
+		if n := copy(buffer, c.b[c.off:c.off+size]); n != size {
+			return nil, errBufferCopy
 		} else {
 			c.off += n
 			c.avail -= n
@@ -112,7 +112,7 @@ func (c *Cache) Next(size int) ([]byte, error) {
 		//init buffer
 		buffer := make([]byte, size)
 		//read from io.reader direct
-		if err := c.read(buffer); err != nil {
+		if err := c.copy(buffer); err != nil {
 			return nil, errors.Trace(err)
 		} else {
 			return buffer, nil
@@ -133,7 +133,7 @@ func (c *Cache) Next(size int) ([]byte, error) {
 			return nil, errors.Errorf("binary:only copy %d bytes from cache buffer,expect %d bytes", avali, c.avail)
 		}
 		//read from io.reader
-		if err := c.read(buffer[c.avail:]); err != nil {
+		if err := c.copy(buffer[c.avail:]); err != nil {
 			return nil, errors.Trace(err)
 		} else {
 			c.off += avali
@@ -152,14 +152,14 @@ func (c *Cache) Next(size int) ([]byte, error) {
 
 }
 
-//read reads from io.reader
-func (c *Cache) read(buffer []byte) error {
+//copy reads from io.reader
+func (c *Cache) copy(buffer []byte) error {
 	n, err := c.fd.Read(buffer)
 	//occurs error
 	if err != nil {
 		return errors.Trace(err)
 	} else if n != len(buffer) {
-		return errors.Errorf("binary:no enough bytes to read in cache")
+		return errReaderCopy
 	} else {
 		return nil
 	}
