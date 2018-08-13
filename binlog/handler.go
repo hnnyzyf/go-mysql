@@ -6,8 +6,13 @@ import (
 
 //EventHandler represent the handler of Event
 type EventHandler interface {
-	//Parse the event and return error
-	Parse() error
+	//Accept a Visitor to the event and return error
+	Accept() error
+}
+
+type Visitor interface {
+	//Visitor visit a Event Handler
+	Visit(EventHandler)
 }
 
 //NewEventHandler return a EventHandler according to its type

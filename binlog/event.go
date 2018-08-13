@@ -45,7 +45,7 @@ func NewStartEvent(b []byte) *StartEvent {
 	return &StartEvent{}
 }
 
-func (e *StartEvent) Parse() error {
+func (e *StartEvent) Accept() error {
 	return nil
 }
 
@@ -56,7 +56,7 @@ func NewQueryEvent(b []byte) *QueryEvent {
 	return &QueryEvent{}
 }
 
-func (e *QueryEvent) Parse() error {
+func (e *QueryEvent) Accept() error {
 	return nil
 }
 
@@ -67,7 +67,7 @@ func NewStopEvent(b []byte) *StopEvent {
 	return &StopEvent{}
 }
 
-func (e *StopEvent) Parse() error {
+func (e *StopEvent) Accept() error {
 	return nil
 }
 
@@ -78,7 +78,7 @@ func NewRotateEvent(b []byte) *RotateEvent {
 	return &RotateEvent{}
 }
 
-func (e *RotateEvent) Parse() error {
+func (e *RotateEvent) Accept() error {
 	return nil
 }
 
@@ -89,7 +89,7 @@ func NewIntvarEvent(b []byte) *IntvarEvent {
 	return &IntvarEvent{}
 }
 
-func (e *IntvarEvent) Parse() error {
+func (e *IntvarEvent) Accept() error {
 	return nil
 }
 
@@ -100,7 +100,7 @@ func NewLoadEvent(b []byte) *LoadEvent {
 	return &LoadEvent{}
 }
 
-func (e *LoadEvent) Parse() error {
+func (e *LoadEvent) Accept() error {
 	return nil
 }
 
@@ -111,7 +111,7 @@ func NewSlaveEvent(b []byte) *SlaveEvent {
 	return &SlaveEvent{}
 }
 
-func (e *SlaveEvent) Parse() error {
+func (e *SlaveEvent) Accept() error {
 	return nil
 }
 
@@ -122,7 +122,7 @@ func NewCreateFileEvent(b []byte) *CreateFileEvent {
 	return &CreateFileEvent{}
 }
 
-func (e *CreateFileEvent) Parse() error {
+func (e *CreateFileEvent) Accept() error {
 	return nil
 }
 
@@ -133,7 +133,7 @@ func NewAppendBlockEvent(b []byte) *AppendBlockEvent {
 	return &AppendBlockEvent{}
 }
 
-func (e *AppendBlockEvent) Parse() error {
+func (e *AppendBlockEvent) Accept() error {
 	return nil
 }
 
@@ -144,7 +144,7 @@ func NewExecLoadEvent(b []byte) *ExecLoadEvent {
 	return &ExecLoadEvent{}
 }
 
-func (e *ExecLoadEvent) Parse() error {
+func (e *ExecLoadEvent) Accept() error {
 	return nil
 }
 
@@ -155,7 +155,7 @@ func NewDeleteFileEvent(b []byte) *DeleteFileEvent {
 	return &DeleteFileEvent{}
 }
 
-func (e *DeleteFileEvent) Parse() error {
+func (e *DeleteFileEvent) Accept() error {
 	return nil
 }
 
@@ -166,7 +166,7 @@ func NewLoadEventV2(b []byte) *LoadEventV2 {
 	return &LoadEventV2{}
 }
 
-func (e *LoadEventV2) Parse() error {
+func (e *LoadEventV2) Accept() error {
 	return nil
 }
 
@@ -177,7 +177,7 @@ func NewRandEvent(b []byte) *RandEvent {
 	return &RandEvent{}
 }
 
-func (e *RandEvent) Parse() error {
+func (e *RandEvent) Accept() error {
 	return nil
 }
 
@@ -188,7 +188,7 @@ func NewUserVarEvent(b []byte) *UserVarEvent {
 	return &UserVarEvent{}
 }
 
-func (e *UserVarEvent) Parse() error {
+func (e *UserVarEvent) Accept() error {
 	return nil
 }
 
@@ -199,7 +199,7 @@ func NewFormatDescriptionEvent(b []byte) *FormatDescriptionEvent {
 	return &FormatDescriptionEvent{}
 }
 
-func (e *FormatDescriptionEvent) Parse() error {
+func (e *FormatDescriptionEvent) Accept() error {
 	return nil
 }
 
@@ -210,7 +210,7 @@ func NewXidEvent(b []byte) *XidEvent {
 	return &XidEvent{}
 }
 
-func (e *XidEvent) Parse() error {
+func (e *XidEvent) Accept() error {
 	return nil
 }
 
@@ -221,7 +221,7 @@ func NewBeginLoadQueryEvent(b []byte) *BeginLoadQueryEvent {
 	return &BeginLoadQueryEvent{}
 }
 
-func (e *BeginLoadQueryEvent) Parse() error {
+func (e *BeginLoadQueryEvent) Accept() error {
 	return nil
 }
 
@@ -232,7 +232,7 @@ func NewExecuteLoadQueryEvent(b []byte) *ExecuteLoadQueryEvent {
 	return &ExecuteLoadQueryEvent{}
 }
 
-func (e *ExecuteLoadQueryEvent) Parse() error {
+func (e *ExecuteLoadQueryEvent) Accept() error {
 	return nil
 }
 
@@ -243,7 +243,7 @@ func NewTableMapEvent(b []byte) *TableMapEvent {
 	return &TableMapEvent{}
 }
 
-func (e *TableMapEvent) Parse() error {
+func (e *TableMapEvent) Accept() error {
 	return nil
 }
 
@@ -254,7 +254,7 @@ func NewWriteRowEventV0(b []byte) *WriteRowEventV0 {
 	return &WriteRowEventV0{}
 }
 
-func (e *WriteRowEventV0) Parse() error {
+func (e *WriteRowEventV0) Accept() error {
 	return nil
 }
 
@@ -265,7 +265,7 @@ func NewUpdateRowEventV0(b []byte) *UpdateRowEventV0 {
 	return &UpdateRowEventV0{}
 }
 
-func (e *UpdateRowEventV0) Parse() error {
+func (e *UpdateRowEventV0) Accept() error {
 	return nil
 }
 
@@ -276,7 +276,7 @@ func NewDeleteRowEventV0(b []byte) *DeleteRowEventV0 {
 	return &DeleteRowEventV0{}
 }
 
-func (e *DeleteRowEventV0) Parse() error {
+func (e *DeleteRowEventV0) Accept() error {
 	return nil
 }
 
@@ -287,7 +287,7 @@ func NewWriteRowEventV1(b []byte) *WriteRowEventV1 {
 	return &WriteRowEventV1{}
 }
 
-func (e *WriteRowEventV1) Parse() error {
+func (e *WriteRowEventV1) Accept() error {
 	return nil
 }
 
@@ -298,7 +298,7 @@ func NewUpdateRowEventV1(b []byte) *UpdateRowEventV1 {
 	return &UpdateRowEventV1{}
 }
 
-func (e *UpdateRowEventV1) Parse() error {
+func (e *UpdateRowEventV1) Accept() error {
 	return nil
 }
 
@@ -309,7 +309,7 @@ func NewDeleteRowEventV1(b []byte) *DeleteRowEventV1 {
 	return &DeleteRowEventV1{}
 }
 
-func (e *DeleteRowEventV1) Parse() error {
+func (e *DeleteRowEventV1) Accept() error {
 	return nil
 }
 
@@ -320,7 +320,7 @@ func NewIncidentEvent(b []byte) *IncidentEvent {
 	return &IncidentEvent{}
 }
 
-func (e *IncidentEvent) Parse() error {
+func (e *IncidentEvent) Accept() error {
 	return nil
 }
 
@@ -331,7 +331,7 @@ func NewHeartBeatEvent(b []byte) *HeartBeatEvent {
 	return &HeartBeatEvent{}
 }
 
-func (e *HeartBeatEvent) Parse() error {
+func (e *HeartBeatEvent) Accept() error {
 	return nil
 }
 
@@ -342,7 +342,7 @@ func NewIgnorableEvent(b []byte) *IgnorableEvent {
 	return &IgnorableEvent{}
 }
 
-func (e *IgnorableEvent) Parse() error {
+func (e *IgnorableEvent) Accept() error {
 	return nil
 }
 
@@ -353,7 +353,7 @@ func NewRowsQueryEvent(b []byte) *RowsQueryEvent {
 	return &RowsQueryEvent{}
 }
 
-func (e *RowsQueryEvent) Parse() error {
+func (e *RowsQueryEvent) Accept() error {
 	return nil
 }
 
@@ -364,7 +364,7 @@ func NewWriteRowEventV2(b []byte) *WriteRowEventV2 {
 	return &WriteRowEventV2{}
 }
 
-func (e *WriteRowEventV2) Parse() error {
+func (e *WriteRowEventV2) Accept() error {
 	return nil
 }
 
@@ -375,7 +375,7 @@ func NewUpdateRowEventV2(b []byte) *UpdateRowEventV2 {
 	return &UpdateRowEventV2{}
 }
 
-func (e *UpdateRowEventV2) Parse() error {
+func (e *UpdateRowEventV2) Accept() error {
 	return nil
 }
 
@@ -386,7 +386,7 @@ func NewDeleteRowEventV2(b []byte) *DeleteRowEventV2 {
 	return &DeleteRowEventV2{}
 }
 
-func (e *DeleteRowEventV2) Parse() error {
+func (e *DeleteRowEventV2) Accept() error {
 	return nil
 }
 
@@ -397,7 +397,7 @@ func NewGtidEvent(b []byte) *GtidEvent {
 	return &GtidEvent{}
 }
 
-func (e *GtidEvent) Parse() error {
+func (e *GtidEvent) Accept() error {
 	return nil
 }
 
@@ -408,7 +408,7 @@ func NewAnonymousGtidEvent(b []byte) *AnonymousGtidEvent {
 	return &AnonymousGtidEvent{}
 }
 
-func (e *AnonymousGtidEvent) Parse() error {
+func (e *AnonymousGtidEvent) Accept() error {
 	return nil
 }
 
@@ -419,6 +419,6 @@ func NewPrevioudGtidEvent(b []byte) *PrevioudGtidEvent {
 	return &PrevioudGtidEvent{}
 }
 
-func (e *PrevioudGtidEvent) Parse() error {
+func (e *PrevioudGtidEvent) Accept() error {
 	return nil
 }

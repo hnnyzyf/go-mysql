@@ -9,8 +9,8 @@ import (
 var errBufferCopy = errors.Errorf("Cache:no enough bytes to copy from buffer")
 var errReaderCopy = errors.Errorf("Cache:no enough bytes to copy from reader")
 
-//the default cache size is 4KB
-const defaultBufferSize = 4 * 1024
+//the default cache size is 32KB
+const defaultBufferSize = 32 * 1024
 
 //Cache is a io.Reader with buffer to decrease the frequency of syscall
 type Cache struct {

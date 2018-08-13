@@ -32,7 +32,7 @@ func (s *MyBinlogSuite) TestParse(c *C) {
 			break
 		}
 		//parese the hadler
-		_ = handler.Parse()
+		_ = handler.Accept()
 	}
 
 }
