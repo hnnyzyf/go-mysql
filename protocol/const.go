@@ -56,38 +56,38 @@ const (
 type Com uint8
 
 const (
-	COM_SLEEP               Com = 0x00
-	COM_QUIT                Com = 0x01
-	COM_INIT_DB             Com = 0x02
-	COM_QUERY               Com = 0x03
-	COM_FIELD_LIST          Com = 0x04
-	COM_CREATE_DB           Com = 0x05
-	COM_DROP_DB             Com = 0x06
-	COM_REFRESH             Com = 0x07
-	COM_SHUTDOWN            Com = 0x08
-	COM_STATISTICS          Com = 0x09
-	COM_PROCESS_INFO        Com = 0x0A
-	COM_CONNECT             Com = 0x0B
-	COM_PROCESS_KILL        Com = 0x0C
-	COM_DEBUG               Com = 0x0D
-	COM_PING                Com = 0x0E
-	COM_TIME                Com = 0x0F
-	COM_DELAYED_INSERT      Com = 0x10
-	COM_CHANGE_USER         Com = 0x11
-	COM_BINLOG_DUMP         Com = 0x12
-	COM_TABLE_DUMP          Com = 0x13
-	COM_CONNECT_OUT         Com = 0x14
-	COM_REGISTER_SLAVE      Com = 0x15
-	COM_STMT_PREPARE        Com = 0x16
-	COM_STMT_EXECUTE        Com = 0x17
-	COM_STMT_SEND_LONG_DATA Com = 0x18
-	COM_STMT_CLOSE          Com = 0x19
-	COM_STMT_RESET          Com = 0x1A
-	COM_SET_OPTION          Com = 0x1B
-	COM_STMT_FETCH          Com = 0x1C
-	COM_DAEMON              Com = 0x1D
-	COM_BINLOG_DUMP_GTID    Com = 0x1E
-	COM_RESET_CONNECTION    Com = 0x1F
+	COM_SLEEP               uint8 = 0x00
+	COM_QUIT                uint8 = 0x01
+	COM_INIT_DB             uint8 = 0x02
+	COM_QUERY               uint8 = 0x03
+	COM_FIELD_LIST          uint8 = 0x04
+	COM_CREATE_DB           uint8 = 0x05
+	COM_DROP_DB             uint8 = 0x06
+	COM_REFRESH             uint8 = 0x07
+	COM_SHUTDOWN            uint8 = 0x08
+	COM_STATISTICS          uint8 = 0x09
+	COM_PROCESS_INFO        uint8 = 0x0A
+	COM_CONNECT             uint8 = 0x0B
+	COM_PROCESS_KILL        uint8 = 0x0C
+	COM_DEBUG               uint8 = 0x0D
+	COM_PING                uint8 = 0x0E
+	COM_TIME                uint8 = 0x0F
+	COM_DELAYED_INSERT      uint8 = 0x10
+	COM_CHANGE_USER         uint8 = 0x11
+	COM_BINLOG_DUMP         uint8 = 0x12
+	COM_TABLE_DUMP          uint8 = 0x13
+	COM_CONNECT_OUT         uint8 = 0x14
+	COM_REGISTER_SLAVE      uint8 = 0x15
+	COM_STMT_PREPARE        uint8 = 0x16
+	COM_STMT_EXECUTE        uint8 = 0x17
+	COM_STMT_SEND_LONG_DATA uint8 = 0x18
+	COM_STMT_CLOSE          uint8 = 0x19
+	COM_STMT_RESET          uint8 = 0x1A
+	COM_SET_OPTION          uint8 = 0x1B
+	COM_STMT_FETCH          uint8 = 0x1C
+	COM_DAEMON              uint8 = 0x1D
+	COM_BINLOG_DUMP_GTID    uint8 = 0x1E
+	COM_RESET_CONNECTION    uint8 = 0x1F
 )
 
 type Collation uint8
