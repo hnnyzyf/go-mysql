@@ -87,3 +87,15 @@ func NewEventHandler(event uint8, buffer []byte) (EventHandler, error) {
 		return nil, errors.Errorf("Binlog:unsupported binlog event type:%d", event)
 	}
 }
+
+//ReadEvent init a event handler from buffer
+func ReadEvent(buffer []byte) (EventHandler, error) {
+	if buffer < EventHeaderLen {
+		return nil, errors.Errorf("Binlog:event header is only %d bytes,expect %d bytes", len(buffer), EventHeaderLen)
+	}
+
+	//get header
+	header := NewHeader(buffer)
+	return NewEventHandler(header.Kind(), buffer[EventHeaderLen:])
+
+}
