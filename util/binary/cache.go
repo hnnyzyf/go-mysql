@@ -113,3 +113,10 @@ func (c *Cache) fill() error {
 		return nil
 	}
 }
+
+//Close try to close the io.Reader if it is a io.Closer
+func (c *Cache) Close() {
+	if r, ok := c.(io.Closer); ok {
+		r.Close()
+	}
+}
