@@ -63,7 +63,7 @@ func (r *Reader) Open(path string) (chan EventHandler, error) {
 			}
 
 			//read payload
-			buffer, err := r.readPayload(header)
+			buffer, err := r.readEvent(header)
 			if err != nil {
 				r.err = errors.Trace(err)
 				close(output)
@@ -113,7 +113,7 @@ func (r *Reader) readHeader() (*Header, error) {
 }
 
 //readHeader parse the header and return the header
-func (r *Reader) readPayload(h *Header) ([]byte, error) {
+func (r *Reader) readEvent(h *Header) ([]byte, error) {
 	//calculate the next event pos and check binlogversion
 	pos := h.Pos()
 	if buffer, err := r.cache.Read(int(pos - r.pos)); err != nil {
@@ -144,7 +144,7 @@ func (r *Reader) readFormatDescriptionEvent() error {
 	}
 
 	//calculate the next event pos and check binlogversion
-	if buffer, err := r.readPayload(header); err != nil {
+	if buffer, err := r.readEvent(header); err != nil {
 		return errors.Trace(err)
 	} else {
 		if binlogVersion, err := binary.ReadInt2(buffer); err != nil {

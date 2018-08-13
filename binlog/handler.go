@@ -90,7 +90,7 @@ func NewEventHandler(event uint8, buffer []byte) (EventHandler, error) {
 
 //ReadEvent init a event handler from buffer
 func ReadEvent(buffer []byte) (EventHandler, error) {
-	if buffer < EventHeaderLen {
+	if len(buffer) < int(EventHeaderLen) {
 		return nil, errors.Errorf("Binlog:event header is only %d bytes,expect %d bytes", len(buffer), EventHeaderLen)
 	}
 
