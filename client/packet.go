@@ -24,6 +24,15 @@ func IsErrPacket(buffer []byte) bool {
 	}
 }
 
+//IsEofPacket tests whether current packet is eof packet
+func IsEofPacket(buffer []byte) bool {
+	if header, err := binary.ReadInt1(buffer); err != nil {
+		return false
+	} else {
+		return testEofPacket(header)
+	}
+}
+
 //readErrPacket parse the payload of errPacket
 func ReadErrPacket(buffer []byte) error {
 	payload := binary.NewBuffer(buffer)

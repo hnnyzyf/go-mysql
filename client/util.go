@@ -53,3 +53,8 @@ func testOkPacket(header uint8) bool {
 func testErrPacket(header uint8) bool {
 	return header == protocol.ERR_Packet
 }
+
+//teseofpacket test whether current packet is eof packet
+func testEofPacket(header uint8) bool {
+	return header == protocol.EOF_Packet
+}
