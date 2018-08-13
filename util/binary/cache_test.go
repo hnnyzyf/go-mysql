@@ -34,11 +34,13 @@ func (s *MyCacheSuite) TestRead(c *C) {
 		{890, b[2110:3000], nil},
 		{1095, b[3000:4095], nil},
 		{1, b[4095:], nil},
-		{2, nil, io.EOF},
+		{2, make([]byte, 2), io.EOF},
 	}
 
 	for i := range data {
-		buffer, err := cache.Read(data[i].size)
+		c.Log(data[i].size)
+		buffer := make([]byte, data[i].size)
+		err := cache.Read(buffer)
 		c.Assert(buffer, DeepEquals, data[i].res)
 		if data[i].err == nil {
 			c.Assert(err, IsNil)
@@ -48,7 +50,36 @@ func (s *MyCacheSuite) TestRead(c *C) {
 	}
 }
 
-func (s *MyCacheSuite) TestReadEOF(c *C) {
+func (s *MyCacheSuite) TestNext(c *C) {
+	r := s.newReader()
+	cache := NewCacheWithSize(r, 256)
+	b := r.Bytes()
+	data := []struct {
+		size int
+		res  []byte
+		err  error
+	}{
+		{10, b[0:10], nil},
+		{100, b[10:110], nil},
+		{2000, b[110:2110], nil},
+		{890, b[2110:3000], nil},
+		{1095, b[3000:4095], nil},
+		{1, b[4095:], nil},
+		{2, nil, io.EOF},
+	}
+
+	for i := range data {
+		buffer, err := cache.Next(data[i].size)
+		c.Assert(buffer, DeepEquals, data[i].res)
+		if data[i].err == nil {
+			c.Assert(err, IsNil)
+		} else {
+			c.Assert(err.Error(), Equals, data[i].err.Error())
+		}
+	}
+}
+
+func (s *MyCacheSuite) TestNextEOF(c *C) {
 	r := s.newReader()
 	cache := NewCacheWithSize(r, 256)
 	data := []struct {
@@ -61,7 +92,7 @@ func (s *MyCacheSuite) TestReadEOF(c *C) {
 	}
 
 	for i := range data {
-		buffer, err := cache.Read(data[i].size)
+		buffer, err := cache.Next(data[i].size)
 		c.Assert(buffer, DeepEquals, data[i].res)
 		c.Assert(err, ErrorMatches, data[i].err)
 	}
