@@ -232,7 +232,7 @@ func LengthOfInteger(val uint64) int {
 	case val <= 0xffffffffffffffff:
 		return 9
 	default:
-		panic("Invaid LengthEncodedInteger flag!")
+		panic("binary:impossible integer state")
 	}
 	return -1
 }
@@ -367,11 +367,9 @@ func (p *Buffer) ReadLengthEncodedInteger() (uint64, int, error) {
 		p.off++
 		val, err := p.ReadInt8()
 		return val, 9, err
-	default:
-		panic("Invaid LengthEncodedInteger flag!")
 	}
 
-	return 0, -1, nil
+	return 0, -1, errors.Errorf("binary:not a LengthEncodedInteger")
 }
 
 //ReadStringWithNull reads a string terminated with null(0x00)
