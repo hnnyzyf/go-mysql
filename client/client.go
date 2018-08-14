@@ -117,8 +117,8 @@ func ConnectWithConfig(host string, user string, passwd string, db string, cfg *
 func (s *Session) init() error {
 	cfg := s.cfg
 
-	//set capabilities
-	s.capabilities = cfg.capabilities
+	//always use ok packet to relace eof packet after a Text Resultset
+	s.capabilities = cfg.capabilities | protocol.CLIENT_DEPRECATE_EOF
 
 	if len(s.database) == 0 {
 		s.capabilities &= (^protocol.CLIENT_CONNECT_WITH_DB)
@@ -474,30 +474,5 @@ func (s *Session) writeHandshakeResponse41() error {
 	}
 
 	//write packet
-	if err := s.WritePacket(size, payload.ToReader()); err != nil {
-		return errors.Trace(err)
-	}
-
-	return nil
-}
-
-//WriteCommand write a command to server according to the
-func (s *Session) WriteCommand(size int, buffer []byte) error {
-	//check size and buffer
-	if size != len(buffer) {
-		return errors.Errorf("Client:expect %d bytes buffer,but the real size is %d bytes", size, len(buffer))
-	}
-
-	//create payload
-	payload := binary.NewBuffer(buffer)
-
-	//reset sid
-	s.Reset()
-
-	//write packet
-	if err := s.WritePacket(size, payload.ToReader()); err != nil {
-		return errors.Trace(err)
-	}
-
-	return nil
+	return s.WritePacket(size, payload.ToReader())
 }
