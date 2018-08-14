@@ -97,8 +97,8 @@ func (c *config) SetAutoCommit(ok bool) {
 }
 
 //SetConnectionAttrs set the connectionAttrs
-func (c *config) SetConnectionAttrs(attrs map[string]string) {
-	c.attrs = Attr(attrs)
+func (c *config) SetConnectionAttrs(key, value string) {
+	c.attrs[key] = value
 }
 
 //Attr represent the connection attrs
