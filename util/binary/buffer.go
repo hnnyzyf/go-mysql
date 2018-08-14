@@ -9,6 +9,8 @@ import (
 var errTooSmall = errors.Errorf("binary:Payload is too small!")
 var errEOF = errors.Errorf("binary:EOF")
 
+const NotLengthEncodeInteger int = -1
+
 //ReadInt1 reads 1 bytes
 func ReadInt1(buffer []byte) (uint8, error) {
 	if len(buffer) < 1 {
@@ -234,7 +236,7 @@ func LengthOfInteger(val uint64) int {
 	default:
 		panic("binary:impossible integer state")
 	}
-	return -1
+	return NotLengthEncodeInteger
 }
 
 //Buffer represent a buffer in a packet
@@ -346,10 +348,10 @@ func (p *Buffer) Skip(l int) error {
 
 //ReadLengthEncodedInteger read undetermined length integer
 func (p *Buffer) ReadLengthEncodedInteger() (uint64, int, error) {
-
 	if p.IsEOF() {
-		return 0, -1, errEOF
+		return 0, NotLengthEncodeInteger, errEOF
 	}
+
 	i := p.b[p.off]
 	switch {
 	case i < 0xfb:
@@ -369,7 +371,7 @@ func (p *Buffer) ReadLengthEncodedInteger() (uint64, int, error) {
 		return val, 9, err
 	}
 
-	return 0, -1, errors.Errorf("binary:not a LengthEncodedInteger")
+	return 0, NotLengthEncodeInteger, errors.Errorf("binary:not a LengthEncodedInteger")
 }
 
 //ReadStringWithNull reads a string terminated with null(0x00)
