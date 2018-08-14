@@ -20,7 +20,7 @@ var _ = Suite(&MyDumperSuite{
 
 func (s *MyDumperSuite) TestDumper(c *C) {
 	cfg := &Config{
-		Host:   "192.168.195.149:3306",
+		Host:   "127.0.0.1:3306",
 		User:   "replication",
 		Passwd: "123456",
 

@@ -1,6 +1,8 @@
 package replication
 
 import (
+	"sync"
+
 	"github.com/hnnyzyf/go-mysql/binlog"
 	"github.com/hnnyzyf/go-mysql/client"
 	"github.com/hnnyzyf/go-mysql/protocol"
@@ -34,6 +36,9 @@ type Config struct {
 //Dumper represent a traditional binlog Dumper
 //Dumper use position and filename
 type Dumper struct {
+	//to keep goroutine safety
+	mutex sync.Mutex
+
 	//the name of Dumper
 	name string
 
@@ -63,6 +68,9 @@ func NewDumper(name string) *Dumper {
 
 //ChangeMaster set the basic information for Dumper
 func (d *Dumper) ChangeMaster(cfg *Config) error {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+
 	if d.isRunnable {
 		return errRunnable
 	} else {
@@ -75,6 +83,9 @@ func (d *Dumper) ChangeMaster(cfg *Config) error {
 
 //Start begins to dump binlog from server
 func (d *Dumper) Start() (chan binlog.EventHandler, error) {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+
 	//if Dumper is running,try to stop it first
 	if d.isRunnable {
 		return nil, errRunnable
@@ -281,6 +292,9 @@ func (d *Dumper) readEvent(buffer []byte) (binlog.EventHandler, error) {
 
 //Stop close the connection to master
 func (d *Dumper) Stop() {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+	//modify state
 	d.isRunnable = false
 	//close session
 	d.s.Close()
