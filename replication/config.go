@@ -7,12 +7,15 @@ type Config struct {
 	User   string
 	Passwd string
 
-	//tradition dump information
-	ServerId uint32
-
 	//binlog
 	FileName string
 	Position uint32
+
+	//slave id information
+	ServerId uint32
+
+	//slave uuid information
+	Uuid string
 
 	//Client version because if slave version is lower than master
 	//some functions may not work,for example checksum

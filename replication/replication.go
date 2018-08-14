@@ -1,6 +1,7 @@
 package replication
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/hnnyzyf/go-mysql/binlog"
@@ -82,8 +83,13 @@ func (d *Dumper) Start() error {
 		return errors.Trace(err)
 	}
 
+	//init the basice slave variables
+	if err := d.init(); err != nil {
+		return errors.Trace(err)
+	}
+
 	//resgister slave
-	if err := d.sendComRegisterSlave(); err != nil {
+	if err := d.RequestComRegisterSlave(); err != nil {
 		return errors.Trace(err)
 	}
 
@@ -93,7 +99,7 @@ func (d *Dumper) Start() error {
 	}
 
 	//send binlog dump
-	if err := d.sendComBinlogDump(); err != nil {
+	if err := d.RequestComBinlogDump(); err != nil {
 		return errors.Trace(err)
 	}
 
@@ -181,8 +187,39 @@ func (d *Dumper) connect() error {
 	return nil
 }
 
-//sendComRegisterSlave resgiter slave inforamtion
-func (d *Dumper) sendComRegisterSlave() error {
+//connect connect to server according to the configurations
+//look details in sql/rpl_slave.cc line 4233
+func (d *Dumper) init() error {
+	//check master version
+	if err := d.checkVersion(); err != nil {
+		return errors.Trace(err)
+	}
+
+	//check master id
+	if err := d.checkServerId(); err != nil {
+		return errors.Trace(err)
+	}
+
+	//set slave uuid and binlog checksum
+	if err := d.checkUuid(); err != nil {
+		return errors.Trace(err)
+	}
+}
+
+func (d *Dumper) checkVersion() error {
+	return nil
+}
+
+func (d *Dumper) checkServerId() error {
+	return nil
+}
+
+func (d *Dumper) checkUuid() error {
+	return nil
+}
+
+//RequestComRegisterSlave resgiter slave inforamtion
+func (d *Dumper) RequestComRegisterSlave() error {
 	//init size
 	size := 1 + 4 + 1 + len(d.name) + 1 + len(d.cfg.User) + 1 + len(d.cfg.Passwd) + 2 + 4 + 4
 
@@ -256,7 +293,7 @@ func (d *Dumper) sendComRegisterSlave() error {
 }
 
 //createDumpCommand create payload of COM_BINLOG_DUMPpayload
-func (d *Dumper) sendComBinlogDump() error {
+func (d *Dumper) RequestComBinlogDump() error {
 	//init size
 	size := 1 + 4 + 2 + 4 + len(d.file)
 
