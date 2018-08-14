@@ -1,7 +1,6 @@
 package replication
 
 import (
-	"fmt"
 	"testing"
 
 	. "gopkg.in/check.v1"
@@ -31,20 +30,17 @@ func (s *MyDumperSuite) TestDumper(c *C) {
 	}
 
 	err := s.d.ChangeMaster(cfg)
-	fmt.Println(err)
 	c.Assert(err, IsNil)
 
-	output, err := s.d.Start()
-	fmt.Println(err)
+	err = s.d.Start()
 	c.Assert(err, IsNil)
 
 	for {
-		if handler, ok := <-output; !ok {
-			//c.Assert(s.d.err, IsNil)
-			//s.d.Stop()
-			break
+		handler, err := s.d.Next()
+		if err != nil {
+			c.Error(err)
+			c.Assert(err, IsNil)
 		} else {
-			fmt.Println(handler)
 			_ = handler.Accept()
 		}
 	}

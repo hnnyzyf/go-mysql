@@ -9,29 +9,9 @@ import (
 	"github.com/hnnyzyf/go-mysql/util/binary"
 	"github.com/hnnyzyf/go-mysql/util/hack"
 	"github.com/juju/errors"
-
-	"time"
 )
 
 var errRunnable = errors.Errorf("Replicatin:Dumper is still running,please stop first")
-
-//Config represent the init infoamtion for a Dumper
-type Config struct {
-	//connction information
-	Host   string
-	User   string
-	Passwd string
-
-	//tradition dump information
-	ServerId uint32
-
-	//IsGtid
-	FileName string
-	Position uint32
-
-	//whether use gtid
-	IsGtid bool
-}
 
 //Dumper represent a traditional binlog Dumper
 //Dumper use position and filename
@@ -56,13 +36,16 @@ type Dumper struct {
 	//state
 	isRunnable bool
 
+	//eventhandler channel
+	output chan binlog.EventHandler
 	//the error message
-	err error
+	err chan error
 }
 
 func NewDumper(name string) *Dumper {
 	return &Dumper{
 		name: name,
+		err:  make(chan error),
 	}
 }
 
@@ -82,79 +65,120 @@ func (d *Dumper) ChangeMaster(cfg *Config) error {
 }
 
 //Start begins to dump binlog from server
-func (d *Dumper) Start() (chan binlog.EventHandler, error) {
+func (d *Dumper) Start() error {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 
 	//if Dumper is running,try to stop it first
 	if d.isRunnable {
-		return nil, errRunnable
+		return errRunnable
+	} else {
+		d.isRunnable = true
+		d.output = make(chan binlog.EventHandler)
 	}
 
 	//connect to server with not db
-	if s, err := client.Connect(d.cfg.Host, d.cfg.User, d.cfg.Passwd, ""); err != nil {
-		return nil, errors.Trace(err)
-	} else {
-		d.s = s
+	if err := d.connect(); err != nil {
+		return errors.Trace(err)
 	}
 
 	//resgister slave
 	if err := d.sendComRegisterSlave(); err != nil {
-		return nil, errors.Trace(err)
+		return errors.Trace(err)
 	}
 
 	//read resopnse packet
 	if err := d.readResponse(); err != nil {
-		return nil, errors.Trace(err)
+		return errors.Trace(err)
 	}
 
-	time.Sleep(20 * time.Second)
 	//send binlog dump
 	if err := d.sendComBinlogDump(); err != nil {
-		return nil, errors.Trace(err)
+		return errors.Trace(err)
 	}
 
-	//set runable
-	d.isRunnable = true
-
-	time.Sleep(20 * time.Second)
 	//init output channel
-	output := make(chan binlog.EventHandler)
 	go func() {
+		defer d.Stop()
 		for {
 			//read packet
 			if b, err := d.s.ReadPacket(); err != nil {
-				d.err = err
-				break
+				d.err <- errors.Trace(err)
+				return
 			} else {
 				switch {
 				//handle binlog event
 				case IsEventPacket(b):
 					//read header
 					if event, err := d.readEvent(b[2:]); err != nil {
-						d.err = err
+						d.err <- errors.Trace(err)
+						return
 					} else {
 						//asgin event
-						output <- event
+						d.output <- event
 					}
 				//handle error packet
 				case client.IsErrPacket(b):
-					d.err = client.ReadErrPacket(b)
-					break
+					d.err <- errors.Trace(client.ReadErrPacket(b))
+					return
 				case client.IsEofPacket(b):
 					continue
 				//other packet
 				default:
-					d.err = errors.Errorf("Replication:Unsupported packet")
-					break
+					d.err <- errors.Errorf("Replication:unsupported packet")
+					return
 				}
 			}
 		}
-
-		close(output)
 	}()
 
-	return output, nil
+	return nil
+}
+
+//Stop close the connection to master
+func (d *Dumper) Stop() {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+
+	if d.isRunnable {
+		//modify state
+		d.isRunnable = false
+		//close session
+		d.s.Close()
+	}
+}
+
+//Next return the event we read or error we read from
+func (d *Dumper) Next() (binlog.EventHandler, error) {
+	if !d.isRunnable {
+		return nil, errors.Errorf("Replication:dumper is not still running")
+	}
+
+	//get result
+	select {
+	case event := <-d.output:
+		return event, nil
+	case err := <-d.err:
+		return nil, err
+	}
+}
+
+//connect connect to server according to the configurations
+func (d *Dumper) connect() error {
+	//init configuration
+	cfg := client.NewConfig()
+	if len(d.cfg.Version) != 0 {
+		cfg.SetConnectionAttrs("_client_version", d.cfg.Version)
+	}
+
+	//connect tot server
+	if s, err := client.ConnectWithConfig(d.cfg.Host, d.cfg.User, d.cfg.Passwd, "", cfg); err != nil {
+		return errors.Trace(err)
+	} else {
+		d.s = s
+	}
+
+	return nil
 }
 
 //sendComRegisterSlave resgiter slave inforamtion
@@ -176,8 +200,12 @@ func (d *Dumper) sendComRegisterSlave() error {
 	}
 
 	//write Hostname length
-	if err := payload.WriteInt1(uint8(len(d.name))); err != nil {
-		return errors.Trace(err)
+	if len(d.name) > 0xff {
+		return errors.Errorf("Replication:failed to register slave,hostname is too long")
+	} else {
+		if err := payload.WriteInt1(uint8(len(d.name))); err != nil {
+			return errors.Trace(err)
+		}
 	}
 
 	//write hostname
@@ -186,8 +214,12 @@ func (d *Dumper) sendComRegisterSlave() error {
 	}
 
 	//write user length
-	if err := payload.WriteInt1(uint8(len(d.cfg.User))); err != nil {
-		return errors.Trace(err)
+	if len(d.cfg.User) > 0xff {
+		return errors.Errorf("Replication:failed to register slave,username is too long")
+	} else {
+		if err := payload.WriteInt1(uint8(len(d.cfg.User))); err != nil {
+			return errors.Trace(err)
+		}
 	}
 
 	//write user
@@ -196,8 +228,12 @@ func (d *Dumper) sendComRegisterSlave() error {
 	}
 
 	//write password length
-	if err := payload.WriteInt1(uint8(len(d.cfg.Passwd))); err != nil {
-		return errors.Trace(err)
+	if len(d.cfg.Passwd) > 0xff {
+		return errors.Errorf("Replication:failed to register slave,password is too long")
+	} else {
+		if err := payload.WriteInt1(uint8(len(d.cfg.Passwd))); err != nil {
+			return errors.Trace(err)
+		}
 	}
 
 	//write password
@@ -288,16 +324,6 @@ func (d *Dumper) readEvent(buffer []byte) (binlog.EventHandler, error) {
 		d.pos += uint32(len(buffer))
 		return event, nil
 	}
-}
-
-//Stop close the connection to master
-func (d *Dumper) Stop() {
-	d.mutex.Lock()
-	defer d.mutex.Unlock()
-	//modify state
-	d.isRunnable = false
-	//close session
-	d.s.Close()
 }
 
 //GtidDumper represent a gtid binlog Dumper
