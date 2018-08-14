@@ -45,6 +45,7 @@ func (s *MyClientSuite) TestConnect(c *C) {
 		l := data[i]
 		conn, err := Connect(l.h, l.u, l.p, l.d)
 		c.Assert(err, IsNil)
+
 		conn.Close()
 	}
 }

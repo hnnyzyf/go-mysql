@@ -118,7 +118,7 @@ func (s *Session) init() error {
 	cfg := s.cfg
 
 	//set capabilities
-	s.capabilities = cfg.capabilities | protocol.CLIENT_CONNECT_ATTRS
+	s.capabilities = cfg.capabilities
 
 	if len(s.database) == 0 {
 		s.capabilities &= (^protocol.CLIENT_CONNECT_WITH_DB)
@@ -136,7 +136,14 @@ func (s *Session) init() error {
 
 	//test ssl
 	if cfg.isSSL && cfg.tlsConfig == nil {
-		return errors.Errorf("Client:not provide tls configuraions.")
+		return errors.Errorf("Client:not provide tls configuraions")
+	}
+
+	//test connection attr
+	if cfg.attrs.size() == 0 {
+		s.capabilities &= (^protocol.CLIENT_CONNECT_ATTRS)
+	} else {
+		s.capabilities |= protocol.CLIENT_CONNECT_ATTRS
 	}
 
 	//set charset method
@@ -386,18 +393,14 @@ func (s *Session) writeHandshakeResponse41() error {
 	}
 
 	//add attributes
-	var key []byte
-	var value []byte
+	var attr []byte
 	if testConnectAttrs(s.capabilities) {
-		key = hack.Slice("AUTOCOMMIT")
-		if s.cfg.autoCommit {
-			value = hack.Slice("0")
+		if b, err := s.cfg.attrs.marshal(); err != nil {
+			return errors.Trace(err)
 		} else {
-			value = hack.Slice("1")
+			size += len(b)
+			attr = b
 		}
-		size += binary.LengthOfInteger(uint64(len(key) + len(value)))
-		size += len(key)
-		size += len(value)
 	}
 
 	//create a payload
@@ -465,17 +468,7 @@ func (s *Session) writeHandshakeResponse41() error {
 
 	//set attribute
 	if testConnectAttrs(s.capabilities) {
-		//write length of all key-values
-		n := binary.LengthOfInteger(uint64(len(key) + len(value)))
-		if _, err := payload.WriteLengthEncodedInteger(uint64(n)); err != nil {
-			return errors.Trace(err)
-		}
-		//write key
-		if err := payload.WriteStringWithFixLen(key); err != nil {
-			return errors.Trace(err)
-		}
-		//write value
-		if err := payload.WriteStringWithFixLen(value); err != nil {
+		if err := payload.WriteStringWithFixLen(attr); err != nil {
 			return errors.Trace(err)
 		}
 	}

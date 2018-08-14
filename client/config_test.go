@@ -11,7 +11,7 @@ var _ = Suite(&MyConfigSuite{})
 
 func (s *MyConfigSuite) TestConfig(c *C) {
 	data := []*config{
-		{0, protocol.DefaultClientCapabilities, "utf8", false, nil, true, false},
+		{0, protocol.DefaultClientCapabilities, "utf8", false, nil, true, false, defaultConnectionAttrs},
 	}
 
 	for i := range data {
@@ -31,4 +31,22 @@ func (s *MyConfigSuite) TestConfig(c *C) {
 		c.Assert(data[i].mutilStatement, Equals, cfg.mutilStatement)
 		c.Assert(data[i].autoCommit, Equals, cfg.autoCommit)
 	}
+}
+
+func (s *MyConfigSuite) TestAttr(c *C) {
+	attr := Attr{
+		"_os":             "1",
+		"_client_name":    "2",
+		"_pid":            "3",
+		"_client_version": "4",
+		"_platform":       "5",
+		"program_name":    "6",
+	}
+
+	size := len("_os"+"_client_name"+"_pid"+"_client_version"+"_platform"+"program_name") + 6 + 6 + 6
+	c.Assert(attr.size(), Equals, size)
+
+	_, err := attr.marshal()
+	c.Assert(err, IsNil)
+
 }
