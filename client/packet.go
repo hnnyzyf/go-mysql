@@ -48,6 +48,10 @@ func ReadErrPacket(buffer []byte) error {
 		return errERRPacket
 	}
 
+	//skip
+	if err := payload.Skip(1); err != nil {
+		return errERRPacket
+	}
 	//SQL State
 	if _, err := payload.ReadStringWithFixLen(5); err != nil {
 		return errERRPacket
