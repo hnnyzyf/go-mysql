@@ -146,3 +146,19 @@ func (s *MyBufferSuite) TestLengthEncodeInteger(c *C) {
 	}
 
 }
+
+func (s *MyBufferSuite) TestReadLengthEncodeString(c *C) {
+	data := []struct {
+		b   []byte
+		res string
+	}{
+		{[]byte{0x05, 0x30, 0x31, 0x32, 0x33, 0x34}, "01234"},
+	}
+
+	for i := range data {
+		b := NewBuffer(data[i].b)
+		res, err := b.ReadLengthEncodeString()
+		c.Assert(err, IsNil)
+		c.Assert(string(res), Equals, data[i].res)
+	}
+}

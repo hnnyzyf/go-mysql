@@ -239,6 +239,30 @@ func LengthOfInteger(val uint64) int {
 	return NotLengthEncodeInteger
 }
 
+func ReadLengthEncodedInteger(buffer []byte) (uint64, int, error) {
+	if buffer == nil || len(buffer) <= 0 {
+		return 0, NotLengthEncodeInteger, io.EOF
+	}
+
+	i := buffer[1]
+	switch {
+	case i < 0xfb:
+		val, err := ReadInt1(buffer)
+		return uint64(val), 1, err
+	case i == 0xfc:
+		val, err := ReadInt2(buffer[1:])
+		return uint64(val), 3, err
+	case i == 0xfd:
+		val, err := ReadInt3(buffer[1:])
+		return uint64(val), 4, err
+	case i == 0xfe:
+		val, err := ReadInt8(buffer[1:])
+		return val, 9, err
+	}
+
+	return 0, NotLengthEncodeInteger, errors.Errorf("binary:not a LengthEncodedInteger")
+}
+
 //Buffer represent a buffer in a packet
 type Buffer struct {
 	b   []byte
@@ -407,6 +431,15 @@ func (p *Buffer) ReadStringWithFixLen(l int) ([]byte, error) {
 	b := p.b[p.off : p.off+l]
 	p.off += l
 	return b, nil
+}
+
+//ReadLengthEncodeString reads a string  with fixed length
+func (p *Buffer) ReadLengthEncodeString() ([]byte, error) {
+	if n, _, err := p.ReadLengthEncodedInteger(); err != nil {
+		return nil, errors.Trace(err)
+	} else {
+		return p.ReadStringWithFixLen(int(n))
+	}
 }
 
 //WriteInt1 write 1 byte into buffer
