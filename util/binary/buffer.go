@@ -8,158 +8,181 @@ import (
 
 var errTooSmall = errors.Errorf("binary:Payload is too small!")
 var errEOF = errors.Errorf("binary:EOF")
+var errNilBuffer = errors.Errorf("binary:not supprot a nil buffer")
 
 const NotLengthEncodeInteger int = -1
 
-//ReadInt1 reads 1 bytes
-func ReadInt1(buffer []byte) (uint8, error) {
-	if len(buffer) < 1 {
-		return 0, errTooSmall
+//assert is used to protect the program
+func assert(b []byte, size int) error {
+	if b == nil {
+		return errTooSmall
+	} else if len(b) < size {
+		return errTooSmall
+	} else {
+		return nil
 	}
-	return uint8(buffer[0]), nil
+}
+
+//ReadInt1 reads 1 bytes
+func ReadInt1(b []byte) (uint8, error) {
+	if err := assert(b, 1); err != nil {
+		return 0, errors.Trace(err)
+	} else {
+		return uint8(b[0]), nil
+	}
 }
 
 //ReadInt2 reads 2 bytes
 func ReadInt2(buffer []byte) (uint16, error) {
-	if len(buffer) < 2 {
-		return 0, errTooSmall
+	if err := assert(buffer, 2); err != nil {
+		return 0, errors.Trace(err)
+	} else {
+		b := uint16(buffer[0])
+		var i uint8 = 1
+		for i < 2 {
+			b = b | uint16(buffer[i])<<(i*8)
+			i++
+		}
+		return b, nil
 	}
-	b := uint16(buffer[0])
-	var i uint8 = 1
-	for i < 2 {
-		b = b | uint16(buffer[i])<<(i*8)
-		i++
-	}
-	return b, nil
 }
 
 //ReadInt3 reads 3 bytes
 func ReadInt3(buffer []byte) (uint32, error) {
-	if len(buffer) < 3 {
-		return 0, errTooSmall
+	if err := assert(buffer, 3); err != nil {
+		return 0, errors.Trace(err)
+	} else {
+		b := uint32(buffer[0])
+		var i uint8 = 1
+		for i < 3 {
+			b = b | uint32(buffer[i])<<(i*8)
+			i++
+		}
+		return b, nil
 	}
-	b := uint32(buffer[0])
-	var i uint8 = 1
-	for i < 3 {
-		b = b | uint32(buffer[i])<<(i*8)
-		i++
-	}
-	return b, nil
 }
 
 //ReadInt4 reads 4 bytes
 func ReadInt4(buffer []byte) (uint32, error) {
-	if len(buffer) < 4 {
-		return 0, errTooSmall
+	if err := assert(buffer, 4); err != nil {
+		return 0, errors.Trace(err)
+	} else {
+		b := uint32(buffer[0])
+		var i uint8 = 1
+		for i < 4 {
+			b = b | uint32(buffer[i])<<(i*8)
+			i++
+		}
+		return b, nil
 	}
-	b := uint32(buffer[0])
-	var i uint8 = 1
-	for i < 4 {
-		b = b | uint32(buffer[i])<<(i*8)
-		i++
-	}
-	return b, nil
 }
 
 //ReadInt6 reads 6 bytes
 func ReadInt6(buffer []byte) (uint64, error) {
-	if len(buffer) < 6 {
-		return 0, errTooSmall
+	if err := assert(buffer, 6); err != nil {
+		return 0, errors.Trace(err)
+	} else {
+		b := uint64(buffer[0])
+		var i uint8 = 1
+		for i < 6 {
+			b = b | uint64(buffer[i])<<(i*8)
+			i++
+		}
+		return b, nil
 	}
-	b := uint64(buffer[0])
-	var i uint8 = 1
-	for i < 6 {
-		b = b | uint64(buffer[i])<<(i*8)
-		i++
-	}
-	return b, nil
 }
 
 //ReadInt8 reads 8 bytes
 func ReadInt8(buffer []byte) (uint64, error) {
-	if len(buffer) < 8 {
-		return 0, errTooSmall
+	if err := assert(buffer, 8); err != nil {
+		return 0, errors.Trace(err)
+	} else {
+		b := uint64(buffer[0])
+		var i uint8 = 1
+		for i < 8 {
+			b = b | uint64(buffer[i])<<(i*8)
+			i++
+		}
+		return b, nil
 	}
-	b := uint64(buffer[0])
-	var i uint8 = 1
-	for i < 8 {
-		b = b | uint64(buffer[i])<<(i*8)
-		i++
-	}
-	return b, nil
 }
 
 //WriteInt1 writes 1 byte into buffer
 func WriteInt1(b []byte, val uint8) error {
-	if len(b) < 1 {
-		return errTooSmall
+	if err := assert(b, 1); err != nil {
+		return errors.Trace(err)
+	} else {
+		b[0] = val
+		return nil
 	}
-	b[0] = val
-	return nil
 }
 
 //WriteInt2 writes 2 bytes into buffer
 func WriteInt2(b []byte, val uint16) error {
-	if len(b) < 2 {
-		return errTooSmall
+	if err := assert(b, 2); err != nil {
+		return errors.Trace(err)
+	} else {
+		b[0] = uint8(val)
+		b[1] = uint8(val >> 8)
+		return nil
 	}
-	b[0] = uint8(val)
-	b[1] = uint8(val >> 8)
-	return nil
 }
 
 //WriteInt3 writes 3 bytes into buffer
 func WriteInt3(b []byte, val uint32) error {
-	if len(b) < 3 {
-		return errTooSmall
+	if err := assert(b, 3); err != nil {
+		return errors.Trace(err)
+	} else {
+		b[0] = uint8(val)
+		b[1] = uint8(val >> 8)
+		b[2] = uint8(val >> 16)
+		return nil
 	}
-	b[0] = uint8(val)
-	b[1] = uint8(val >> 8)
-	b[2] = uint8(val >> 16)
-	return nil
 }
 
 //WriteInt4 writes 4 bytes into buffer
 func WriteInt4(b []byte, val uint32) error {
-	if len(b) < 4 {
-		return errTooSmall
+	if err := assert(b, 4); err != nil {
+		return errors.Trace(err)
+	} else {
+		b[0] = uint8(val)
+		b[1] = uint8(val >> 8)
+		b[2] = uint8(val >> 16)
+		b[3] = uint8(val >> 24)
+		return nil
 	}
-	b[0] = uint8(val)
-	b[1] = uint8(val >> 8)
-	b[2] = uint8(val >> 16)
-	b[3] = uint8(val >> 24)
-	return nil
-
 }
 
 //WriteInt6 writes 6 bytes into buffer
 func WriteInt6(b []byte, val uint64) error {
-	if len(b) < 6 {
-		return errTooSmall
+	if err := assert(b, 6); err != nil {
+		return errors.Trace(err)
+	} else {
+		b[0] = uint8(val)
+		b[1] = uint8(val >> 8)
+		b[2] = uint8(val >> 16)
+		b[3] = uint8(val >> 24)
+		b[4] = uint8(val >> 32)
+		b[5] = uint8(val >> 40)
+		return nil
 	}
-	b[0] = uint8(val)
-	b[1] = uint8(val >> 8)
-	b[2] = uint8(val >> 16)
-	b[3] = uint8(val >> 24)
-	b[4] = uint8(val >> 32)
-	b[5] = uint8(val >> 40)
-	return nil
 }
 
 //WriteInt8 writes 8 bytes into buffer
 func WriteInt8(b []byte, val uint64) error {
-	if len(b) < 8 {
-		return errTooSmall
+	if err := assert(b, 8); err != nil {
+		return errors.Trace(err)
+	} else {
+		b[0] = uint8(val)
+		b[1] = uint8(val >> 8)
+		b[2] = uint8(val >> 16)
+		b[3] = uint8(val >> 24)
+		b[4] = uint8(val >> 32)
+		b[5] = uint8(val >> 40)
+		b[6] = uint8(val >> 48)
+		b[7] = uint8(val >> 56)
+		return nil
 	}
-	b[0] = uint8(val)
-	b[1] = uint8(val >> 8)
-	b[2] = uint8(val >> 16)
-	b[3] = uint8(val >> 24)
-	b[4] = uint8(val >> 32)
-	b[5] = uint8(val >> 40)
-	b[6] = uint8(val >> 48)
-	b[7] = uint8(val >> 56)
-	return nil
 }
 
 //StoreInt1 Store 1 byte into buffer
@@ -234,33 +257,98 @@ func LengthOfInteger(val uint64) int {
 	case val <= 0xffffffffffffffff:
 		return 9
 	default:
-		panic("binary:impossible integer state")
+		return NotLengthEncodeInteger
 	}
-	return NotLengthEncodeInteger
 }
 
 func ReadLengthEncodedInteger(buffer []byte) (uint64, int, error) {
-	if buffer == nil || len(buffer) <= 0 {
-		return 0, NotLengthEncodeInteger, io.EOF
+	if err := assert(buffer, 1); err != nil {
+		return 0, NotLengthEncodeInteger, errors.Trace(err)
+	} else {
+		i := buffer[1]
+		switch {
+		case i < 0xfb:
+			val, err := ReadInt1(buffer)
+			return uint64(val), 1, err
+		case i == 0xfc:
+			val, err := ReadInt2(buffer[1:])
+			return uint64(val), 3, err
+		case i == 0xfd:
+			val, err := ReadInt3(buffer[1:])
+			return uint64(val), 4, err
+		case i == 0xfe:
+			val, err := ReadInt8(buffer[1:])
+			return val, 9, err
+		default:
+			return 0, NotLengthEncodeInteger, errors.Errorf("binary:not a LengthEncodedInteger")
+		}
+	}
+}
+
+//WriteLengthEncodedInteger write undetermined length integer
+func WriteLengthEncodedInteger(b []byte, val uint64) (int, error) {
+	if err := assert(b, 1); err != nil {
+		return -1, errors.Trace(err)
+	} else {
+		switch {
+		case val < 0xfb:
+			return 1, WriteInt1(b, uint8(val))
+		case val <= 0xffff:
+			_ = WriteInt1(b, 0xfc)
+			return 3, WriteInt2(b, uint16(val))
+		case val < 0xffffff:
+			_ = WriteInt1(b, 0xfd)
+			return 4, WriteInt3(b, uint32(val))
+		case val <= 0xffffffffffffffff:
+			_ = WriteInt1(b, 0xfe)
+			return 9, WriteInt8(b, val)
+		default:
+			return -1, errors.Errorf("binary:not a LengthEncodedInteger")
+		}
+	}
+}
+
+//ReadStringWithFixLen write a fix length string into buffer
+func ReadStringWithFixLen(b []byte, l int) ([]byte, error) {
+	if err := assert(b, l); err != nil {
+		return nil, errors.Trace(err)
+	} else {
+		return b[:l], nil
+	}
+}
+
+//WriteStringWithFixLen write a fix length string into buffer
+func WriteStringWithFixLen(b []byte, str []byte) error {
+	if err := assert(b, len(str)); err != nil {
+		return errors.Trace(err)
 	}
 
-	i := buffer[1]
-	switch {
-	case i < 0xfb:
-		val, err := ReadInt1(buffer)
-		return uint64(val), 1, err
-	case i == 0xfc:
-		val, err := ReadInt2(buffer[1:])
-		return uint64(val), 3, err
-	case i == 0xfd:
-		val, err := ReadInt3(buffer[1:])
-		return uint64(val), 4, err
-	case i == 0xfe:
-		val, err := ReadInt8(buffer[1:])
-		return val, 9, err
+	if n := copy(b, str); n != len(str) {
+		return errors.Errorf("binary:fail to copy data to buffer")
+	} else {
+		return nil
 	}
+}
 
-	return 0, NotLengthEncodeInteger, errors.Errorf("binary:not a LengthEncodedInteger")
+func LengthOfString(b []byte) int {
+	return 0
+}
+
+//WriteLengthEncodeString write a string  with fixed length
+func ReadLengthEncodeString(b []byte) ([]byte, error) {
+	if n, _, err := ReadLengthEncodedInteger(b); err != nil {
+		return nil, errors.Trace(err)
+	} else {
+		return ReadStringWithFixLen(b[1:], int(n))
+	}
+}
+
+//WriteLengthEncodeString write a string  with fixed length
+func WriteLengthEncodeString(b []byte, str []byte) error {
+	if _, err := WriteLengthEncodedInteger(b, uint64(len(str))); err != nil {
+		return errors.Trace(err)
+	}
+	return WriteStringWithFixLen(b[1:], str)
 }
 
 //Buffer represent a buffer in a packet
@@ -523,9 +611,9 @@ func (p *Buffer) WriteLengthEncodedInteger(val uint64) (int, error) {
 }
 
 //WriteLengthEncodeString write a string  with fixed length
-func (p *Buffer) WriteLengthEncodeString(buffer []byte) error {
-	if _, err := p.WriteLengthEncodedInteger(uint64(len(buffer))); err != nil {
+func (p *Buffer) WriteLengthEncodeString(str []byte) error {
+	if _, err := p.WriteLengthEncodedInteger(uint64(len(str))); err != nil {
 		return errors.Trace(err)
 	}
-	return p.WriteStringWithFixLen(buffer)
+	return p.WriteStringWithFixLen(str)
 }
