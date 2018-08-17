@@ -313,3 +313,36 @@ const (
 	Utf8mb4_unicode_520_ci   uint8 = 0xEA
 	Utf8mb4_vietnamese_ci    uint8 = 0xE1
 )
+
+const (
+	MYSQL_TYPE_DECIMAL     uint8 = 0x00
+	MYSQL_TYPE_TINY        uint8 = 0x01
+	MYSQL_TYPE_SHORT       uint8 = 0x02
+	MYSQL_TYPE_LONG        uint8 = 0x03
+	MYSQL_TYPE_FLOAT       uint8 = 0x04
+	MYSQL_TYPE_DOUBLE      uint8 = 0x05
+	MYSQL_TYPE_NULL        uint8 = 0x06
+	MYSQL_TYPE_TIMESTAMP   uint8 = 0x07
+	MYSQL_TYPE_LONGLONG    uint8 = 0x08
+	MYSQL_TYPE_INT24       uint8 = 0x09
+	MYSQL_TYPE_DATE        uint8 = 0x0a
+	MYSQL_TYPE_TIME        uint8 = 0x0b
+	MYSQL_TYPE_DATETIME    uint8 = 0x0c
+	MYSQL_TYPE_YEAR        uint8 = 0x0d
+	MYSQL_TYPE_NEWDATE     uint8 = 0x0e
+	MYSQL_TYPE_VARCHAR     uint8 = 0x0f
+	MYSQL_TYPE_BIT         uint8 = 0x10
+	MYSQL_TYPE_TIMESTAMP2  uint8 = 0x11
+	MYSQL_TYPE_DATETIME2   uint8 = 0x12
+	MYSQL_TYPE_TIME2       uint8 = 0x13
+	MYSQL_TYPE_NEWDECIMAL  uint8 = 0xf6
+	MYSQL_TYPE_ENUM        uint8 = 0xf7
+	MYSQL_TYPE_SET         uint8 = 0xf8
+	MYSQL_TYPE_TINY_BLOB   uint8 = 0xf9
+	MYSQL_TYPE_MEDIUM_BLOB uint8 = 0xfa
+	MYSQL_TYPE_LONG_BLOB   uint8 = 0xfb
+	MYSQL_TYPE_BLOB        uint8 = 0xfc
+	MYSQL_TYPE_VAR_STRING  uint8 = 0xfd
+	MYSQL_TYPE_STRING      uint8 = 0xfe
+	MYSQL_TYPE_GEOMETRY    uint8 = 0xff
+)
