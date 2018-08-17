@@ -32,8 +32,8 @@ func (s *MyRequestSuite) checkResponse(conn *Session, testPacket func([]byte) bo
 		return false, err
 	}
 
-	if IsErrPacket(buffer) {
-		return testPacket(buffer), ReadErrPacket(buffer)
+	if conn.IsErrPacket(buffer) {
+		return testPacket(buffer), conn.ReadErrPacket(buffer)
 	} else {
 		return testPacket(buffer), nil
 	}
@@ -48,13 +48,13 @@ func (s *MyRequestSuite) TestBasicRequest(c *C) {
 		fu    func() error
 		check func([]byte) bool
 	}{
-		{conn.RequestComSleep, IsErrPacket},
-		{conn.RequestComConnect, IsErrPacket},
-		{conn.RequestComPing, IsOkPacket},
-		{conn.RequestComTime, IsErrPacket},
-		{conn.RequestComDelayedInsert, IsErrPacket},
-		{conn.RequestComResetConnection, IsOkPacket},
-		{conn.RequestComDeamon, IsErrPacket},
+		{conn.RequestComSleep, conn.IsErrPacket},
+		{conn.RequestComConnect, conn.IsErrPacket},
+		{conn.RequestComPing, conn.IsOkPacket},
+		{conn.RequestComTime, conn.IsErrPacket},
+		{conn.RequestComDelayedInsert, conn.IsErrPacket},
+		{conn.RequestComResetConnection, conn.IsOkPacket},
+		{conn.RequestComDeamon, conn.IsErrPacket},
 	}
 
 	for i := range data {
@@ -76,10 +76,10 @@ func (s *MyRequestSuite) TestOneParaRequest(c *C) {
 		check func([]byte) bool
 		err   string
 	}{
-		{conn.RequestComInitDB, "mysql", IsOkPacket, ""},
-		{conn.RequestComInitDB, "women", IsOkPacket, ""},
-		{conn.RequestComCreateDB, "women", IsErrPacket, ".+known.+"},
-		{conn.RequestComDropDB, "women", IsErrPacket, ".+known.+"},
+		{conn.RequestComInitDB, "mysql", conn.IsOkPacket, ""},
+		{conn.RequestComInitDB, "women", conn.IsOkPacket, ""},
+		{conn.RequestComCreateDB, "women", conn.IsErrPacket, ".+known.+"},
+		{conn.RequestComDropDB, "women", conn.IsErrPacket, ".+known.+"},
 	}
 
 	for i := range data {
@@ -96,4 +96,12 @@ func (s *MyRequestSuite) TestOneParaRequest(c *C) {
 }
 
 func (s *MyRequestSuite) TestQueryRequest(c *C) {
+	conn, err := s.connect()
+	c.Assert(err, IsNil)
+	defer conn.Close()
+
+	query := "select * from test"
+
+	err = conn.RequestComQuery(query)
+	c.Assert(err, IsNil)
 }

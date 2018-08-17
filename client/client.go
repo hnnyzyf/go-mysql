@@ -42,6 +42,10 @@ type Session struct {
 	//charset method
 	decoder *encoding.Decoder
 	encoder *encoding.Encoder
+
+	//For result to use
+	output chan []byte
+	err    chan error
 }
 
 //connect create a tcp connection to server
@@ -59,6 +63,8 @@ func connect(host string, user string, passwd string, db string, cfg *config) (*
 		password: passwd,
 		database: db,
 		cfg:      cfg,
+		output:   make(chan []byte),
+		err:      make(chan []byte),
 	}
 
 	//init configuration
@@ -91,10 +97,10 @@ func connect(host string, user string, passwd string, db string, cfg *config) (*
 		return nil, errors.Trace(err)
 	} else {
 		switch {
-		case IsOkPacket(buffer):
+		case s.IsOkPacket(buffer):
 			return s, nil
-		case IsErrPacket(buffer):
-			return s, ReadErrPacket(buffer)
+		case s.IsErrPacket(buffer):
+			return s, s.ReadErrPacket(buffer)
 		default:
 			return nil, errors.Errorf("Client:fail to accept correct generic response packet from server!")
 		}

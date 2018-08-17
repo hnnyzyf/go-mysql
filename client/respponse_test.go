@@ -21,11 +21,11 @@ func (s *MyPacketSuite) TestPacket(c *C) {
 		t  func([]byte) bool
 		ok bool
 	}{
-		{IsOkPacket, false},
-		{IsOkPacket, true},
-		{IsOkPacket, false},
-		{IsErrPacket, true},
-		{IsErrPacket, false},
+		{isOkPacket, false},
+		{isOkPacket, true},
+		{isOkPacket, false},
+		{isErrPacket, true},
+		{isErrPacket, false},
 	}
 
 	for i := range data {

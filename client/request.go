@@ -43,7 +43,7 @@ func (s *Session) RequestComInitDB(db string) error {
 
 //RequestComQuery send a ComQuery to server
 func (s *Session) RequestComQuery(query string) error {
-	size := len(query)
+	size := 1 + len(query)
 	buffer := append([]byte{protocol.COM_QUERY}, hack.Slice(query)...)
 	return s.RequestCommand(size, buffer)
 }
