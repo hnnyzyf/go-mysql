@@ -521,3 +521,11 @@ func (p *Buffer) WriteLengthEncodedInteger(val uint64) (int, error) {
 	}
 	return -1, nil
 }
+
+//WriteLengthEncodeString write a string  with fixed length
+func (p *Buffer) WriteLengthEncodeString(buffer []byte) error {
+	if _, err := p.WriteLengthEncodedInteger(uint64(len(buffer))); err != nil {
+		return errors.Trace(err)
+	}
+	return p.WriteStringWithFixLen(buffer)
+}
