@@ -236,46 +236,31 @@ func (d *Dumper) RequestComRegisterSlave() error {
 		return errors.Trace(err)
 	}
 
-	//write Hostname length
+	//write Hostname
 	if len(d.name) > 0xff {
 		return errors.Errorf("Replication:failed to register slave,hostname is too long")
 	} else {
-		if err := payload.WriteInt1(uint8(len(d.name))); err != nil {
+		if err := payload.WriteLengthEncodedString(hack.Slice(d.name)); err != nil {
 			return errors.Trace(err)
 		}
-	}
-
-	//write hostname
-	if err := payload.WriteStringWithFixLen(hack.Slice(d.name)); err != nil {
-		return errors.Trace(err)
 	}
 
 	//write user length
 	if len(d.cfg.User) > 0xff {
 		return errors.Errorf("Replication:failed to register slave,username is too long")
 	} else {
-		if err := payload.WriteInt1(uint8(len(d.cfg.User))); err != nil {
+		if err := payload.WriteLengthEncodedString(hack.Slice(d.cfg.User)); err != nil {
 			return errors.Trace(err)
 		}
-	}
-
-	//write user
-	if err := payload.WriteStringWithFixLen(hack.Slice(d.cfg.User)); err != nil {
-		return errors.Trace(err)
 	}
 
 	//write password length
 	if len(d.cfg.Passwd) > 0xff {
 		return errors.Errorf("Replication:failed to register slave,password is too long")
 	} else {
-		if err := payload.WriteInt1(uint8(len(d.cfg.Passwd))); err != nil {
+		if err := payload.WriteLengthEncodedString(hack.Slice(d.cfg.Passwd)); err != nil {
 			return errors.Trace(err)
 		}
-	}
-
-	//write password
-	if err := payload.WriteStringWithFixLen(hack.Slice(d.cfg.Passwd)); err != nil {
-		return errors.Trace(err)
 	}
 
 	//skip slave port,replication rank and master id
@@ -284,7 +269,7 @@ func (d *Dumper) RequestComRegisterSlave() error {
 	}
 
 	//send dump command
-	if err := d.s.WriteCommand(size, payload.Bytes()); err != nil {
+	if err := d.s.RequestCommand(size, payload.Bytes()); err != nil {
 		return errors.Trace(err)
 	}
 
@@ -326,7 +311,7 @@ func (d *Dumper) RequestComBinlogDump() error {
 	}
 
 	//send dump command
-	if err := d.s.WriteCommand(size, payload.Bytes()); err != nil {
+	if err := d.s.RequestCommand(size, payload.Bytes()); err != nil {
 		return errors.Trace(err)
 	}
 
