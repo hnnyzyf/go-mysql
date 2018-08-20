@@ -2,7 +2,6 @@ package client
 
 import (
 	"github.com/hnnyzyf/go-mysql/protocol"
-	"github.com/hnnyzyf/go-mysql/util/binary"
 )
 
 //testProtocolVersion tests whether  the server supprot v10 protocol
@@ -52,7 +51,7 @@ func testDeprecateEof(capability uint32) bool {
 
 //testOkPacket tests whether current packet is ok packet
 func testOkPacket(header uint8) bool {
-	return header == protocol.OK_Packet
+	return header == protocol.OK_Packet || header == protocol.EOF_Packet
 }
 
 //testErrpacket test whether current packet is err packet
@@ -66,6 +65,6 @@ func testEofPacket(header uint8) bool {
 }
 
 //teseofpacket test whether current packet is eof packet
-func testResultPacket(header int) bool {
-	return header == binary.NotLengthEncodeInteger
+func testResultPacket(val uint64) bool {
+	return val > 0
 }

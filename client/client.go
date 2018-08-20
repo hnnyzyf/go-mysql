@@ -43,9 +43,7 @@ type Session struct {
 	decoder *encoding.Decoder
 	encoder *encoding.Encoder
 
-	//For result to use
-	output chan []byte
-	err    chan error
+	res *response
 }
 
 //connect create a tcp connection to server
@@ -63,8 +61,7 @@ func connect(host string, user string, passwd string, db string, cfg *config) (*
 		password: passwd,
 		database: db,
 		cfg:      cfg,
-		output:   make(chan []byte),
-		err:      make(chan []byte),
+		res:      &response{},
 	}
 
 	//init configuration
