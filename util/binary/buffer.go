@@ -330,8 +330,9 @@ func WriteStringWithFixLen(b []byte, str []byte) error {
 	}
 }
 
+//calculate the encode string length
 func LengthOfString(b []byte) int {
-	return 0
+	return LengthOfInteger(uint64(len(b))) + len(b)
 }
 
 //WriteLengthEncodeString write a string  with fixed length
