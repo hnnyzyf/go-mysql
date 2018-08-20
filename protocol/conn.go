@@ -29,9 +29,6 @@ type Conn struct {
 
 	//header
 	header []byte
-	//the buffer we used to store payload,it may be resued
-	//the size if 16KB
-	buffer []byte
 }
 
 func NewConn(conn net.Conn) *Conn {
@@ -39,7 +36,6 @@ func NewConn(conn net.Conn) *Conn {
 		conn:   conn,
 		sid:    0,
 		header: make([]byte, 4),
-		buffer: make([]byte, DefaultBufferSize),
 	}
 }
 
@@ -91,13 +87,7 @@ func (c *Conn) ReadPacket() ([]byte, error) {
 	}
 
 	//write $length bytes into the buffer
-	var buffer *binary.Buffer
-	if length > DefaultBufferSize {
-		buffer = binary.NewBuffer(make([]byte, length))
-	} else {
-		buffer = binary.NewBuffer(c.buffer[:length])
-	}
-
+	buffer := binary.NewBuffer(make([]byte, length))
 	if n, err := io.CopyN(buffer, c.conn, int64(length)); err != nil {
 		return nil, errors.Trace(err)
 	} else if n != int64(length) {
