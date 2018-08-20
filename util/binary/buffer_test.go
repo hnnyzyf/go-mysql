@@ -145,6 +145,32 @@ func (s *MyBufferSuite) TestLengthEncodeInteger(c *C) {
 		c.Assert(val, Equals, data[i].val)
 	}
 
+	res2 := []struct {
+		val    uint64
+		header int
+		err    error
+	}{
+		{0x01, 1, nil},
+		{0x0203, 3, nil},
+		{0x040506, 4, nil},
+		{0x0708091011121314, 9, nil},
+		{0, NotLengthEncodeInteger, errTooSmall},
+	}
+
+	off := 0
+	for i := range res2 {
+		b = res[off:]
+		val, header, err := ReadLengthEncodedInteger(b)
+		c.Assert(val, Equals, res2[i].val)
+		c.Assert(header, Equals, res2[i].header)
+		if err == nil {
+			c.Assert(res2[i].err, IsNil)
+		} else {
+			c.Assert(err.Error(), Equals, res2[i].err.Error())
+		}
+		off += header
+	}
+
 }
 
 func (s *MyBufferSuite) TestLengthEncodeString(c *C) {
@@ -158,7 +184,7 @@ func (s *MyBufferSuite) TestLengthEncodeString(c *C) {
 
 	for i := range data {
 		b := NewBuffer(data[i].b)
-		res, err := b.ReadLengthEncodeString()
+		res, err := b.ReadLengthEncodedString()
 		c.Assert(err, IsNil)
 		c.Assert(string(res), Equals, data[i].res)
 	}

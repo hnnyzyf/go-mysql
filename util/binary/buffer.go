@@ -1,9 +1,8 @@
 package binary
 
 import (
-	"io"
-
 	"github.com/juju/errors"
+	"io"
 )
 
 var errTooSmall = errors.Errorf("binary:Payload is too small!")
@@ -265,7 +264,7 @@ func ReadLengthEncodedInteger(buffer []byte) (uint64, int, error) {
 	if err := assert(buffer, 1); err != nil {
 		return 0, NotLengthEncodeInteger, errors.Trace(err)
 	} else {
-		i := buffer[1]
+		i := buffer[0]
 		switch {
 		case i < 0xfb:
 			val, err := ReadInt1(buffer)
@@ -335,8 +334,8 @@ func LengthOfString(b []byte) int {
 	return LengthOfInteger(uint64(len(b))) + len(b)
 }
 
-//WriteLengthEncodeString write a string  with fixed length
-func ReadLengthEncodeString(b []byte) ([]byte, error) {
+//WriteLengthEncodedString write a string  with fixed length
+func ReadLengthEncodedString(b []byte) ([]byte, error) {
 	if n, _, err := ReadLengthEncodedInteger(b); err != nil {
 		return nil, errors.Trace(err)
 	} else {
@@ -344,8 +343,8 @@ func ReadLengthEncodeString(b []byte) ([]byte, error) {
 	}
 }
 
-//WriteLengthEncodeString write a string  with fixed length
-func WriteLengthEncodeString(b []byte, str []byte) error {
+//WriteLengthEncodedString write a string  with fixed length
+func WriteLengthEncodedString(b []byte, str []byte) error {
 	if _, err := WriteLengthEncodedInteger(b, uint64(len(str))); err != nil {
 		return errors.Trace(err)
 	}
@@ -522,8 +521,8 @@ func (p *Buffer) ReadStringWithFixLen(l int) ([]byte, error) {
 	return b, nil
 }
 
-//ReadLengthEncodeString reads a string  with fixed length
-func (p *Buffer) ReadLengthEncodeString() ([]byte, error) {
+//ReadLengthEncodedString reads a string  with fixed length
+func (p *Buffer) ReadLengthEncodedString() ([]byte, error) {
 	if n, _, err := p.ReadLengthEncodedInteger(); err != nil {
 		return nil, errors.Trace(err)
 	} else {
@@ -611,8 +610,8 @@ func (p *Buffer) WriteLengthEncodedInteger(val uint64) (int, error) {
 	return -1, nil
 }
 
-//WriteLengthEncodeString write a string  with fixed length
-func (p *Buffer) WriteLengthEncodeString(str []byte) error {
+//WriteLengthEncodedString write a string  with fixed length
+func (p *Buffer) WriteLengthEncodedString(str []byte) error {
 	if _, err := p.WriteLengthEncodedInteger(uint64(len(str))); err != nil {
 		return errors.Trace(err)
 	}
