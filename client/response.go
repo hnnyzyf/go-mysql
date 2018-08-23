@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"github.com/hnnyzyf/go-mysql/util/binary"
 	"github.com/hnnyzyf/go-mysql/util/hack"
 	"github.com/juju/errors"
@@ -91,6 +90,36 @@ func (s *Session) ReadErrPacket(buffer []byte) error {
 	return readErrPacket(buffer)
 }
 
+type response struct {
+	//For result to use
+	output chan []byte
+	err    chan error
+
+	//for column definition
+	def []*definition
+
+	//no recoard to read
+	eof bool
+}
+
+//defination repsent the basice inforamtion for a column in result set
+type definition struct {
+	name []byte
+	// is the column character set and is defined in Protocol::CharacterSet.
+	charset uint16
+	//maximum length of the field
+	length uint32
+	//type of the column as defined in Column Type
+	column uint8
+	//max shown decimal digits
+	//		0x00 for integers and static strings
+	//		0x1f for dynamic strings, double, float
+	//		0x00 to 0x51 for decimals
+	decimals uint8
+}
+
+const CataLog string = "def"
+
 //isInFilePacket packet
 func isInFilePacket(buffer []byte) bool {
 	return true
@@ -121,36 +150,6 @@ func readMetaPacket(buffer []byte) (uint64, error) {
 		return 0, errors.Errorf("Client:not a valid query response meta packet")
 	}
 }
-
-type response struct {
-	//For result to use
-	output chan []byte
-	err    chan error
-
-	//for column definition
-	def []*definition
-
-	//no recoard to read
-	eof bool
-}
-
-//defination repsent the basice inforamtion for a column in result set
-type definition struct {
-	name []byte
-	// is the column character set and is defined in Protocol::CharacterSet.
-	charset uint16
-	//maximum length of the field
-	length uint32
-	//type of the column as defined in Column Type
-	column uint8
-	//max shown decimal digits
-	//		0x00 for integers and static strings
-	//		0x1f for dynamic strings, double, float
-	//		0x00 to 0x51 for decimals
-	decimals uint8
-}
-
-const CataLog string = "def"
 
 //readColumnPacket41 read definition from buffer
 func readColumnPacket41(buffer []byte) (*definition, error) {
@@ -247,6 +246,7 @@ func (s *Session) ReadComQueryResponse() error {
 	//read the meta packet
 	if count, err := s.ReadMetaPacket(); err != nil {
 		return errors.Trace(err)
+		//If the number of columns in the resultset is 0, this is a OK_Packet
 	} else if count == 0 {
 		return nil
 	} else {
@@ -318,21 +318,19 @@ func (s *Session) ReadResultSet() {
 	i := 0
 	for {
 		if buffer, err := s.ReadPacket(); err != nil {
-			fmt.Println("fail", i)
 			s.res.err <- errors.Trace(err)
 			return
 		} else {
-			b := buffer
 			switch {
 			//if err occurs,return error
-			case s.IsErrPacket(b):
-				s.res.err <- s.ReadErrPacket(b)
+			case s.IsErrPacket(buffer):
+				s.res.err <- s.ReadErrPacket(buffer)
 				return
 			//According to https://dev.mysql.com/doc/internals/en/com-query-response.html
 			//ERR_Packet in case of error. Otherwise:
 			//If the CLIENT_DEPRECATE_EOF client capability flag is set,
 			//OK_Packet; else EOF_Packet.
-			case s.IsEofPacket(b):
+			case s.IsEofPacket(buffer):
 				s.res.eof = true
 				close(s.res.err)
 				close(s.res.output)
@@ -340,7 +338,7 @@ func (s *Session) ReadResultSet() {
 				//read result set
 			default:
 				//do a copy instead
-				s.res.output <- b
+				s.res.output <- buffer
 			}
 		}
 	}

@@ -52,6 +52,14 @@ func next(res *response) ([]byte, error) {
 	return nil, nil
 }
 
+//the dataset is as followings:
+//mysql> select * from test;
+//+------+------+
+//| id   | name |
+//+------+------+
+//|    1 | 2    |
+//|    3 | 10   |
+//+------+------+
 func (s *MyResponseSuite) TestQueryResponsePacket(c *C) {
 	query := "select * from test"
 	conn, err := Connect("127.0.0.1:3306", "test", "123456", "test")
