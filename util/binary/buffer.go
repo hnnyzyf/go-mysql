@@ -366,6 +366,12 @@ func NewBuffer(b []byte) *Buffer {
 	}
 }
 
+//Set add a new buffer
+func (p *Buffer) Set(b []byte) {
+	p.b = b
+	p.off = 0
+}
+
 //Read implement the io.Reader interface
 func (p *Buffer) Read(b []byte) (int, error) {
 	if len(p.b)-p.off < len(b) {
