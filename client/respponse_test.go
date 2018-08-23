@@ -59,6 +59,7 @@ func next(res *response) ([]byte, error) {
 //+------+------+
 //|    1 | 2    |
 //|    3 | 10   |
+//|	   -1| 1    |
 //+------+------+
 func (s *MyResponseSuite) TestQueryResponsePacket(c *C) {
 	query := "select * from test"
@@ -75,6 +76,7 @@ func (s *MyResponseSuite) TestQueryResponsePacket(c *C) {
 	res := [][]byte{
 		[]byte{0x01, 0x31, 0x01, 0x32},
 		[]byte{0x01, 0x33, 0x02, 0x31, 0x30},
+		[]byte{0x02, 0x2D, 0x31, 0x01, 0x31},
 	}
 
 	i := 0

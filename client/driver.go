@@ -1,7 +1,6 @@
 package client
 
 import (
-	"bufio"
 	"bytes"
 	"crypto/tls"
 	"database/sql/driver"
@@ -12,32 +11,34 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hnnyzyf/go-mysql/util/binary"
+	"github.com/hnnyzyf/go-mysql/util/hack"
 	"github.com/juju/errors"
 	"github.com/satori/go.uuid"
 )
 
 //test the interface
-var _ driver.Conn = &C{}
+var _ driver.Conn = &Conn{}
 var _ driver.Driver = &D{}
-var _ driver.Rows = &C{}
+var _ driver.Rows = &R{}
 
-//C implement the Conn interface
-type C struct {
+//Co implement the Conn interface
+type Conn struct {
 	s *Session
 }
 
 //Prepare method implement the conn interface in /database/sql/driver
-func (c *C) Prepare(query string) (driver.Stmt, error) {
+func (c *Conn) Prepare(query string) (driver.Stmt, error) {
 	return nil, nil
 }
 
 //Close method implement the conn interface in /database/sql/driver
-func (c *C) Close() error {
+func (c *Conn) Close() error {
 	return nil
 }
 
 //Begin method implement the conn interface in /database/sql/driver
-func (c *C) Begin() (driver.Tx, error) {
+func (c *Conn) Begin() (driver.Tx, error) {
 	return nil, nil
 }
 
@@ -48,25 +49,19 @@ type D struct {
 
 //Open implement the Open method
 func (d *D) Open(name string) (driver.Conn, error) {
-	cfg = &config{}
-	if info, err := cfg.Parse(name); err != nil {
+	if cfg, err := ParseDSN(name); err != nil {
 		return nil, errors.Trace(err)
 	} else {
-		host := info[2]
-		user := info[0]
-		passwd := info[1]
-		db := info[3]
-		if s, err := ConnectWithConfig(host, user, passwd, db, cfg); err != nil {
+		if s, err := ConnectWithConfig(cfg.Address, cfg.Username, cfg.Password, cfg.DBname, cfg.Config); err != nil {
 			return nil, errors.Trace(err)
 		} else {
-			return &C{s}, nil
+			return &Conn{s}, nil
 		}
 	}
 }
 
 //R implement the Rows interface
 type R struct {
-	r *Row
 }
 
 //Columns implement the Columns method
@@ -137,8 +132,8 @@ func (rs *RS) RowsAffected() (int64, error) {
 }
 
 var (
-	GlobalMutex  sync.Mutex = new(sync.Mutex)
-	GlobalSSLMap            = make(map[string]*tls.Config)
+	GlobalMutex  = new(sync.Mutex)
+	GlobalSSLMap = make(map[string]*tls.Config)
 )
 
 type Cfg struct {
@@ -147,6 +142,9 @@ type Cfg struct {
 	Username string
 	Password string
 	DBname   string
+
+	//Uid represent the tls configuration file id
+	Uid string
 
 	//other configurations
 	*Config
@@ -163,65 +161,51 @@ func NewCfg(address string, username string, password string, dbname string) *Cf
 	}
 }
 
+//NewCfg create a New cfg for
+func NewCfgWithSSL(address string, username string, password string, dbname string, uid string) *Cfg {
+	return &Cfg{
+		Address:  address,
+		Username: username,
+		Password: password,
+		DBname:   dbname,
+		Uid:      uid,
+		Config:   NewConfig(),
+	}
+}
+
 //Format return a string to represent the connection string
 //default value and connection attributes will not be shown in connection string
 //username:password@protocol(address)/dbname?param=value
 func (c *Cfg) FormatDSN() (string, error) {
-	var buf bytes.Buffer
+	buf := bytes.NewBuffer([]byte{})
 	fmt.Fprintf(buf, "%s:%s@TCP(%s)/%s", c.Username, c.Password, c.Address, c.DBname)
-	if c.Timeout != defaultConfig.Timeout {
-		switch {
-		case c.Timeout < 1*time.Microsecond:
-			fmt.Fprintf(buf, "?timeout=%dnan", c.Timeout)
-		case c.Timeout < 1*time.Millisecond:
-			fmt.Frpintf(buff, "?timeout=%dmic", c.Timeout)
-		case c.Timeout < 1*time.Second:
-			fmt.Frpintf(buff, "?timeout=%dmil", c.Timeout)
-		case c.Timeout < 1*time.Minute:
-			fmt.Frpintf(buff, "?timeout=%dsec", c.Timeout)
-		case c.Timeout < 1*time.Hour:
-			fmt.Frpintf(buff, "?timeout=%dmin", c.Timeout)
-		default:
-			fmt.Frpintf(buff, "?timeout=%dhou", c.Timeout)
+
+	if c.Uid != "" {
+		if cfg, err := FindTlsConfig(c.Uid); err != nil {
+			return "", errors.Trace(err)
+		} else {
+			if c.TlsConfig != nil {
+				return "", errors.Errorf("Clinet:You can not use both cfg.Uid and cfg.TlsConfg,please choose only one param")
+			} else {
+				c.TlsConfig = cfg
+			}
 		}
+	}
+
+	if c.Timeout != defaultConfig.Timeout {
+		fmt.Fprintf(buf, "?timeout=%s", c.Timeout.String())
 	}
 
 	if c.ReadTime != defaultConfig.ReadTime {
-		switch {
-		case c.ReadTime < 1*time.Microsecond:
-			fmt.Fprintf(buf, "?readtime=%dnan", c.ReadTime)
-		case c.ReadTime < 1*time.Millisecond:
-			fmt.Frpintf(buff, "?readtime=%dmic", c.ReadTime)
-		case c.ReadTime < 1*time.Second:
-			fmt.Frpintf(buff, "?readtime=%dmil", c.ReadTime)
-		case c.ReadTime < 1*time.Minute:
-			fmt.Frpintf(buff, "?readtime=%dsec", c.ReadTime)
-		case c.ReadTime < 1*time.Hour:
-			fmt.Frpintf(buff, "?readtime=%dmin", c.ReadTime)
-		default:
-			fmt.Frpintf(buff, "?readtime=%dhou", c.ReadTime)
-		}
+		fmt.Fprintf(buf, "?readtime=%s", c.ReadTime.String())
 	}
 
 	if c.WriteTime != defaultConfig.WriteTime {
-		switch {
-		case c.WriteTime < 1*time.Microsecond:
-			fmt.Fprintf(buf, "?writetime=%dnan", c.WriteTime)
-		case c.WriteTime < 1*time.Millisecond:
-			fmt.Frpintf(buff, "?writetime=%dmic", c.WriteTime)
-		case c.WriteTime < 1*time.Second:
-			fmt.Frpintf(buff, "?writetime=%dmil", c.WriteTime)
-		case c.WriteTime < 1*time.Minute:
-			fmt.Frpintf(buff, "?writetime=%dsec", c.WriteTime)
-		case c.WriteTime < 1*time.Hour:
-			fmt.Frpintf(buff, "?writetime=%dmin", c.WriteTime)
-		default:
-			fmt.Frpintf(buff, "?writetime=%dhou", c.WriteTime)
-		}
+		fmt.Fprintf(buf, "?writetime=%s", c.WriteTime.String())
 	}
 
 	if c.Capabilities != defaultConfig.Capabilities {
-		fmt.Fprintf(buf, "?capability=%d", c.Capability)
+		fmt.Fprintf(buf, "?capability=%d", c.Capabilities)
 	}
 
 	if c.Charset != defaultConfig.Charset {
@@ -241,19 +225,8 @@ func (c *Cfg) FormatDSN() (string, error) {
 	}
 
 	if c.TlsConfig != nil {
-		GlobalMutex.Lock()
-		for {
-			if id, err := uuid.NewV2(); err != nil {
-				return "", errors.Trace(err)
-			} else {
-				if _, ok := GlobalSSLMap[id]; !ok {
-					GlobalSSLMap[id] = c.TlsConfig
-					fmt.Fprintf(buf, "?tslconfig=%s", id)
-					break
-				}
-			}
-		}
-		GlobalMutex.UnLock()
+		uid := RegisterTlsConfig(c.TlsConfig)
+		fmt.Fprintf(buf, "?tslconfig=%s", uid)
 	}
 
 	if c.AllowMutilStatement != defaultConfig.AllowMutilStatement {
@@ -277,11 +250,13 @@ func (c *Cfg) FormatDSN() (string, error) {
 
 //Parse read from a string and return a configuration
 //username:password@protocol(address)/dbname?param=value
-func ParseDSN(dns string) (*cfg, error) {
-	reader := bufio.NewReader(bytes.NewBufferString(dns))
+func ParseDSN(dns string) (*Cfg, error) {
+	buf := hack.Slice(dns)
+	reader := binary.NewBuffer(buf)
 	cfg := &Cfg{
-		Config: defaultConfig,
+		Config: NewConfig(),
 	}
+	//read user information
 	//read user information
 	if username, err := reader.ReadString(':'); err != nil {
 		return nil, errors.Trace(err)
@@ -313,34 +288,35 @@ func ParseDSN(dns string) (*cfg, error) {
 		return nil, errors.Trace(err)
 	}
 
-	if dbname, err := reader.ReadString('?'); err != nil && err != io.EOF {
+	if dbname, err := reader.ReadString('?'); err != nil {
 		return nil, errors.Trace(err)
 	} else {
-		cfg.DBname = dbname
-		if err == io.EOF {
-			return cfg, nil
+		//if dsn is endwith ?,raise error
+		if reader.IsEOF() && buf[len(buf)-1] == '?' {
+			return nil, errors.Errorf("Clinet:DSN should not endwith ?")
+		} else {
+			cfg.DBname = dbname
 		}
 	}
 
 	//read param inforamtion
+	set := make(map[string]bool)
 	for {
-		if buf, err := reader.ReadString('?'); err != nil && err != io.EOF {
+		if b, err := reader.ReadString('?'); err != nil && err != io.EOF {
 			return nil, errors.Trace(err)
+			//if we find there is nothing to read,just return
+		} else if err == io.EOF {
+			return cfg, nil
 		} else {
-			if len(buf) == 0 {
-				return cfg, nil
-			} else {
-				if err := cfg.parse(buf); err != nil {
-					return nil, errors.Trace(err)
-				}
+			if err := cfg.parse(b, set); err != nil {
+				return nil, errors.Trace(err)
 			}
 		}
 	}
-
-	return cfg, nil
 }
 
-func (c *Cfg) parse(buf string) error {
+//parse parse a buffer and set the param and value
+func (c *Cfg) parse(buf string, set map[string]bool) error {
 	//get args and do checking
 	args := strings.Split(buf, "=")
 	if len(args) != 2 {
@@ -352,27 +328,34 @@ func (c *Cfg) parse(buf string) error {
 		return errors.Errorf("Client:the param:%s and value:%s is not accpted", param, value)
 	}
 
+	//check whether the param has been set twice
+	if _, ok := set[param]; ok {
+		return errors.Errorf("Client:set the param:%s twice", param)
+	} else {
+		set[param] = true
+	}
+
 	switch param {
 	case "timeout":
-		if t, err := parseTime(value); err != nil {
+		if t, err := time.ParseDuration(value); err != nil {
 			return errors.Trace(err)
 		} else {
 			c.Timeout = t
 		}
 	case "readtime":
-		if t, err := parseTime(value); err != nil {
+		if t, err := time.ParseDuration(value); err != nil {
 			return errors.Trace(err)
 		} else {
 			c.ReadTime = t
 		}
 	case "writetime":
-		if t, err := parseTime(value); err != nil {
+		if t, err := time.ParseDuration(value); err != nil {
 			return errors.Trace(err)
 		} else {
 			c.WriteTime = t
 		}
 	case "capability":
-		if v, err := strconv.Aoti(value); err != nil {
+		if v, err := strconv.Atoi(value); err != nil {
 			return errors.Trace(err)
 		} else {
 			c.Capabilities = uint32(v)
@@ -380,7 +363,7 @@ func (c *Cfg) parse(buf string) error {
 	case "charset":
 		c.Charset = value
 	case "maxallowedpacket":
-		if v, err := strconv.Aoti(value); err != nil {
+		if v, err := strconv.Atoi(value); err != nil {
 			return errors.Trace(err)
 		} else {
 			c.MaxAllowedPacket = uint32(v)
@@ -392,16 +375,14 @@ func (c *Cfg) parse(buf string) error {
 		case "false", "1":
 			c.AllowSSL = false
 		default:
-			return errors.Trace("Client:%s is not a supported value for param SSL", value)
+			return errors.Errorf("Client:%s is not a supported value for param SSL", value)
 		}
 	case "tlsconfig":
-		GlobalMutex.Lock()
-		if tlsconfig, ok := GlobalSSLMap[value]; ok {
-			c.TlsConfig = tlsconfig
+		if tlsconfig, err := FindTlsConfig(value); err != nil {
+			return errors.Trace(err)
 		} else {
-			return errors.Trace("Client:tlsConifg is not registered,please register the tlsconfig at first")
+			c.TlsConfig = tlsconfig
 		}
-		GlobalMutex.Unlock()
 	case "mutilstatement":
 		switch value {
 		case "true", "0":
@@ -409,7 +390,7 @@ func (c *Cfg) parse(buf string) error {
 		case "false", "1":
 			c.AllowMutilStatement = false
 		default:
-			return errors.Trace("Client:%s is not a supported value for param mutilStatement", value)
+			return errors.Errorf("Client:%s is not a supported value for param mutilStatement", value)
 		}
 	case "autocommit":
 		switch value {
@@ -418,7 +399,7 @@ func (c *Cfg) parse(buf string) error {
 		case "false", "1":
 			c.AllowAutoCommit = false
 		default:
-			return errors.Trace("Client:%s is not a supported value for param autoCommit", value)
+			return errors.Errorf("Client:%s is not a supported value for param autoCommit", value)
 		}
 	default:
 		return errors.Errorf("Client:%s is still not supported")
@@ -427,31 +408,26 @@ func (c *Cfg) parse(buf string) error {
 	return nil
 }
 
-func parseTime(value string) (time.Duration, error) {
-	if len(value) < 4 {
-		return 0, errors.Errorf("Client:%s is not a valid timeout value", v)
+//RegisterTlsConfig registe a tls configuration into global ssl map
+func RegisterTlsConfig(tlsconfig *tls.Config) string {
+	GlobalMutex.Lock()
+	defer GlobalMutex.Unlock()
+	for {
+		uid := uuid.NewV1().String()
+		if _, ok := GlobalSSLMap[uid]; !ok {
+			GlobalSSLMap[uid] = tlsconfig
+			return uid
+		}
+	}
+}
+
+//FindTlsConfig find a tls configuration according to the uuid
+func FindTlsConfig(uid string) (*tls.Config, error) {
+	GlobalMutex.Lock()
+	defer GlobalMutex.Unlock()
+	if cfg, ok := GlobalSSLMap[uid]; ok {
+		return cfg, nil
 	} else {
-		b := hack.Slice(value)
-		v, err := strconv.Aoti(hack.String(b[:len(b)-3+1]))
-		if err != nil {
-			return 0, errors.Trace(err)
-		}
-		t := hack.String(b[len(b)-3:])
-		switch t {
-		case "nan":
-			return v * time.Nanosecond, nil
-		case "mic":
-			return v * time.Microsecond, nil
-		case "mil":
-			return v * time.Millisecond, nil
-		case "sec":
-			return v * time.Second, nil
-		case "min":
-			return v * time.Minute, nil
-		case "hou":
-			return v * time.Hour, nil
-		default:
-			return 0, errors.Errorf("Clinet:%s is an unsupported time format", t)
-		}
+		return nil, errors.Errorf("Client:tlsConifg:%s is not registered,please register the tlsconfig at first", uid)
 	}
 }

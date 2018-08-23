@@ -1,7 +1,6 @@
 package client
 
 import (
-	"github.com/hnnyzyf/go-mysql/protocol"
 	. "gopkg.in/check.v1"
 )
 

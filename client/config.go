@@ -1,10 +1,7 @@
 package client
 
 import (
-	"bufio"
-	"bytes"
 	"crypto/tls"
-	"io"
 	"runtime"
 	"time"
 
@@ -65,17 +62,17 @@ var defaultConfig = &Config{
 //NewConfig create a config with the default value
 func NewConfig() *Config {
 	return &Config{
-		Timeout:             0,
-		ReadTime:            0,
-		WriteTime:           0,
-		Capabilities:        protocol.DefaultClientCapabilities,
-		Charset:             "utf8",
-		MaxAllowedPacket:    protocol.MaxAllowedSize,
-		AllowSSL:            false,
-		TlsConfig:           nil,
-		AllowMutilStatement: false,
-		AllowAutoCommit:     true,
-		Attrs:               NewAttrs(),
+		Timeout:             defaultConfig.Timeout,
+		ReadTime:            defaultConfig.ReadTime,
+		WriteTime:           defaultConfig.WriteTime,
+		Capabilities:        defaultConfig.Capabilities,
+		Charset:             defaultConfig.Charset,
+		MaxAllowedPacket:    defaultConfig.MaxAllowedPacket,
+		AllowSSL:            defaultConfig.AllowSSL,
+		TlsConfig:           defaultConfig.TlsConfig,
+		AllowMutilStatement: defaultConfig.AllowMutilStatement,
+		AllowAutoCommit:     defaultConfig.AllowAutoCommit,
+		Attrs:               NewAttr(),
 	}
 }
 
@@ -85,24 +82,25 @@ type Attr map[string]string
 var (
 	GlobalClientVersion    = "5.7.18"
 	defaultConnectionAttrs = Attr{
-		"_os":             "linux",
+		"_os":             runtime.GOOS,
 		"_client_name":    "go-mysql-client",
 		"_pid":            "0000",
 		"_client_version": "5.7.18",
-		"_platform":       "x86_64",
+		"_platform":       runtime.GOARCH,
 		"program_name":    "go-mysql-client",
 	}
 )
 
 //NewAttr create a new Attr and return the basic inforamtion
 func NewAttr() Attr {
-	a := new(Attr)
-	a["_os"] = runtime.GOOS
-	a["_client_name"] = "go-mysql-client"
-	a["_pid"] = "0000"
-	a["_client_version"] = "5.7.18"
-	a["_platform"] = runtime.GOARCH
-	return a
+	a := make(map[string]string)
+	a["_os"] = defaultConnectionAttrs["_os"]
+	a["_client_name"] = defaultConnectionAttrs["_client_name"]
+	a["_pid"] = defaultConnectionAttrs["_pid"]
+	a["_client_version"] = defaultConnectionAttrs["_client_version"]
+	a["_platform"] = defaultConnectionAttrs["_platform"]
+	a["program_name"] = defaultConnectionAttrs["program_name"]
+	return Attr(a)
 }
 
 //size return the length of attr
@@ -111,8 +109,8 @@ func (a Attr) size() int {
 	for k, v := range a {
 		param := k
 		value := v
-		length += binary.LengthOfString(param)
-		length += binary.LengthOfString(value)
+		length += binary.LengthOfString(hack.Slice(param))
+		length += binary.LengthOfString(hack.Slice(value))
 	}
 	return length
 }
@@ -122,10 +120,10 @@ func (a Attr) marshal() ([]byte, error) {
 	//init
 	length := a.size()
 	size := binary.LengthOfInteger(uint64(length)) + length
-	payload := make([]byte, size)
+	payload := binary.NewBuffer(make([]byte, size))
 
 	//write length
-	if _, err := payload.WriteLengthEncodedInteger(length); err != nil {
+	if _, err := payload.WriteLengthEncodedInteger(uint64(length)); err != nil {
 		return nil, errors.Trace(err)
 	}
 

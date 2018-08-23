@@ -49,7 +49,7 @@ type Session struct {
 //connect create a tcp connection to server
 func connect(host string, user string, passwd string, db string, cfg *Config) (*Session, error) {
 	//the client connecting to the server with timeout
-	conn, err := net.DialTimeout("tcp", host, cfg.timeout)
+	conn, err := net.DialTimeout("tcp", host, cfg.Timeout)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -133,12 +133,12 @@ func (s *Session) init() error {
 		s.capabilities |= protocol.CLIENT_SSL
 	}
 
-	if cfg.AllowedMutilStatement {
+	if cfg.AllowMutilStatement {
 		s.capabilities |= protocol.CLIENT_MULTI_STATEMENTS
 	}
 
 	//test ssl
-	if cfg.AllowSSL && cfg.tlsConfig == nil {
+	if cfg.AllowSSL && cfg.TlsConfig == nil {
 		return errors.Errorf("Client:not provide tls configuraions")
 	}
 

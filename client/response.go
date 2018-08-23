@@ -315,7 +315,6 @@ func (s *Session) ReadColumnPacket(count uint64) error {
 
 //ReadResultSet read the result packet one by one
 func (s *Session) ReadResultSet() {
-	i := 0
 	for {
 		if buffer, err := s.ReadPacket(); err != nil {
 			s.res.err <- errors.Trace(err)

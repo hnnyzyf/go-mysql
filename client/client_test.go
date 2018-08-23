@@ -65,7 +65,8 @@ func (s *MyClientSuite) TestConnectWithSSL(c *C) {
 		if err := s.initTls(); err != nil {
 			c.Error(err)
 		}
-		cfg.SetSSL(true, s.tls)
+		cfg.AllowSSL = true
+		cfg.TlsConfig = s.tls
 		for i := range data {
 			l := data[i]
 			conn, err := ConnectWithConfig(l.h, l.u, l.p, l.d, cfg)
