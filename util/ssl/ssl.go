@@ -27,10 +27,10 @@ func NewConfig(caPEM string, certPEM string, keyPEM string) (*tls.Config, error)
 	}
 
 	return &tls.Config{
-		RootCAs:            pool,
-		Certificates:       []tls.Certificate{cert},
+		RootCAs:      pool,
+		Certificates: []tls.Certificate{cert},
 		//TLS accepts any certificate
-        //presented by the server and any host name in that certificate
+		//presented by the server and any host name in that certificate
 		InsecureSkipVerify: true,
 	}, nil
 

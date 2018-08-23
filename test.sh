@@ -5,8 +5,6 @@ SHELL_FOLDER=$(dirname $(readlink -f "$0"))
 
 echo "====Workspace Is "$SHELL_FOLDER"===="
 
-echo "==============Testing==============="
-
  function read_dir(){
     for file in `ls $1`       
     do
@@ -17,9 +15,10 @@ echo "==============Testing==============="
             if !([[ $file =~ "_test.go" ]]);then
                 continue
             else
-               echo Test:$1
+               echo ==========Test:$1===========
                cd $1
-               echo `go test -v *.go`
+               `go fmt *.go`
+               go test -check.v *.go
                break
             fi
         fi
