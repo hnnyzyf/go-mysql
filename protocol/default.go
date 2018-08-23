@@ -21,3 +21,5 @@ const DefaultClientCapabilities uint32 = CLIENT_LONG_PASSWORD |
 	CLIENT_PLUGIN_AUTH |
 	CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA |
 	CLIENT_CONNECT_ATTRS
+
+const DefaultNull byte = 0xfb
