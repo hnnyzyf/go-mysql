@@ -27,7 +27,7 @@ type Session struct {
 	database string
 
 	//some options
-	cfg *config
+	cfg *Config
 
 	//capabilities flag use in client
 	capabilities uint32
@@ -47,7 +47,7 @@ type Session struct {
 }
 
 //connect create a tcp connection to server
-func connect(host string, user string, passwd string, db string, cfg *config) (*Session, error) {
+func connect(host string, user string, passwd string, db string, cfg *Config) (*Session, error) {
 	//the client connecting to the server with timeout
 	conn, err := net.DialTimeout("tcp", host, cfg.timeout)
 	if err != nil {
@@ -74,7 +74,7 @@ func connect(host string, user string, passwd string, db string, cfg *config) (*
 		return nil, errors.Trace(err)
 	}
 
-	if cfg.isSSL {
+	if cfg.AllowSSL {
 		//the client use ssl to sends the SSL Request Packet
 		if err := s.writeSSLRequeset(); err != nil {
 			return nil, errors.Trace(err)
@@ -112,7 +112,7 @@ func Connect(host string, user string, passwd string, db string) (*Session, erro
 }
 
 //ConnectWithConfig is a wrapper of connect
-func ConnectWithConfig(host string, user string, passwd string, db string, cfg *config) (*Session, error) {
+func ConnectWithConfig(host string, user string, passwd string, db string, cfg *Config) (*Session, error) {
 	return connect(host, user, passwd, db, cfg)
 }
 
@@ -121,7 +121,7 @@ func (s *Session) init() error {
 	cfg := s.cfg
 
 	//always use ok packet to relace eof packet after a Text Resultset
-	s.capabilities = cfg.capabilities | protocol.CLIENT_DEPRECATE_EOF
+	s.capabilities = cfg.Capabilities | protocol.CLIENT_DEPRECATE_EOF
 
 	if len(s.database) == 0 {
 		s.capabilities &= (^protocol.CLIENT_CONNECT_WITH_DB)
@@ -129,28 +129,28 @@ func (s *Session) init() error {
 		s.capabilities |= protocol.CLIENT_CONNECT_WITH_DB
 	}
 
-	if cfg.isSSL {
+	if cfg.AllowSSL {
 		s.capabilities |= protocol.CLIENT_SSL
 	}
 
-	if cfg.mutilStatement {
+	if cfg.AllowedMutilStatement {
 		s.capabilities |= protocol.CLIENT_MULTI_STATEMENTS
 	}
 
 	//test ssl
-	if cfg.isSSL && cfg.tlsConfig == nil {
+	if cfg.AllowSSL && cfg.tlsConfig == nil {
 		return errors.Errorf("Client:not provide tls configuraions")
 	}
 
 	//test connection attr
-	if cfg.attrs.size() == 0 {
+	if cfg.Attrs.size() == 0 {
 		s.capabilities &= (^protocol.CLIENT_CONNECT_ATTRS)
 	} else {
 		s.capabilities |= protocol.CLIENT_CONNECT_ATTRS
 	}
 
 	//set charset method
-	if method, err := charset.GetMethod(cfg.charset); err != nil {
+	if method, err := charset.GetMethod(cfg.Charset); err != nil {
 		return errors.Trace(err)
 	} else {
 		s.decoder = method.NewDecoder()
@@ -158,7 +158,7 @@ func (s *Session) init() error {
 	}
 
 	//set charset id
-	if id, err := charset.GetID(cfg.charset); err != nil {
+	if id, err := charset.GetID(cfg.Charset); err != nil {
 		return errors.Trace(err)
 	} else {
 		s.charset = id
@@ -238,7 +238,7 @@ func (s *Session) readHandShakeV10() error {
 
 	//set Capabilities (4 bytes)
 	capabilities := uint32(uflag)<<16 | uint32(lflag)
-	if s.cfg.isSSL && !testSSL(capabilities) {
+	if s.cfg.AllowSSL && !testSSL(capabilities) {
 		return errors.Errorf("Client:server does not support SSL connection!")
 	}
 
@@ -342,7 +342,7 @@ func (s *Session) writeSSLRequeset() error {
 	}
 
 	//replace the origin connection to ssl connection
-	s.TransformToSSL(s.cfg.tlsConfig)
+	s.TransformToSSL(s.cfg.TlsConfig)
 
 	return nil
 }
@@ -398,7 +398,7 @@ func (s *Session) writeHandshakeResponse41() error {
 	//add attributes
 	var attr []byte
 	if testConnectAttrs(s.capabilities) {
-		if b, err := s.cfg.attrs.marshal(); err != nil {
+		if b, err := s.cfg.Attrs.marshal(); err != nil {
 			return errors.Trace(err)
 		} else {
 			size += len(b)
