@@ -12,9 +12,9 @@ import (
 	"golang.org/x/text/encoding"
 )
 
-var errHandShake10 = errors.Errorf("Client:not a valid HandShake10 packets")
-var errResponsePacket = errors.Errorf("Client:not a valid response Packet")
-var errERRPacket = errors.Errorf("Client:not a valid Err packet")
+var errHandShake10 = errors.Errorf("client:not a valid HandShake10 packets")
+var errResponsePacket = errors.Errorf("client:not a valid response Packet")
+var errERRPacket = errors.Errorf("client:not a valid Err packet")
 
 //Session represent a connection to server from client
 type Session struct {
@@ -99,7 +99,7 @@ func connect(host string, user string, passwd string, db string, cfg *Config) (*
 		case s.IsErrPacket(buffer):
 			return s, s.ReadErrPacket(buffer)
 		default:
-			return nil, errors.Errorf("Client:fail to accept correct generic response packet from server!")
+			return nil, errors.Errorf("client:fail to accept correct generic response packet from server!")
 		}
 	}
 
@@ -139,7 +139,7 @@ func (s *Session) init() error {
 
 	//test ssl
 	if cfg.AllowSSL && cfg.TlsConfig == nil {
-		return errors.Errorf("Client:not provide tls configuraions")
+		return errors.Errorf("client:not provide tls configuraions")
 	}
 
 	//test connection attr
@@ -183,7 +183,7 @@ func (s *Session) readHandShakeV10() error {
 		return errHandShake10
 	} else {
 		if !testProtocolVersion(protocolVersion) {
-			return errors.Errorf("Client:not a valid protocol version: %d ", protocolVersion)
+			return errors.Errorf("client:not a valid protocol version: %d ", protocolVersion)
 		}
 	}
 	//read server version string.null
@@ -239,7 +239,7 @@ func (s *Session) readHandShakeV10() error {
 	//set Capabilities (4 bytes)
 	capabilities := uint32(uflag)<<16 | uint32(lflag)
 	if s.cfg.AllowSSL && !testSSL(capabilities) {
-		return errors.Errorf("Client:server does not support SSL connection!")
+		return errors.Errorf("client:server does not support SSL connection!")
 	}
 
 	//The client should only announce the capabilities
@@ -302,7 +302,7 @@ func (s *Session) readHandShakeV10() error {
 		} else if testProtocol41(capabilities) && testSecureConnection(capabilities) {
 			pluginName = "mysql_native_password"
 		} else {
-			return errors.Errorf("Client:server do not support any authentication method")
+			return errors.Errorf("client:server do not support any authentication method")
 		}
 	}
 	if method, err := protocol.GetMethod(pluginName); err != nil {

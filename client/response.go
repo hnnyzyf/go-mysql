@@ -66,7 +66,7 @@ func readErrPacket(buffer []byte) error {
 		return errERRPacket
 	}
 
-	return errors.Errorf("Client:error(%d):%s", code, hack.String(msg))
+	return errors.Errorf("client:error(%d):%s", code, hack.String(msg))
 }
 
 //IsOkPacket is a wrapper for IsOkPacket
@@ -215,9 +215,9 @@ func readMetaPacket(buffer []byte) (uint64, error) {
 	case isErrPacket(buffer):
 		return 0, readErrPacket(buffer)
 	case isInFilePacket(buffer):
-		return 0, errors.Errorf("Client:not support local infile query")
+		return 0, errors.Errorf("client:not support local infile query")
 	default:
-		return 0, errors.Errorf("Client:not a valid query response meta packet")
+		return 0, errors.Errorf("client:not a valid query response meta packet")
 	}
 }
 
@@ -308,7 +308,7 @@ func readColumnPacket41(buffer []byte) (*definition, error) {
 
 //readColumnPacket41 read definition from buffer
 func readColumnPacket320(buffer []byte) (*definition, error) {
-	return nil, errors.Errorf("Client:not support ColumnDefinition320 packet")
+	return nil, errors.Errorf("client:not support ColumnDefinition320 packet")
 }
 
 //ReadComQueryResponse reads the result from connection

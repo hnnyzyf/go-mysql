@@ -415,7 +415,7 @@ func ParseDSN(dns string) (*Cfg, error) {
 		return nil, errors.Trace(err)
 	} else {
 		if strings.ToUpper(protocol) != "TCP" {
-			return nil, errors.Errorf("Client:driver only supports TCP connection!")
+			return nil, errors.Errorf("client:driver only supports TCP connection!")
 		}
 	}
 
@@ -461,17 +461,17 @@ func (c *Cfg) parse(buf string, set map[string]bool) error {
 	//get args and do checking
 	args := strings.Split(buf, "=")
 	if len(args) != 2 {
-		return errors.Errorf("Client:%s is not a valid DSN param option.", buf)
+		return errors.Errorf("client:%s is not a valid DSN param option.", buf)
 	}
 	param := strings.ToLower(args[0])
 	value := strings.ToLower(args[1])
 	if len(param) == 0 || len(value) == 0 {
-		return errors.Errorf("Client:the param:%s and value:%s is not accpted", param, value)
+		return errors.Errorf("client:the param:%s and value:%s is not accpted", param, value)
 	}
 
 	//check whether the param has been set twice
 	if _, ok := set[param]; ok {
-		return errors.Errorf("Client:set the param:%s twice", param)
+		return errors.Errorf("client:set the param:%s twice", param)
 	} else {
 		set[param] = true
 	}
@@ -516,7 +516,7 @@ func (c *Cfg) parse(buf string, set map[string]bool) error {
 		case "false", "1":
 			c.AllowSSL = false
 		default:
-			return errors.Errorf("Client:%s is not a supported value for param SSL", value)
+			return errors.Errorf("client:%s is not a supported value for param SSL", value)
 		}
 	case "tlsconfig":
 		if tlsconfig, err := FindTlsConfig(value); err != nil {
@@ -531,7 +531,7 @@ func (c *Cfg) parse(buf string, set map[string]bool) error {
 		case "false", "1":
 			c.AllowMutilStatement = false
 		default:
-			return errors.Errorf("Client:%s is not a supported value for param mutilStatement", value)
+			return errors.Errorf("client:%s is not a supported value for param mutilStatement", value)
 		}
 	case "autocommit":
 		switch value {
@@ -540,10 +540,10 @@ func (c *Cfg) parse(buf string, set map[string]bool) error {
 		case "false", "1":
 			c.AllowAutoCommit = false
 		default:
-			return errors.Errorf("Client:%s is not a supported value for param autoCommit", value)
+			return errors.Errorf("client:%s is not a supported value for param autoCommit", value)
 		}
 	default:
-		return errors.Errorf("Client:%s is still not supported")
+		return errors.Errorf("client:%s is still not supported")
 	}
 
 	return nil
@@ -569,6 +569,6 @@ func FindTlsConfig(uid string) (*tls.Config, error) {
 	if cfg, ok := GlobalSSLMap[uid]; ok {
 		return cfg, nil
 	} else {
-		return nil, errors.Errorf("Client:tlsConifg:%s is not registered,please register the tlsconfig at first", uid)
+		return nil, errors.Errorf("client:tlsConifg:%s is not registered,please register the tlsconfig at first", uid)
 	}
 }
