@@ -1,9 +1,9 @@
 package binary
 
 import (
-	"testing"
-
 	. "gopkg.in/check.v1"
+	"io"
+	"testing"
 )
 
 // Hook up gocheck into the "go test" runner.
@@ -192,6 +192,30 @@ func (s *MyBufferSuite) TestLengthEncodeString(c *C) {
 	for i := range data {
 		l := LengthOfString(data[i].b[1:])
 		c.Assert(l, Equals, data[i].l)
+	}
+
+}
+
+func (s *MyBufferSuite) TestReadString(c *C) {
+	data := []struct {
+		str    string
+		delims []byte
+		res    []string
+	}{
+		{"test@1234%cd??", []byte{'@', '%', '?', '?', 'x'}, []string{"test", "1234", "cd", "", ""}},
+	}
+
+	for i := range data {
+		b := NewBuffer([]byte(data[i].str))
+		for j, delim := range data[i].delims {
+			str, err := b.ReadString(delim)
+			if err != nil {
+				c.Assert(err.Error(), Equals, io.EOF.Error())
+			} else {
+				c.Assert(err, IsNil)
+			}
+			c.Assert(str, Equals, data[i].res[j])
+		}
 	}
 
 }

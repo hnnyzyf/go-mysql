@@ -1,8 +1,10 @@
 package binary
 
 import (
-	"github.com/juju/errors"
 	"io"
+
+	"github.com/hnnyzyf/go-mysql/util/hack"
+	"github.com/juju/errors"
 )
 
 var errTooSmall = errors.Errorf("binary:Payload is too small!")
@@ -616,4 +618,32 @@ func (p *Buffer) WriteLengthEncodedString(str []byte) error {
 		return errors.Trace(err)
 	}
 	return p.WriteStringWithFixLen(str)
+}
+
+//ReadSlice return the slice when meets delim
+func (p *Buffer) ReadSlice(delim byte) ([]byte, error) {
+	if p.IsEOF() {
+		return nil, io.EOF
+	}
+
+	for pos := p.off; pos < len(p.b); pos++ {
+		if p.b[pos] == delim {
+			b := p.b[p.off:pos]
+			p.off = pos + 1
+			return b, nil
+		}
+	}
+
+	b := p.b[p.off:]
+	p.off = len(p.b)
+	return b, nil
+}
+
+//ReadString return the string when meets delim
+func (p *Buffer) ReadString(delim byte) (string, error) {
+	if b, err := p.ReadSlice(delim); err != nil {
+		return "", err
+	} else {
+		return hack.String(b), nil
+	}
 }
