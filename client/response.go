@@ -1,6 +1,9 @@
 package client
 
 import (
+	"context"
+	"io"
+
 	"github.com/hnnyzyf/go-mysql/util/binary"
 	"github.com/hnnyzyf/go-mysql/util/hack"
 	"github.com/juju/errors"
@@ -91,15 +94,82 @@ func (s *Session) ReadErrPacket(buffer []byte) error {
 }
 
 type response struct {
-	//For result to use
-	output chan []byte
-	err    chan error
 
 	//for column definition
 	def []*definition
 
 	//no recoard to read
 	eof bool
+	//For result to use
+	output chan []byte
+	err    chan error
+	ctx    context.Context
+}
+
+func newResponse() *response {
+	return &response{}
+}
+
+//Reset set the default value for a response
+func (r *response) Reset() {
+	r.output = nil
+	r.err = nil
+	r.ctx = nil
+	r.def = nil
+	r.eof = false
+}
+
+//Next return the payload of next row packet
+func (r *response) Next() ([][]byte, error) {
+	//gurantee anytime next will reutrn io.EOF
+	if r.eof {
+		return nil, io.EOF
+	}
+
+	select {
+	case row := <-r.output:
+		return r.parse(row)
+	case err := <-r.err:
+		return nil, err
+	//gurantee the select with be jumped
+	case <-r.ctx.Done():
+		return nil, io.EOF
+	}
+
+	return nil, nil
+}
+
+//Terminate read all results from session without doing anything
+func (r *response) Terminate() error {
+	for {
+		if _, err := r.Next(); err != nil && err != io.EOF {
+			return errors.Trace(err)
+		} else if err == io.EOF {
+			return nil
+		} else {
+			continue
+		}
+	}
+}
+
+//parse splits the row packet into different pieces
+func (r *response) parse(row []byte) ([][]byte, error) {
+	res := make([][]byte, len(r.def))
+	reader := binary.NewBuffer(row)
+	//read value
+	for i := range r.def {
+		if val, err := reader.ReadLengthEncodedString(); err != nil {
+			return nil, errors.Trace(err)
+		} else {
+			res[i] = val
+		}
+	}
+
+	if !reader.IsEOF() {
+		return nil, errors.Errorf("client:still have some unread data:%s,current offset:%d", row, reader.Off())
+	} else {
+		return res, nil
+	}
 }
 
 //defination repsent the basice inforamtion for a column in result set
@@ -243,6 +313,9 @@ func readColumnPacket320(buffer []byte) (*definition, error) {
 
 //ReadComQueryResponse reads the result from connection
 func (s *Session) ReadComQueryResponse() error {
+	//init response
+	s.res.Reset()
+
 	//read the meta packet
 	if count, err := s.ReadMetaPacket(); err != nil {
 		return errors.Trace(err)
@@ -259,9 +332,10 @@ func (s *Session) ReadComQueryResponse() error {
 	//init the result channel
 	s.res.output = make(chan []byte)
 	s.res.err = make(chan error)
-
+	ctx, cancel := context.WithCancel(context.Background())
+	s.res.ctx = ctx
 	//try to read result set
-	go s.ReadResultSet()
+	go s.ReadResultSet(cancel)
 
 	return nil
 }
@@ -314,7 +388,7 @@ func (s *Session) ReadColumnPacket(count uint64) error {
 }
 
 //ReadResultSet read the result packet one by one
-func (s *Session) ReadResultSet() {
+func (s *Session) ReadResultSet(cancel context.CancelFunc) {
 	for {
 		if buffer, err := s.ReadPacket(); err != nil {
 			s.res.err <- errors.Trace(err)
@@ -333,6 +407,7 @@ func (s *Session) ReadResultSet() {
 				s.res.eof = true
 				close(s.res.err)
 				close(s.res.output)
+				cancel()
 				return
 				//read result set
 			default:

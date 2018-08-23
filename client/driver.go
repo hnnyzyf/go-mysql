@@ -2,10 +2,12 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"database/sql/driver"
 	"fmt"
 	"io"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -18,116 +20,130 @@ import (
 )
 
 //test the interface
-var _ driver.Conn = &Conn{}
-var _ driver.Driver = &D{}
-var _ driver.Rows = &R{}
+var (
+	_ driver.Conn               = &mysqlConn{}
+	_ driver.ConnBeginTx        = &mysqlConn{}
+	_ driver.ConnPrepareContext = &mysqlConn{}
+	_ driver.Execer             = &mysqlConn{}
+	_ driver.ExecerContext      = &mysqlConn{}
+	_ driver.Pinger             = &mysqlConn{}
+	_ driver.Queryer            = &mysqlConn{}
+	_ driver.QueryerContext     = &mysqlConn{}
+	//unsupported
+	//_ driver.SessionResetter    = &mysqlConn{}
 
-//Co implement the Conn interface
-type Conn struct {
+	_ driver.Driver = &mysqlDriver{}
+	//unsupported
+	//_ driver.DriverContext = &mysqlDriver{}
+
+	_ driver.Rows                           = &mysqlRows{}
+	_ driver.RowsColumnTypeDatabaseTypeName = &mysqlRows{}
+	_ driver.RowsColumnTypeLength           = &mysqlRows{}
+	_ driver.RowsColumnTypeNullable         = &mysqlRows{}
+	_ driver.RowsColumnTypePrecisionScale   = &mysqlRows{}
+	_ driver.RowsColumnTypeScanType         = &mysqlRows{}
+	_ driver.RowsNextResultSet              = &mysqlRows{}
+
+	_ driver.Stmt             = &mysqlStmt{}
+	_ driver.StmtExecContext  = &mysqlStmt{}
+	_ driver.StmtQueryContext = &mysqlStmt{}
+
+	_ driver.Tx = &mysqlTx{}
+)
+
+//mysqlConn implement the Conn interface
+type mysqlConn struct {
 	s *Session
 }
 
 //Prepare method implement the conn interface in /database/sql/driver
-func (c *Conn) Prepare(query string) (driver.Stmt, error) {
+func (c *mysqlConn) Prepare(query string) (driver.Stmt, error) {
 	return nil, nil
 }
 
 //Close method implement the conn interface in /database/sql/driver
-func (c *Conn) Close() error {
+func (c *mysqlConn) Close() error {
 	return nil
 }
 
 //Begin method implement the conn interface in /database/sql/driver
-func (c *Conn) Begin() (driver.Tx, error) {
+func (c *mysqlConn) Begin() (driver.Tx, error) {
 	return nil, nil
 }
 
+//BeginTx method implement the ConnBeginTx interface in /database/sql/driver
+func (c *mysqlConn) BeginTx(ctx context.Context, opts driver.TxOptions) (driver.Tx, error) {
+	return nil, errors.Errorf("client:BeginTx is not supported")
+}
+
+//PrepareContext ¶ method implement the ConnPrepareContext interface in /database/sql/driver
+func (c *mysqlConn) PrepareContext(ctx context.Context, query string) (driver.Stmt, error) {
+	return nil, errors.Errorf("client:PrepareContext is not supported")
+}
+
+//Exec  method implement the Execer interface in /database/sql/driver
+func (c *mysqlConn) Exec(query string, args []driver.Value) (driver.Result, error) {
+	return nil, errors.Errorf("client:Exec is not supported")
+}
+
+//ExecContext  method implement the Execer interface in /database/sql/driver
+func (c *mysqlConn) ExecContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Result, error) {
+	return nil, errors.Errorf("client:ExecContext is not supported")
+}
+
+//Ping  method implement the Pinger  interface in /database/sql/driver
+func (c *mysqlConn) Ping(ctx context.Context) error {
+	return errors.Errorf("client:ExecContext is not supported")
+}
+
+//Query method implement the Queryer interface in /database/sql/driver
+func (c *mysqlConn) Query(query string, args []driver.Value) (driver.Rows, error) {
+	return nil, errors.Errorf("client:Query is not supported")
+}
+
+//QueryContext method implement the QueryerContext interface in /database/sql/driver
+func (c *mysqlConn) QueryContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Rows, error) {
+	return nil, errors.Errorf("client:QueryContext is not supported")
+}
+
+//ResetSession method implement the SessionResetter interface in /database/sql/driver
+func (c *mysqlConn) ResetSession(ctx context.Context) error {
+	return errors.Errorf("client:ResetSession is not supported")
+}
+
 //D implement the Driver interface
-type D struct {
+type mysqlDriver struct {
 	s *Session
 }
 
 //Open implement the Open method
-func (d *D) Open(name string) (driver.Conn, error) {
+func (d *mysqlDriver) Open(name string) (driver.Conn, error) {
 	if cfg, err := ParseDSN(name); err != nil {
 		return nil, errors.Trace(err)
 	} else {
 		if s, err := ConnectWithConfig(cfg.Address, cfg.Username, cfg.Password, cfg.DBname, cfg.Config); err != nil {
 			return nil, errors.Trace(err)
 		} else {
-			return &Conn{s}, nil
+			return &mysqlConn{s}, nil
 		}
 	}
 }
 
-//R implement the Rows interface
-type R struct {
-}
+//OpenConnector method implement the DriverContext  interface in /database/sql/driver
+//func (c *mysqlDriver) OpenConnector(name string) (driver.Connector, error) {
+//return nil, errors.Errorf("client:OpenConnector is not supported ")
+//
 
-//Columns implement the Columns method
-func (r *R) Columns() []string {
-	return nil
-}
-
-//Close implement the Close method
-func (r *R) Close() error {
-	return nil
-}
-
-//Next implement the Next method
-func (r *R) Next([]driver.Value) error {
-	return nil
-}
-
-//T implement the Tx interface
-type T struct {
-	s *Session
-}
-
-//Commit implement the commit method
-func (t *T) Commit() error {
-	return nil
-}
-
-//rollback implement the rollback method
-func (t *T) Rollback() error {
-	return nil
-}
-
-type ST struct {
-	s *Session
-}
-
-//Close implement the close method
-func (st *ST) Close() error {
-	return nil
-}
-
-//NumInput implement the NumInput method
-func (st *ST) NumInput() int {
-	return 0
-}
-
-//Exec implement the Exec method
-func (st *ST) Exec(args []driver.Value) (driver.Result, error) {
-	return nil, nil
-}
-
-//Query implement the Query method
-func (st *ST) Query(args []driver.Value) (driver.Rows, error) {
-	return nil, nil
-}
-
-type RS struct {
+type mysqlResult struct {
 }
 
 //LastInsertId implement the LastInsertId method
-func (rs *RS) LastInsertId() (int64, error) {
+func (rs *mysqlResult) LastInsertId() (int64, error) {
 	return 0, nil
 }
 
 //RowsAffected implement the RowsAffected method
-func (rs *RS) RowsAffected() (int64, error) {
+func (rs *mysqlResult) RowsAffected() (int64, error) {
 	return 0, nil
 }
 
@@ -135,6 +151,131 @@ var (
 	GlobalMutex  = new(sync.Mutex)
 	GlobalSSLMap = make(map[string]*tls.Config)
 )
+
+//R implement the Rows interface
+type mysqlRows struct {
+	r *response
+}
+
+//Columns implement the Columns method
+func (r *mysqlRows) Columns() []string {
+	columns := make([]string, len(r.r.def))
+	for i := range r.r.def {
+		def := r.r.def[i]
+		columns[i] = hack.String(def.name)
+	}
+	return columns
+}
+
+//Close implement the Close method
+func (r *mysqlRows) Close() error {
+	return r.r.Terminate()
+}
+
+//Next implement the Next method
+func (r *mysqlRows) Next(args []driver.Value) error {
+	if rawBytes, err := r.r.Next(); err != nil && err != io.EOF {
+		return errors.Trace(err)
+	} else if err == io.EOF {
+		return io.EOF
+	} else {
+		if len(rawBytes) != len(args) {
+			return errors.Errorf("client:not provide enought arguments:%d(%d)", len(rawBytes), len(args))
+		}
+		for i := range rawBytes {
+			raw := rawBytes[i]
+			if testNullValue(raw) {
+				args[i] = nil
+			} else {
+				args[i] = raw
+			}
+		}
+		return nil
+	}
+}
+
+//HasNextResultSet implement the RowsNextResultSet  interface
+func (r *mysqlRows) HasNextResultSet() bool {
+	return false
+}
+
+//NextResultSet implement the RowsNextResultSet  interface
+func (r *mysqlRows) NextResultSet() error {
+	return errors.Errorf("client:NextResultSet is not supported")
+}
+
+//ColumnTypeDatabaseTypeName implement the RowsColumnTypeDatabaseTypeName interface
+func (r *mysqlRows) ColumnTypeDatabaseTypeName(index int) string {
+	return ""
+}
+
+//ColumnTypeLength implement the RowsColumnTypeLength  interface
+func (r *mysqlRows) ColumnTypeLength(index int) (length int64, ok bool) {
+	return 0, false
+}
+
+//ColumnTypeLength implement the RowsColumnTypeLength  interface
+func (r *mysqlRows) ColumnTypeNullable(index int) (nullable, ok bool) {
+	return false, false
+}
+
+//ColumnTypePrecisionScale implement the RowsColumnTypePrecisionScale  interface
+func (r *mysqlRows) ColumnTypePrecisionScale(index int) (precision, scale int64, ok bool) {
+	return 0, 0, false
+}
+
+//ColumnTypeScanType implement the RowsColumnTypeScanType   interface
+func (r *mysqlRows) ColumnTypeScanType(index int) reflect.Type {
+	return nil
+}
+
+type mysqlStmt struct {
+	s *Session
+}
+
+//Close implement the close method
+func (st *mysqlStmt) Close() error {
+	return nil
+}
+
+//NumInput implement the NumInput method
+func (st *mysqlStmt) NumInput() int {
+	return 0
+}
+
+//Exec implement the Exec method
+func (st *mysqlStmt) Exec(args []driver.Value) (driver.Result, error) {
+	return nil, errors.Errorf("client:Exec is not supported")
+}
+
+//Query implement the Query method
+func (st *mysqlStmt) Query(args []driver.Value) (driver.Rows, error) {
+	return nil, errors.Errorf("client:Query is not supported")
+}
+
+//ExecContext implement the StmtExecContext  interface
+func (st *mysqlStmt) ExecContext(ctx context.Context, args []driver.NamedValue) (driver.Result, error) {
+	return nil, errors.Errorf("client:ExecContext is not supported")
+}
+
+//QueryContext implement the StmtQueryContext interface
+func (st *mysqlStmt) QueryContext(ctx context.Context, args []driver.NamedValue) (driver.Rows, error) {
+	return nil, errors.Errorf("client:QueryContext is not supported")
+}
+
+//T implement the Tx interface
+type mysqlTx struct {
+}
+
+//Commit implement the commit method
+func (t *mysqlTx) Commit() error {
+	return errors.Errorf("client:Commit is not supported")
+}
+
+//rollback implement the rollback method
+func (t *mysqlTx) Rollback() error {
+	return errors.Errorf("client:Rollback is not supported")
+}
 
 type Cfg struct {
 	//user inforamtions

@@ -11,7 +11,7 @@ import (
 func (s *Session) RequestCommand(size int, buffer []byte) error {
 	//check size and buffer
 	if size != len(buffer) {
-		return errors.Errorf("Client:expect %d bytes buffer,but the real size is %d bytes", size, len(buffer))
+		return errors.Errorf("client:expect %d bytes buffer,but the real size is %d bytes", size, len(buffer))
 	}
 	//create payload
 	payload := binary.NewBuffer(buffer)
@@ -50,7 +50,7 @@ func (s *Session) RequestComQuery(query string) error {
 
 //RequestComFieldList send a COM_FIELD_LIST to server
 func (s *Session) RequestComFieldList(...interface{}) error {
-	return errors.Errorf("Client:COM_FIELD_LIST is deprecated and will be removed in a future version of MySQL")
+	return errors.Errorf("client:COM_FIELD_LIST is deprecated and will be removed in a future version of MySQL")
 }
 
 //RequestComCreateDB send a COM_CREATE_DB to server
@@ -71,22 +71,22 @@ func (s *Session) RequestComDropDB(db string) error {
 
 //RequestComRefresh send a COM_REFRESH to server
 func (s *Session) RequestComRefresh(...interface{}) error {
-	return errors.Errorf("Client:COM_REFRESH is deprecated and will be removed in a future version of MySQL")
+	return errors.Errorf("client:COM_REFRESH is deprecated and will be removed in a future version of MySQL")
 }
 
 //RequestComShutDown send a COM_SHUTDOWN to server
 func (s *Session) RequestComShutDown(...interface{}) error {
-	return errors.Errorf("Client:COM_SHUTDOWN is deprecated and will be removed in a future version of MySQL")
+	return errors.Errorf("client:COM_SHUTDOWN is deprecated and will be removed in a future version of MySQL")
 }
 
 //WriteShutDown send a COM_STATISTICS to server
 func (s *Session) RequestComStatistics(...interface{}) error {
-	return errors.Errorf("Client:COM_STATISTICS is deprecated and will be removed in a future version of MySQL")
+	return errors.Errorf("client:COM_STATISTICS is deprecated and will be removed in a future version of MySQL")
 }
 
 //RequestComProcessInfo send a COM_PROCESS_INFO to server
 func (s *Session) RequestComProcessInfo(...interface{}) error {
-	return errors.Errorf("Client:COM_PROCESS_INFO is deprecated and will be removed in a future version of MySQL")
+	return errors.Errorf("client:COM_PROCESS_INFO is deprecated and will be removed in a future version of MySQL")
 }
 
 //RequestComConnect send a COM_CONNECT to server
@@ -98,7 +98,7 @@ func (s *Session) RequestComConnect() error {
 
 //RequestComProcessKill send a COM_PROCESS_KILL to server
 func (s *Session) RequestComProcessKill(id uint32) error {
-	return errors.Errorf("Client:COM_PROCESS_KILL is deprecated and will be removed in a future version of MySQL")
+	return errors.Errorf("client:COM_PROCESS_KILL is deprecated and will be removed in a future version of MySQL")
 }
 
 //RequestComDebug send a COM_DEBUG to server

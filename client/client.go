@@ -61,7 +61,7 @@ func connect(host string, user string, passwd string, db string, cfg *Config) (*
 		password: passwd,
 		database: db,
 		cfg:      cfg,
-		res:      &response{},
+		res:      newResponse(),
 	}
 
 	//init configuration

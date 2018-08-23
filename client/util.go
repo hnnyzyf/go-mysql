@@ -59,12 +59,17 @@ func testErrPacket(header uint8) bool {
 	return header == protocol.ERR_Packet
 }
 
-//teseofpacket test whether current packet is eof packet
+//testEofPacket test whether current packet is eof packet
 func testEofPacket(header uint8) bool {
 	return header == protocol.EOF_Packet
 }
 
-//teseofpacket test whether current packet is eof packet
+//testResultPacket test whether current packet is eof packet
 func testResultPacket(val uint64) bool {
 	return val > 0
+}
+
+//testNullValue test whether current byte represents the null
+func testNullValue(b []byte) bool {
+	return b != nil && len(b) == 1 && b[0] == protocol.DefaultNull
 }
