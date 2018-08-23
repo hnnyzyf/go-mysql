@@ -26,6 +26,14 @@
   version = "v0.1.0"
 
 [[projects]]
+  digest = "1:274f67cb6fed9588ea2521ecdac05a6d62a8c51c074c1fccc6a49a40ba80e925"
+  name = "github.com/satori/go.uuid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
+  version = "v1.2.0"
+
+[[projects]]
   digest = "1:44c631134380c5fbe7378bf8bfe49c1e703ded0f4beb1726fc29bc56b4f9b147"
   name = "golang.org/x/text"
   packages = [
@@ -62,6 +70,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/juju/errors",
+    "github.com/satori/go.uuid",
     "golang.org/x/text/encoding",
     "golang.org/x/text/encoding/charmap",
     "golang.org/x/text/encoding/japanese",
