@@ -15,11 +15,12 @@ echo "====Workspace Is "$SHELL_FOLDER"===="
             if !([[ $file =~ "_test.go" ]]);then
                 continue
             else
-               echo ==========Test:$1===========
-               cd $1
-               `go fmt *.go`
-               go test -check.v *.go
-               break
+                #echo ${1:${#SHELL_FOLDER}}
+                echo ================Test:${1:${#GOPATH}}=================
+                cd $1
+                `go fmt *.go`
+                go test -check.v *.go
+                break
             fi
         fi
     done
