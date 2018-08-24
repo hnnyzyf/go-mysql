@@ -45,17 +45,6 @@ func NewConn(conn net.Conn) *Conn {
 	}
 }
 
-//init a Conn with Timeout
-func NewConnWithTimeout(conn net.Conn, read time.Duration, write time.Duration) *Conn {
-	return &Conn{
-		conn:   conn,
-		read:   read,
-		write:  write,
-		sid:    0,
-		header: make([]byte, 4),
-	}
-}
-
 //Close the connection
 func (c *Conn) Close() {
 	c.conn.Close()
@@ -125,7 +114,7 @@ func (c *Conn) ReadPacket() ([]byte, error) {
 //A payload is impossible to more than 18446744073709551615 bytes
 //which is nearly 16777216TB
 func (c *Conn) WritePacket(size int, payload io.Reader) error {
-	//set read timeout
+	//set write timeout
 	if c.write != 0 {
 		c.conn.SetWriteDeadline(time.Now().Add(c.write))
 	}
@@ -174,4 +163,12 @@ func (c *Conn) WritePacket(size int, payload io.Reader) error {
 func CopyPacket(w io.Writer, r io.Reader) error {
 	//undo
 	return nil
+}
+
+func (c *Conn) SetReadDeadline(read time.Duration) {
+	c.read = read
+}
+
+func (c *Conn) SetWriteDeadline(write time.Duration) {
+	c.write = write
 }
