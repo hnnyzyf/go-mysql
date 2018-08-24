@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql/driver"
-	"fmt"
 	"io"
 	"reflect"
 	"strconv"
@@ -13,10 +12,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hnnyzyf/go-mysql/protocol"
 	"github.com/hnnyzyf/go-mysql/util/binary"
 	"github.com/hnnyzyf/go-mysql/util/hack"
 	"github.com/juju/errors"
-	"github.com/satori/go.uuid"
 )
 
 //test the interface
@@ -58,7 +57,11 @@ type mysqlConn struct {
 
 //Prepare method implement the conn interface in /database/sql/driver
 func (c *mysqlConn) Prepare(query string) (driver.Stmt, error) {
-	return nil, nil
+	if err := c.s.RequestComStmtPrepare(query); err != nil {
+		return nil, errors.Trace(err)
+	} else {
+		return &mysqlStmt{c.s}, nil
+	}
 }
 
 //Close method implement the conn interface in /database/sql/driver
@@ -81,13 +84,18 @@ func (c *mysqlConn) PrepareContext(ctx context.Context, query string) (driver.St
 	return nil, errors.Errorf("client:PrepareContext is not supported")
 }
 
-//Exec  method implement the Execer interface in /database/sql/driver
+//Exec method implement the Execer interface in /database/sql/driver
+//If a Conn implements neither ExecerContext nor Execer Execer,
+//the sql package's DB.Exec will first prepare a query,
+//execute the statement, and then close the statement.
+//Deprecated: Drivers should implement ExecerContext instead.
 func (c *mysqlConn) Exec(query string, args []driver.Value) (driver.Result, error) {
 	return nil, errors.Errorf("client:Exec is not supported")
 }
 
 //ExecContext  method implement the Execer interface in /database/sql/driver
 func (c *mysqlConn) ExecContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Result, error) {
+
 	return nil, errors.Errorf("client:ExecContext is not supported")
 }
 
@@ -98,17 +106,127 @@ func (c *mysqlConn) Ping(ctx context.Context) error {
 
 //Query method implement the Queryer interface in /database/sql/driver
 func (c *mysqlConn) Query(query string, args []driver.Value) (driver.Rows, error) {
-	return nil, errors.Errorf("client:Query is not supported")
+	if _, err := parseQuery(query, args); err != nil {
+		return nil, errors.Trace(err)
+	} else {
+		return nil, nil
+	}
 }
 
 //QueryContext method implement the QueryerContext interface in /database/sql/driver
-func (c *mysqlConn) QueryContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Rows, error) {
-	return nil, errors.Errorf("client:QueryContext is not supported")
+func (c *mysqlConn) QueryContext(ctx context.Context, query string, nargs []driver.NamedValue) (driver.Rows, error) {
+	if args, err := parseNamedValue(nargs); err != nil {
+		return nil, errors.Trace(err)
+	} else {
+		//get the rows
+		rowMsg := make(chan driver.Rows)
+		errMsg := make(chan error)
+		go func() {
+			if rows, err := c.Query(query, args); err != nil {
+				errMsg <- errors.Trace(err)
+			} else {
+				rowMsg <- rows
+			}
+		}()
+
+		//get the message
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case err := <-errMsg:
+			return nil, errors.Trace(err)
+		case row := <-rowMsg:
+			return row, nil
+		}
+	}
+
 }
 
 //ResetSession method implement the SessionResetter interface in /database/sql/driver
 func (c *mysqlConn) ResetSession(ctx context.Context) error {
 	return errors.Errorf("client:ResetSession is not supported")
+}
+
+//parseNamedValue return the driverValue
+//we ingore the name param in the NamedValue
+//the nargs and args should have the same order
+//Undo:supported the name param in the future
+func parseNamedValue(nargs []driver.NamedValue) ([]driver.Value, error) {
+	args := make([]driver.Value, len(nargs))
+	for i := range nargs {
+		args[i] = nargs[i].Value
+	}
+	return args, nil
+}
+
+//parseQuery assin the value to query
+//we hopen the query will use ? to represent a value
+//for example:
+// select * from test where id = ? and name = ?
+func parseQuery(query string, args []driver.Value) (string, error) {
+	//basic test
+	if strings.Count(query, "?") != len(args) {
+		return "", errors.Errorf("client:no enough ? in the query")
+	}
+
+	//init
+	buffer := bytes.NewBuffer([]byte{})
+	reader := binary.NewBuffer(hack.Slice(query))
+	for i := range args {
+		//write query slice
+		if q, err := reader.ReadSlice('?'); err != nil {
+			return "", errors.Trace(err)
+		} else {
+			buffer.Write(q)
+		}
+		//write value
+		if v, err := parseValue(args[i]); err != nil {
+			return "", errors.Trace(err)
+		} else {
+			buffer.WriteString(v)
+		}
+	}
+
+	return buffer.String(), nil
+
+}
+
+//parseValue convert driver.Value to string
+func parseValue(arg driver.Value) (string, error) {
+	switch val := arg.(type) {
+	case int:
+		return strconv.Itoa(val), nil
+	case int8:
+		return strconv.FormatInt(int64(val), 10), nil
+	case int16:
+		return strconv.FormatInt(int64(val), 10), nil
+	case int32:
+		return strconv.FormatInt(int64(val), 10), nil
+	case int64:
+		return strconv.FormatInt(int64(val), 10), nil
+	case uint8:
+		return strconv.FormatUint(uint64(val), 10), nil
+	case uint16:
+		return strconv.FormatUint(uint64(val), 10), nil
+	case uint32:
+		return strconv.FormatUint(uint64(val), 10), nil
+	case uint64:
+		return strconv.FormatUint(uint64(val), 10), nil
+	case float32:
+		return strconv.FormatFloat(float64(val), 'f', -1, 32), nil
+	case float64:
+		return strconv.FormatFloat(val, 'f', -1, 64), nil
+	case bool:
+		return strconv.FormatBool(val), nil
+	case time.Time:
+		return val.Format(protocol.DefaultTimeFormat), nil
+	case string:
+		return strconv.Quote(val), nil
+	case []byte:
+		return hack.String(val), nil
+	default:
+		return "", errors.Errorf("client:not supported value type")
+	}
 }
 
 //D implement the Driver interface
@@ -244,13 +362,17 @@ func (st *mysqlStmt) NumInput() int {
 }
 
 //Exec implement the Exec method
+//Exec executes a query that doesn't return rows, such as an INSERT or UPDATE.
+//Deprecated: Drivers should implement StmtExecContext instead (or additionally).
 func (st *mysqlStmt) Exec(args []driver.Value) (driver.Result, error) {
-	return nil, errors.Errorf("client:Exec is not supported")
+	return nil, errors.Errorf("client:Exec method for Stmt is not supported anymore")
 }
 
 //Query implement the Query method
+//Query executes a query that may return rows, such as a SELECT
+// Deprecated: Drivers should implement StmtQueryContext instead (or additionally).
 func (st *mysqlStmt) Query(args []driver.Value) (driver.Rows, error) {
-	return nil, errors.Errorf("client:Query is not supported")
+	return nil, errors.Errorf("client:Query method for Stmt is not supported")
 }
 
 //ExecContext implement the StmtExecContext  interface
@@ -275,300 +397,4 @@ func (t *mysqlTx) Commit() error {
 //rollback implement the rollback method
 func (t *mysqlTx) Rollback() error {
 	return errors.Errorf("client:Rollback is not supported")
-}
-
-type Cfg struct {
-	//user inforamtions
-	Address  string
-	Username string
-	Password string
-	DBname   string
-
-	//Uid represent the tls configuration file id
-	Uid string
-
-	//other configurations
-	*Config
-}
-
-//NewCfg create a New cfg for
-func NewCfg(address string, username string, password string, dbname string) *Cfg {
-	return &Cfg{
-		Address:  address,
-		Username: username,
-		Password: password,
-		DBname:   dbname,
-		Config:   NewConfig(),
-	}
-}
-
-//NewCfg create a New cfg for
-func NewCfgWithSSL(address string, username string, password string, dbname string, uid string) *Cfg {
-	return &Cfg{
-		Address:  address,
-		Username: username,
-		Password: password,
-		DBname:   dbname,
-		Uid:      uid,
-		Config:   NewConfig(),
-	}
-}
-
-//Format return a string to represent the connection string
-//default value and connection attributes will not be shown in connection string
-//username:password@protocol(address)/dbname?param=value
-func (c *Cfg) FormatDSN() (string, error) {
-	buf := bytes.NewBuffer([]byte{})
-	fmt.Fprintf(buf, "%s:%s@TCP(%s)/%s", c.Username, c.Password, c.Address, c.DBname)
-
-	if c.Uid != "" {
-		if cfg, err := FindTlsConfig(c.Uid); err != nil {
-			return "", errors.Trace(err)
-		} else {
-			if c.TlsConfig != nil {
-				return "", errors.Errorf("Clinet:You can not use both cfg.Uid and cfg.TlsConfg,please choose only one param")
-			} else {
-				c.TlsConfig = cfg
-			}
-		}
-	}
-
-	if c.Timeout != defaultConfig.Timeout {
-		fmt.Fprintf(buf, "?timeout=%s", c.Timeout.String())
-	}
-
-	if c.ReadTime != defaultConfig.ReadTime {
-		fmt.Fprintf(buf, "?readtime=%s", c.ReadTime.String())
-	}
-
-	if c.WriteTime != defaultConfig.WriteTime {
-		fmt.Fprintf(buf, "?writetime=%s", c.WriteTime.String())
-	}
-
-	if c.Capabilities != defaultConfig.Capabilities {
-		fmt.Fprintf(buf, "?capability=%d", c.Capabilities)
-	}
-
-	if c.Charset != defaultConfig.Charset {
-		fmt.Fprintf(buf, "?charset=%s", c.Charset)
-	}
-
-	if c.MaxAllowedPacket != defaultConfig.MaxAllowedPacket {
-		fmt.Fprintf(buf, "?maxAllowedPacket=%d", c.MaxAllowedPacket)
-	}
-
-	if c.AllowSSL != defaultConfig.AllowSSL {
-		if c.AllowSSL {
-			fmt.Fprintf(buf, "?ssl=true")
-		} else {
-			fmt.Fprintf(buf, "?ssl=false")
-		}
-	}
-
-	if c.TlsConfig != nil {
-		uid := RegisterTlsConfig(c.TlsConfig)
-		fmt.Fprintf(buf, "?tslconfig=%s", uid)
-	}
-
-	if c.AllowMutilStatement != defaultConfig.AllowMutilStatement {
-		if c.AllowMutilStatement {
-			fmt.Fprintf(buf, "?mutilStatement=true")
-		} else {
-			fmt.Fprintf(buf, "?mutilStatement=false")
-		}
-	}
-
-	if c.AllowAutoCommit != defaultConfig.AllowAutoCommit {
-		if c.AllowMutilStatement {
-			fmt.Fprintf(buf, "?autoCommit=true")
-		} else {
-			fmt.Fprintf(buf, "?autoCommit=false")
-		}
-	}
-
-	return buf.String(), nil
-}
-
-//Parse read from a string and return a configuration
-//username:password@protocol(address)/dbname?param=value
-func ParseDSN(dns string) (*Cfg, error) {
-	buf := hack.Slice(dns)
-	reader := binary.NewBuffer(buf)
-	cfg := &Cfg{
-		Config: NewConfig(),
-	}
-	//read user information
-	//read user information
-	if username, err := reader.ReadString(':'); err != nil {
-		return nil, errors.Trace(err)
-	} else {
-		cfg.Username = username
-	}
-
-	if password, err := reader.ReadString('@'); err != nil {
-		return nil, errors.Trace(err)
-	} else {
-		cfg.Password = password
-	}
-
-	if protocol, err := reader.ReadString('('); err != nil {
-		return nil, errors.Trace(err)
-	} else {
-		if strings.ToUpper(protocol) != "TCP" {
-			return nil, errors.Errorf("client:driver only supports TCP connection!")
-		}
-	}
-
-	if address, err := reader.ReadString(')'); err != nil {
-		return nil, errors.Trace(err)
-	} else {
-		cfg.Address = address
-	}
-
-	if _, err := reader.ReadString('/'); err != nil {
-		return nil, errors.Trace(err)
-	}
-
-	if dbname, err := reader.ReadString('?'); err != nil {
-		return nil, errors.Trace(err)
-	} else {
-		//if dsn is endwith ?,raise error
-		if reader.IsEOF() && buf[len(buf)-1] == '?' {
-			return nil, errors.Errorf("Clinet:DSN should not endwith ?")
-		} else {
-			cfg.DBname = dbname
-		}
-	}
-
-	//read param inforamtion
-	set := make(map[string]bool)
-	for {
-		if b, err := reader.ReadString('?'); err != nil && err != io.EOF {
-			return nil, errors.Trace(err)
-			//if we find there is nothing to read,just return
-		} else if err == io.EOF {
-			return cfg, nil
-		} else {
-			if err := cfg.parse(b, set); err != nil {
-				return nil, errors.Trace(err)
-			}
-		}
-	}
-}
-
-//parse parse a buffer and set the param and value
-func (c *Cfg) parse(buf string, set map[string]bool) error {
-	//get args and do checking
-	args := strings.Split(buf, "=")
-	if len(args) != 2 {
-		return errors.Errorf("client:%s is not a valid DSN param option.", buf)
-	}
-	param := strings.ToLower(args[0])
-	value := strings.ToLower(args[1])
-	if len(param) == 0 || len(value) == 0 {
-		return errors.Errorf("client:the param:%s and value:%s is not accpted", param, value)
-	}
-
-	//check whether the param has been set twice
-	if _, ok := set[param]; ok {
-		return errors.Errorf("client:set the param:%s twice", param)
-	} else {
-		set[param] = true
-	}
-
-	switch param {
-	case "timeout":
-		if t, err := time.ParseDuration(value); err != nil {
-			return errors.Trace(err)
-		} else {
-			c.Timeout = t
-		}
-	case "readtime":
-		if t, err := time.ParseDuration(value); err != nil {
-			return errors.Trace(err)
-		} else {
-			c.ReadTime = t
-		}
-	case "writetime":
-		if t, err := time.ParseDuration(value); err != nil {
-			return errors.Trace(err)
-		} else {
-			c.WriteTime = t
-		}
-	case "capability":
-		if v, err := strconv.Atoi(value); err != nil {
-			return errors.Trace(err)
-		} else {
-			c.Capabilities = uint32(v)
-		}
-	case "charset":
-		c.Charset = value
-	case "maxallowedpacket":
-		if v, err := strconv.Atoi(value); err != nil {
-			return errors.Trace(err)
-		} else {
-			c.MaxAllowedPacket = uint32(v)
-		}
-	case "ssl":
-		switch value {
-		case "true", "0":
-			c.AllowSSL = true
-		case "false", "1":
-			c.AllowSSL = false
-		default:
-			return errors.Errorf("client:%s is not a supported value for param SSL", value)
-		}
-	case "tlsconfig":
-		if tlsconfig, err := FindTlsConfig(value); err != nil {
-			return errors.Trace(err)
-		} else {
-			c.TlsConfig = tlsconfig
-		}
-	case "mutilstatement":
-		switch value {
-		case "true", "0":
-			c.AllowMutilStatement = true
-		case "false", "1":
-			c.AllowMutilStatement = false
-		default:
-			return errors.Errorf("client:%s is not a supported value for param mutilStatement", value)
-		}
-	case "autocommit":
-		switch value {
-		case "true", "0":
-			c.AllowAutoCommit = true
-		case "false", "1":
-			c.AllowAutoCommit = false
-		default:
-			return errors.Errorf("client:%s is not a supported value for param autoCommit", value)
-		}
-	default:
-		return errors.Errorf("client:%s is still not supported")
-	}
-
-	return nil
-}
-
-//RegisterTlsConfig registe a tls configuration into global ssl map
-func RegisterTlsConfig(tlsconfig *tls.Config) string {
-	GlobalMutex.Lock()
-	defer GlobalMutex.Unlock()
-	for {
-		uid := uuid.NewV1().String()
-		if _, ok := GlobalSSLMap[uid]; !ok {
-			GlobalSSLMap[uid] = tlsconfig
-			return uid
-		}
-	}
-}
-
-//FindTlsConfig find a tls configuration according to the uuid
-func FindTlsConfig(uid string) (*tls.Config, error) {
-	GlobalMutex.Lock()
-	defer GlobalMutex.Unlock()
-	if cfg, ok := GlobalSSLMap[uid]; ok {
-		return cfg, nil
-	} else {
-		return nil, errors.Errorf("client:tlsConifg:%s is not registered,please register the tlsconfig at first", uid)
-	}
 }

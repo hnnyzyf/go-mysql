@@ -43,6 +43,7 @@ type Session struct {
 	decoder *encoding.Decoder
 	encoder *encoding.Encoder
 
+	//the result set
 	res *response
 }
 
@@ -119,6 +120,15 @@ func ConnectWithConfig(host string, user string, passwd string, db string, cfg *
 //init read configuration from config
 func (s *Session) init() error {
 	cfg := s.cfg
+
+	//set the timeout for I/O operations
+	if cfg.ReadTime != 0 {
+		s.SetReadTimeOut(cfg.ReadTime)
+	}
+
+	if cfg.WriteTime != 0 {
+		s.SetReadTimeOut(cfg.WriteTime)
+	}
 
 	//always use ok packet to relace eof packet after a Text Resultset
 	s.capabilities = cfg.Capabilities | protocol.CLIENT_DEPRECATE_EOF
