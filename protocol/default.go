@@ -23,3 +23,5 @@ const DefaultClientCapabilities uint32 = CLIENT_LONG_PASSWORD |
 	CLIENT_CONNECT_ATTRS
 
 const DefaultNull byte = 0xfb
+
+const DefaultTimeFormat string = "2006-01-02 15:04:05.000000000"

@@ -165,10 +165,10 @@ func CopyPacket(w io.Writer, r io.Reader) error {
 	return nil
 }
 
-func (c *Conn) SetReadDeadline(read time.Duration) {
+func (c *Conn) SetReadTimeOut(read time.Duration) {
 	c.read = read
 }
 
-func (c *Conn) SetWriteDeadline(write time.Duration) {
+func (c *Conn) SetWriteTimeOut(write time.Duration) {
 	c.write = write
 }
