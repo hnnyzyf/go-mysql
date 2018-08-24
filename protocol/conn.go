@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"io"
 	"net"
+	"time"
 
 	"github.com/hnnyzyf/go-mysql/util/binary"
 	"github.com/hnnyzyf/go-mysql/util/math"
@@ -23,6 +24,10 @@ type Conn struct {
 	//the real conn
 	conn net.Conn
 
+	//timeout for I/O read and write
+	read  time.Duration
+	write time.Duration
+
 	//The sequence-id is incremented with each packet and may wrap around.
 	//It starts at 0 and is reset to 0 when a new command begins in the Command Phase.
 	sid uint8
@@ -31,9 +36,21 @@ type Conn struct {
 	header []byte
 }
 
+//init a Conn without Timeout
 func NewConn(conn net.Conn) *Conn {
 	return &Conn{
 		conn:   conn,
+		sid:    0,
+		header: make([]byte, 4),
+	}
+}
+
+//init a Conn with Timeout
+func NewConnWithTimeout(conn net.Conn, read time.Duration, write time.Duration) *Conn {
+	return &Conn{
+		conn:   conn,
+		read:   read,
+		write:  write,
 		sid:    0,
 		header: make([]byte, 4),
 	}
@@ -56,14 +73,18 @@ func (c *Conn) TransformToSSL(cfg *tls.Config) {
 
 //ReadPacket read the packet from a io.Reader
 func (c *Conn) ReadPacket() ([]byte, error) {
+	//set read timeout
+	if c.read != 0 {
+		c.conn.SetReadDeadline(time.Now().Add(c.read))
+	}
+
 	//read the first 4 bytes
-	header := c.header
-	if _, err := io.ReadFull(c.conn, header); err != nil {
+	if _, err := io.ReadFull(c.conn, c.header); err != nil {
 		return nil, errors.Trace(err)
 	}
 
 	//get the length of payload
-	length, err := binary.ReadInt3(header[0:3])
+	length, err := binary.ReadInt3(c.header[0:3])
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -72,7 +93,7 @@ func (c *Conn) ReadPacket() ([]byte, error) {
 	}
 
 	//check sequenced id
-	if sid, err := binary.ReadInt1(header[3:]); err != nil {
+	if sid, err := binary.ReadInt1(c.header[3:]); err != nil {
 		return nil, errors.Trace(err)
 		//if it is not command packet or handshake packet
 	} else if sid != 0 && sid != c.sid {
@@ -104,23 +125,25 @@ func (c *Conn) ReadPacket() ([]byte, error) {
 //A payload is impossible to more than 18446744073709551615 bytes
 //which is nearly 16777216TB
 func (c *Conn) WritePacket(size int, payload io.Reader) error {
-	//alloc memroy for header
-	header := c.header
+	//set read timeout
+	if c.write != 0 {
+		c.conn.SetWriteDeadline(time.Now().Add(c.write))
+	}
 
 	for size > 0 {
 		//get the payload length and sid
 		length := math.MinInt(size, int(PayLoadMaxLen))
 
 		//length and header
-		if err := binary.WriteInt3(header, uint32(length)); err != nil {
+		if err := binary.WriteInt3(c.header, uint32(length)); err != nil {
 			return errors.Trace(err)
 		}
-		if err := binary.WriteInt1(header[3:], c.sid); err != nil {
+		if err := binary.WriteInt1(c.header[3:], c.sid); err != nil {
 			return errors.Trace(err)
 		}
 
 		//write header
-		if n, err := c.conn.Write(header); err != nil {
+		if n, err := c.conn.Write(c.header); err != nil {
 			return errors.Trace(err)
 		} else {
 			if n != 4 {
